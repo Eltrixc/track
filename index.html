@@ -1012,9 +1012,6 @@ async function fetchStockData(prefix){
       }
       if(!r2||!r2.ok) throw new Error('Semua proxy gagal. Coba lagi nanti.');
       data=await r2.json();
-      const r2=await fetch(proxy);
-      if(!r2.ok) throw new Error('Proxy gagal ('+r2.status+')');
-      data=await r2.json();
     }
     const res=data?.quoteSummary?.result?.[0];
     if(!res) throw new Error(symbol+' tidak ditemukan di Yahoo Finance.');

@@ -873,7 +873,7 @@ function fmtDisc(price, fv) {
 }
 function calcFV(bvps, pbv, ni, pe, shares, eps) {
   const fv1 = (bvps && pbv) ? bvps * pbv : null;
-  const fv2 = (ni && pe && shares) ? (ni * pe) / shares * 1e6 : null;
+  const fv2 = (ni && pe && shares) ? ((ni * pe) / shares * 1e6) / 1000 : null;
   const fv3 = (pe && eps) ? pe * eps : null;
   const vals = [fv1, fv2, fv3].filter(v => v !== null);
   const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;

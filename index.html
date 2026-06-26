@@ -1001,7 +1001,17 @@ async function fetchStockData(prefix){
       data=await r.json();
     }catch(e1){
       usedProxy=true;
-      const proxy='https://api.allorigins.win/raw?url='+encodeURIComponent(apiUrl);
+      const proxies=[
+        'https://corsproxy.io/?'+encodeURIComponent(apiUrl),
+        'https://api.allorigins.win/raw?url='+encodeURIComponent(apiUrl),
+        'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(apiUrl)
+      ];
+      let r2, lastErr;
+      for(const p of proxies){
+        try{ r2=await fetch(p); if(r2.ok) break; }catch(e){ lastErr=e; }
+      }
+      if(!r2||!r2.ok) throw new Error('Semua proxy gagal. Coba lagi nanti.');
+      data=await r2.json();
       const r2=await fetch(proxy);
       if(!r2.ok) throw new Error('Proxy gagal ('+r2.status+')');
       data=await r2.json();

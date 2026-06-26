@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Predictor</title>
+<style>
+  :root {
+    --bg:        #fafaf9;
+    --bg2:       #f5f4f1;
+    --surface:   #ffffff;
+    --border:    #e7e5e0;
+    --border2:   #d6d3cc;
+    --text:      #1c1917;
+    --text2:     #57534e;
+    --text3:     #a8a29e;
+    --accent:    #d97706;
+    --accent-bg: #fef3c7;
+    --accent-t:  #92400e;
+    --green:     #16a34a;
+    --green-bg:  #f0fdf4;
+    --green-t:   #14532d;
+    --red:       #dc2626;
+    --red-bg:    #fef2f2;
+    --red-t:     #7f1d1d;
+    --radius:    8px;
+    --shadow:    0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  }
+  [data-theme="dark"] {
+    --bg:        #1c1917;
+    --bg2:       #292524;
+    --surface:   #2c2826;
+    --border:    #3d3835;
+    --border2:   #57534e;
+    --text:      #fafaf9;
+    --text2:     #d6d3cc;
+    --text3:     #78716c;
+    --accent:    #f59e0b;
+    --accent-bg: #451a03;
+    --accent-t:  #fde68a;
+    --green:     #22c55e;
+    --green-bg:  #052e16;
+    --green-t:   #bbf7d0;
+    --red:       #ef4444;
+    --red-bg:    #450a0a;
+    --red-t:     #fecaca;
+    --shadow:    0 1px 3px rgba(0,0,0,0.3);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  /* ── Topbar ── */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: Georgia, serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+  }
+  .logo span { color: var(--accent); }
+  .tab-group {
+    display: flex;
+    gap: 4px;
+    background: var(--bg2);
+    border-radius: var(--radius);
+    padding: 3px;
+  }
+  .tab-btn {
+    font-family: Georgia, serif;
+    font-size: 13px;
+    padding: 5px 14px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .tab-btn.active {
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: var(--shadow);
+  }
+  .tab-badge {
+    display: inline-block;
+    background: var(--accent-bg);
+    color: var(--accent-t);
+    font-size: 10px;
+    font-family: sans-serif;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .spacer { flex: 1; }
+  .search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    color: var(--text3);
+    font-size: 14px;
+    pointer-events: none;
+  }
+  .search-input {
+    font-family: sans-serif;
+    font-size: 13px;
+    padding: 6px 10px 6px 32px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg2);
+    color: var(--text);
+    width: 200px;
+    outline: none;
+    transition: border-color 0.15s, width 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent); width: 240px; }
+  .search-input::placeholder { color: var(--text3); }
+  .icon-btn {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 16px;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover { background: var(--border); }
+
+  /* ── Layout ── */
+  .main { padding: 24px; max-width: 1200px; margin: 0 auto; }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 26px;
+    font-weight: 700;
+    font-family: Georgia, serif;
+    color: var(--text);
+  }
+  .stat-num.green { color: var(--green); }
+  .stat-num.red { color: var(--red); }
+  .stat-num.accent { color: var(--accent); }
+  .stat-lbl { font-size: 11px; font-family: sans-serif; color: var(--text3); margin-top: 2px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* ── Top actions bar ── */
+  .actions-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    gap: 12px;
+  }
+  .section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    font-family: Georgia, serif;
+  }
+  .btn {
+    font-family: sans-serif;
+    font-size: 13px;
+    padding: 7px 16px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text2);
+    transition: background 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover { background: var(--bg2); }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .btn-primary:hover { opacity: 0.9; background: var(--accent); }
+  .btn-hit {
+    background: var(--green-bg);
+    color: var(--green-t);
+    border-color: var(--green);
+    font-weight: 600;
+  }
+  .btn-miss {
+    background: var(--red-bg);
+    color: var(--red-t);
+    border-color: var(--red);
+    font-weight: 600;
+  }
+
+  /* ── Emiten grid ── */
+  .emiten-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  /* ── Emiten card ── */
+  .emiten-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: var(--shadow);
+    transition: border-color 0.2s;
+  }
+  .emiten-card.overvalue { border-left-color: var(--red); }
+  .emiten-card.undervalue { border-left-color: var(--green); }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .ticker {
+    font-family: Georgia, serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .badge {
+    font-family: sans-serif;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .badge.green { background: var(--green-bg); color: var(--green-t); }
+  .badge.red { background: var(--red-bg); color: var(--red-t); }
+  .badge.pending { background: var(--bg2); color: var(--text3); }
+
+  .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: sans-serif;
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text3); }
+
+  /* ── FV rows ── */
+  .fv-section { display: flex; flex-direction: column; gap: 4px; }
+  .price-main {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .price-label { font-family: sans-serif; font-size: 11px; color: var(--text3); }
+  .price-val { font-family: Georgia, serif; font-size: 22px; font-weight: 700; color: var(--text); }
+  .fv-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: sans-serif;
+    font-size: 12px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .fv-row:last-child { border-bottom: none; }
+  .fv-label { color: var(--text3); }
+  .fv-vals { display: flex; align-items: center; gap: 8px; }
+  .fv-num { font-weight: 600; color: var(--text); }
+  .disc-pill {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .disc-pill.pos { background: var(--green-bg); color: var(--green-t); }
+  .disc-pill.neg { background: var(--red-bg); color: var(--red-t); }
+
+  /* ── Progress bar ── */
+  .progress-wrap { display: flex; flex-direction: column; gap: 4px; }
+  .progress-label { font-family: sans-serif; font-size: 10px; color: var(--text3); display: flex; justify-content: space-between; }
+  .progress-bar { height: 4px; background: var(--bg2); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+
+  /* ── Notes ── */
+  .notes-box {
+    font-family: sans-serif;
+    font-size: 12px;
+    color: var(--text2);
+    background: var(--bg2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    line-height: 1.5;
+    min-height: 32px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* ── Quarter history ── */
+  .history-toggle {
+    font-family: sans-serif;
+    font-size: 11px;
+    color: var(--text3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    user-select: none;
+  }
+  .history-toggle:hover { color: var(--accent); }
+  .history-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .history-entry {
+    background: var(--bg2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: sans-serif;
+    font-size: 11px;
+    color: var(--text2);
+    border-left: 2px solid var(--border2);
+  }
+  .history-entry .he-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .history-entry .he-quarter { font-weight: 600; color: var(--text); }
+  .history-entry .he-price { color: var(--text3); }
+  .history-entry .he-fvs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+  .he-fv-chip { background: var(--surface); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-size: 10px; color: var(--text2); }
+
+  /* ── Card footer actions ── */
+  .card-footer {
+    display: flex;
+    gap: 6px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    margin-top: 2px;
+  }
+  .card-footer .btn { flex: 1; justify-content: center; font-size: 12px; padding: 6px 10px; }
+
+  /* ── Add card placeholder ── */
+  .add-card {
+    background: var(--surface);
+    border: 1.5px dashed var(--border2);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 200px;
+    cursor: pointer;
+    color: var(--text3);
+    font-family: sans-serif;
+    font-size: 13px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .add-card:hover { border-color: var(--accent); color: var(--accent); }
+  .add-card svg { width: 28px; height: 28px; stroke: currentColor; fill: none; }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text3);
+    font-family: sans-serif;
+  }
+  .empty-state p { font-size: 15px; margin-bottom: 16px; color: var(--text2); }
+  .empty-state span { font-size: 13px; }
+
+  /* ── Inventory ── */
+  .inv-table-wrap { overflow-x: auto; }
+  .inv-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: sans-serif;
+    font-size: 13px;
+  }
+  .inv-table th {
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    white-space: nowrap;
+  }
+  .inv-table td {
+    padding: 12px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .inv-table tr:last-child td { border-bottom: none; }
+  .inv-table tr:hover td { background: var(--bg2); }
+  .inv-ticker { font-family: Georgia, serif; font-size: 15px; font-weight: 700; }
+  .inv-badge { font-size: 11px; padding: 2px 9px; border-radius: 20px; font-weight: 600; }
+  .inv-badge.hit { background: var(--green-bg); color: var(--green-t); }
+  .inv-badge.miss { background: var(--red-bg); color: var(--red-t); }
+  .inv-notes { color: var(--text3); font-size: 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .inv-actions { display: flex; gap: 6px; }
+  .inv-actions .btn { padding: 4px 10px; font-size: 11px; }
+  .inv-empty { text-align: center; padding: 40px; color: var(--text3); font-family: sans-serif; font-size: 13px; }
+
+  /* ── Export bar ── */
+  .export-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .export-bar .section-title { flex: 1; }
+
+  /* ── Modal ── */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  }
+  .modal h2 {
+    font-family: Georgia, serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .modal-sub { font-family: sans-serif; font-size: 13px; color: var(--text3); margin-bottom: 20px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid.full { grid-template-columns: 1fr; }
+  .form-field { display: flex; flex-direction: column; gap: 5px; }
+  .form-field label {
+    font-family: sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .form-field input,
+  .form-field textarea,
+  .form-field select {
+    font-family: sans-serif;
+    font-size: 13px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-field input:focus,
+  .form-field textarea:focus,
+  .form-field select:focus { border-color: var(--accent); }
+  .form-field textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+  .form-divider {
+    font-family: sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text3);
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+    margin-top: 4px;
+  }
+  .computed-row {
+    background: var(--bg2);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: sans-serif;
+    font-size: 13px;
+  }
+  .computed-lbl { color: var(--text2); }
+  .computed-val { font-weight: 700; font-family: Georgia, serif; font-size: 16px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--text);
+    color: var(--bg);
+    font-family: sans-serif;
+    font-size: 13px;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .topbar { padding: 0 14px; gap: 10px; }
+    .main { padding: 14px; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    .search-input { width: 140px; }
+    .search-input:focus { width: 160px; }
+    .logo { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="logo">Stock<span>Tracker</span></div>
+  <div class="tab-group">
+    <button class="tab-btn active" onclick="switchTab('active')">
+      Aktif <span class="tab-badge" id="badge-active">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('inventory')">
+      Inventori <span class="tab-badge" id="badge-inv">0</span>
+    </button>
+  </div>
+  <div class="spacer"></div>
+  <div class="search-wrap">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-input" id="search-input" type="text" placeholder="Cari emiten..." oninput="filterCards()">
+  </div>
+  <button class="btn" onclick="toggleLang()" style="margin-right:8px">ID/EN</button>
+  <button class="icon-btn" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode">
+    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Active Tab -->
+  <div id="tab-active">
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-num accent" id="s-active">0</div>
+        <div class="stat-lbl">Aktif</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num green" id="s-hit">0</div>
+        <div class="stat-lbl">Hit</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num red" id="s-miss">0</div>
+        <div class="stat-lbl">Miss</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="s-winrate">—</div>
+        <div class="stat-lbl">Win rate</div>
+      </div>
+    </div>
+
+    <div class="actions-bar">
+      <div class="section-title">Emiten aktif</div>
+      <button class="btn btn-primary" onclick="openAddModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M12 5v14M5 12h14"/></svg>
+        Tambah emiten
+      </button>
+    </div>
+
+    <div class="emiten-grid" id="emiten-grid">
+      <!-- cards injected -->
+    </div>
+  </div>
+
+  <!-- Inventory Tab -->
+  <div id="tab-inventory" style="display:none">
+    <div class="export-bar">
+      <div class="section-title">Inventori prediksi</div>
+      <button class="btn" onclick="exportCSV()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export CSV
+      </button>
+      <button class="btn" onclick="exportPDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Export PDF
+      </button>
+    </div>
+    <div class="inv-table-wrap">
+      <table class="inv-table">
+        <thead>
+          <tr>
+            <th>Emiten</th>
+            <th>Kuartal</th>
+            <th>Harga beli</th>
+            <th>FV1 (PBV)</th>
+            <th>FV2 (PE×NI)</th>
+            <th>FV3 (PE×EPS)</th>
+            <th>Hasil</th>
+            <th>Ditutup</th>
+            <th>Catatan</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="inv-body">
+          <tr><td colspan="10" class="inv-empty">Belum ada prediksi yang ditutup.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: tambah/edit entry -->
+<div class="modal-backdrop" id="modal-add">
+  <div class="modal">
+    <h2 id="modal-title">Tambah emiten baru</h2>
+    <div class="modal-sub" id="modal-sub">Isi data baru untuk emiten ini.</div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Kode emiten</label>
+        <input type="text" id="f-ticker" placeholder="RGAS" maxlength="10" style="text-transform:uppercase">
+      </div>
+      <div class="form-field">
+        <label>Kuartal</label>
+        <input type="text" id="f-quarter" placeholder="Q1 2026" maxlength="10">
+      </div>
+    </div>
+
+    <div class="form-divider" style="margin-top:16px">Harga & rasio</div>
+    <div class="form-grid" style="margin-top:12px">
+      <div class="form-field">
+        <label>Harga sekarang (Rp)</label>
+        <input type="number" id="f-price" placeholder="89" oninput="computePreview()">
+      </div>
+      <div class="form-field">
+        <label>BVPS (Rp)</label>
+        <input type="number" id="f-bvps" placeholder="71.12" oninput="computePreview()">
+      </div>
+      <div class="form-field">
+        <label>Mean PBV 3 tahun</label>
+        <input type="number" id="f-pbv" placeholder="1.99" step="0.01" oninput="computePreview()">
+      </div>
+      <div class="form-field">
+        <label>Net Income (T)</label>
+        <input type="number" id="f-ni" placeholder="0.016" step="0.001" oninput="computePreview()">
+      </div>
+      <div class="form-field">
+        <label>Mean PE 3 tahun</label>
+        <input type="number" id="f-pe" placeholder="33.96" step="0.01" oninput="computePreview()">
+      </div>
+      <div class="form-field">
+        <label>Jumlah saham (M)</label>
+        <input type="number" id="f-shares" placeholder="1.46" step="0.01" oninput="computePreview()">
+      </div>
+      <div class="form-field">
+        <label>EPS 1 tahun (Rp)</label>
+        <input type="number" id="f-eps" placeholder="10.92" step="0.01" oninput="computePreview()">
+      </div>
+    </div>
+
+    <div class="form-divider" style="margin-top:16px">Hasil kalkulasi</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px" id="preview-rows">
+      <div class="computed-row">
+        <span class="computed-lbl">FV1 — BVPS × Mean PBV</span>
+        <span class="computed-val" id="prev-fv1">—</span>
+      </div>
+      <div class="computed-row">
+        <span class="computed-lbl">FV2 — (NI × PE) ÷ Saham ÷ 1000 </span>
+        <span class="computed-val" id="prev-fv2">—</span>
+      </div>
+      <div class="computed-row">
+        <span class="computed-lbl">FV3 — PE × EPS</span>
+        <span class="computed-val" id="prev-fv3">—</span>
+      </div>
+      <div class="computed-row" style="border:1px solid var(--accent);background:var(--accent-bg)">
+        <span class="computed-lbl" style="font-weight:600">Rata-rata FV</span>
+        <span class="computed-val" id="prev-avg" style="color:var(--accent)">—</span>
+      </div>
+    </div>
+
+    <div class="form-divider" style="margin-top:16px">Catatan</div>
+    <div class="form-grid full" style="margin-top:12px">
+      <div class="form-field">
+        <label>Catatan analisis</label>
+        <textarea id="f-notes" placeholder="Cash > Debt ✓, Mikro kap ✗, PER rendah..."></textarea>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn btn-primary" onclick="saveEntry()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: tambah kuartal baru ke emiten existing -->
+<div class="modal-backdrop" id="modal-quarter">
+  <div class="modal">
+    <h2 id="mq-title">Tambah entry kuartal baru</h2>
+    <div class="modal-sub" id="mq-sub">Update data setelah lapkeu terbaru rilis.</div>
+    <input type="hidden" id="mq-emiten-id">
+
+    <div class="form-grid">
+      <div class="form-field" style="grid-column:1/-1">
+        <label>Kuartal</label>
+        <input type="text" id="mq-quarter" placeholder="Q2 2026" maxlength="10">
+      </div>
+    </div>
+
+    <div class="form-divider" style="margin-top:16px">Harga & rasio</div>
+    <div class="form-grid" style="margin-top:12px">
+      <div class="form-field">
+        <label>Harga sekarang (Rp)</label>
+        <input type="number" id="mq-price" placeholder="89" oninput="computeQuarterPreview()">
+      </div>
+      <div class="form-field">
+        <label>BVPS (Rp)</label>
+        <input type="number" id="mq-bvps" placeholder="71.12" oninput="computeQuarterPreview()">
+      </div>
+      <div class="form-field">
+        <label>Mean PBV 3 tahun</label>
+        <input type="number" id="mq-pbv" placeholder="1.99" step="0.01" oninput="computeQuarterPreview()">
+      </div>
+      <div class="form-field">
+        <label>Net Income (T)</label>
+        <input type="number" id="mq-ni" placeholder="0.016" step="0.001" oninput="computeQuarterPreview()">
+      </div>
+      <div class="form-field">
+        <label>Mean PE 3 tahun</label>
+        <input type="number" id="mq-pe" placeholder="33.96" step="0.01" oninput="computeQuarterPreview()">
+      </div>
+      <div class="form-field">
+        <label>Jumlah saham (M)</label>
+        <input type="number" id="mq-shares" placeholder="1.46" step="0.01" oninput="computeQuarterPreview()">
+      </div>
+      <div class="form-field">
+        <label>EPS 1 tahun (Rp)</label>
+        <input type="number" id="mq-eps" placeholder="10.92" step="0.01" oninput="computeQuarterPreview()">
+      </div>
+    </div>
+
+    <div class="form-divider" style="margin-top:16px">Hasil kalkulasi</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+      <div class="computed-row"><span class="computed-lbl">FV1</span><span class="computed-val" id="mq-fv1">—</span></div>
+      <div class="computed-row"><span class="computed-lbl">FV2</span><span class="computed-val" id="mq-fv2">—</span></div>
+      <div class="computed-row"><span class="computed-lbl">FV3</span><span class="computed-val" id="mq-fv3">—</span></div>
+      <div class="computed-row" style="border:1px solid var(--accent);background:var(--accent-bg)">
+        <span class="computed-lbl" style="font-weight:600">Rata-rata FV</span>
+        <span class="computed-val" id="mq-avg" style="color:var(--accent)">—</span>
+      </div>
+    </div>
+
+    <div class="form-divider" style="margin-top:16px">Catatan</div>
+    <div class="form-grid full" style="margin-top:12px">
+      <div class="form-field">
+        <label>Catatan analisis</label>
+        <textarea id="mq-notes" placeholder="Update analisis setelah lapkeu..."></textarea>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" onclick="closeQuarterModal()">Batal</button>
+      <button class="btn btn-primary" onclick="saveQuarterEntry()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──
+let state = { emitens: [], inventory: [] };
+let currentTab = 'active';
+let editingEmitenId = null;
+let lang = localStorage.getItem('lang') || 'id';
+
+const i18n = {
+ id: {active:'Aktif', inventory:'Inventori', add:'Tambah emiten', search:'Cari emiten...'},
+ en: {active:'Active', inventory:'Inventory', add:'Add stock', search:'Search stock...'}
+};
+
+function toggleLang(){
+ lang = lang === 'id' ? 'en' : 'id';
+ localStorage.setItem('lang', lang);
+ renderCards();
+ showToast(lang === 'id' ? 'Bahasa Indonesia' : 'English');
+}
+
+// ── Persistence ──
+function save() {
+  try { localStorage.setItem('nw_state', JSON.stringify(state)); } catch(e) {}
+}
+function load() {
+  try {
+    const d = localStorage.getItem('nw_state');
+    if (d) state = JSON.parse(d);
+  } catch(e) {}
+}
+
+// ── Theme ──
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  localStorage.setItem('nw_theme', isDark ? 'light' : 'dark');
+  updateThemeIcon();
+}
+function updateThemeIcon() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.getElementById('theme-icon').innerHTML = isDark
+    ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+
+// ── Utils ──
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function fmt(n) {
+  if (!n && n !== 0) return '—';
+  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+}
+function fmtDisc(price, fv) {
+  if (!price || !fv) return null;
+  const disc = ((fv - price) / price * 100);
+  return disc.toFixed(1);
+}
+function calcFV(bvps, pbv, ni, pe, shares, eps) {
+  const fv1 = (bvps && pbv) ? bvps * pbv : null;
+  const fv2 = (ni && pe && shares) ? (ni * pe * 1e6) / shares / 1000 : null;
+  const fv3 = (pe && eps) ? pe * eps : null;
+  const vals = [fv1, fv2, fv3].filter(v => v !== null);
+  const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  return { fv1, fv2, fv3, avg };
+}
+
+function formatNotes(text) {
+  if (!text) return '';
+  const lines = text.split('\n');
+  const plus = lines.filter(x => x.trim().startsWith('+')).map(x => x.replace('+','').trim());
+  const minus = lines.filter(x => x.trim().startsWith('-')).map(x => x.replace('-','').trim());
+
+  let html = '';
+  if (plus.length) {
+    html += `<div style="color:var(--green-t)"><b>✓ Positif</b><br>${plus.join('<br>')}</div>`;
+  }
+  if (minus.length) {
+    html += `<div style="margin-top:6px;color:var(--red-t)"><b>✗ Risiko</b><br>${minus.join('<br>')}</div>`;
+  }
+  return html || escHtml(text);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── Tabs ──
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-active').style.display = tab === 'active' ? '' : 'none';
+  document.getElementById('tab-inventory').style.display = tab === 'inventory' ? '' : 'none';
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', (i === 0) === (tab === 'active')));
+  if (tab === 'inventory') renderInventory();
+}
+
+// ── Stats ──
+function updateStats() {
+  const inv = state.inventory;
+  const hits = inv.filter(i => i.result === 'hit').length;
+  const misses = inv.filter(i => i.result === 'miss').length;
+  const total = hits + misses;
+  document.getElementById('s-active').textContent = state.emitens.length;
+  document.getElementById('s-hit').textContent = hits;
+  document.getElementById('s-miss').textContent = misses;
+  document.getElementById('s-winrate').textContent = total ? Math.round(hits / total * 100) + '%' : '—';
+  document.getElementById('badge-active').textContent = state.emitens.length;
+  document.getElementById('badge-inv').textContent = state.inventory.length;
+}
+
+// ── Render active cards ──
+function renderCards() {
+  const grid = document.getElementById('emiten-grid');
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const filtered = state.emitens.filter(e =>
+    !q || e.ticker.toLowerCase().includes(q) || (e.entries[e.entries.length-1]?.notes || '').toLowerCase().includes(q)
+  );
+
+  let html = '';
+  filtered.forEach(em => {
+    const last = em.entries[em.entries.length - 1];
+    if (!last) return;
+    const { fv1, fv2, fv3, avg } = calcFV(last.bvps, last.pbv, last.ni, last.pe, last.shares, last.eps);
+    const isUnder = avg && last.price < avg;
+    const isOver = avg && last.price >= avg;
+    const cardClass = isUnder ? 'undervalue' : isOver ? 'overvalue' : '';
+
+    const discStr = (fv, label) => {
+      if (!fv || !last.price) return '';
+      const d = fmtDisc(last.price, fv);
+      const cls = parseFloat(d) > 0 ? 'pos' : 'neg';
+      const sign = parseFloat(d) > 0 ? '+' : '';
+      return `<span class="disc-pill ${cls}">${sign}${d}%</span>`;
+    };
+
+    const progress = avg && last.price ? Math.min(100, Math.round(last.price / avg * 100)) : 0;
+    const progressColor = isUnder ? 'var(--green)' : 'var(--red)';
+
+    const historyEntries = em.entries.slice(0, -1).reverse().map(e => {
+      const { fv1: h1, fv2: h2, fv3: h3 } = calcFV(e.bvps, e.pbv, e.ni, e.pe, e.shares, e.eps);
+      return `<div class="history-entry">
+        <div class="he-top"><span class="he-quarter">${e.quarter}</span><span class="he-price">Rp ${Math.round(e.price).toLocaleString('id-ID')}</span></div>
+        <div class="he-fvs">
+          ${h1 ? `<span class="he-fv-chip">FV1: Rp ${Math.round(h1).toLocaleString('id-ID')}</span>` : ''}
+          ${h2 ? `<span class="he-fv-chip">FV2: Rp ${Math.round(h2).toLocaleString('id-ID')}</span>` : ''}
+          ${h3 ? `<span class="he-fv-chip">FV3: Rp ${Math.round(h3).toLocaleString('id-ID')}</span>` : ''}
+        </div>
+        ${e.notes ? `<div style="margin-top:4px;color:var(--text3)">${escHtml(e.notes)}</div>` : ''}
+      </div>`;
+    }).join('');
+
+    const hasHistory = em.entries.length > 1;
+
+    html += `<div class="emiten-card ${cardClass}" id="card-${em.id}">
+      <div class="card-header">
+        <div class="ticker">${escHtml(em.ticker)}</div>
+        <span class="badge ${isUnder ? 'green' : isOver ? 'red' : 'pending'}">${isUnder ? 'Undervalue' : isOver ? 'Overvalue' : 'Belum terhitung'}</span>
+      </div>
+      <div class="meta-row">
+        <span>${escHtml(last.quarter)}</span>
+        <span class="meta-dot"></span>
+        <span>${em.entries.length} entry</span>
+        <span class="meta-dot"></span>
+        <span>${new Date(em.createdAt).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'})}</span>
+      </div>
+      <div class="fv-section">
+        <div class="price-main">
+          <span class="price-label">Harga</span>
+          <span class="price-val">Rp ${last.price ? Math.round(last.price).toLocaleString('id-ID') : '—'}</span>
+        </div>
+        <div class="fv-row">
+          <span class="fv-label">FV1 — BVPS × PBV</span>
+          <span class="fv-vals"><span class="fv-num">${fmt(fv1)}</span>${discStr(fv1)}</span>
+        </div>
+        <div class="fv-row">
+          <span class="fv-label">FV2 — (NI × PE) ÷ Saham</span>
+          <span class="fv-vals"><span class="fv-num">${fmt(fv2)}</span>${discStr(fv2)}</span>
+        </div>
+        <div class="fv-row">
+          <span class="fv-label">FV3 — PE × EPS</span>
+          <span class="fv-vals"><span class="fv-num">${fmt(fv3)}</span>${discStr(fv3)}</span>
+        </div>
+      </div>
+      ${avg && last.price ? `<div class="progress-wrap">
+        <div class="progress-label"><span>Harga vs FV rata-rata (${fmt(avg)})</span><span>${progress}%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${progress}%;background:${progressColor}"></div></div>
+      </div>` : ''}
+      ${last.notes ? `<div class="notes-box">${formatNotes(last.notes)}</div>` : ''}
+      ${hasHistory ? `<div>
+        <div class="history-toggle" onclick="toggleHistory(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg>
+          Riwayat ${em.entries.length - 1} kuartal sebelumnya
+        </div>
+        <div class="history-list" style="display:none">${historyEntries}</div>
+      </div>` : ''}
+      <div class="card-footer">
+        <button class="btn" onclick="openQuarterModal('${em.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M12 5v14M5 12h14"/></svg>
+          Entry baru
+        </button>
+        <button class="btn btn-hit" onclick="closeEmiten('${em.id}','hit')">✓ Hit</button>
+        <button class="btn btn-miss" onclick="closeEmiten('${em.id}','miss')">✗ Miss</button>
+        <button class="btn btn-miss" onclick="deleteEmiten('${em.id}')" title="Hapus" aria-label="Hapus emiten" style="flex:0;padding:6px 8px">🗑 Hapus
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+    </div>`;
+  });
+
+  html += `<div class="add-card" onclick="openAddModal()">
+    <svg viewBox="0 0 24 24" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+    Tambah emiten baru
+  </div>`;
+
+  if (filtered.length === 0 && state.emitens.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <p>Belum ada emiten aktif.</p>
+      <span>Klik tombol "Tambah emiten" untuk mulai screening.</span>
+    </div>` + html;
+  } else {
+    grid.innerHTML = html;
+  }
+}
+
+function toggleHistory(el) {
+  const list = el.nextElementSibling;
+  const open = list.style.display !== 'none';
+  list.style.display = open ? 'none' : 'flex';
+  el.querySelector('svg').style.transform = open ? '' : 'rotate(180deg)';
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+}
+
+// ── Filter ──
+function filterCards() { renderCards(); }
+
+// ── Add emiten modal ──
+function openAddModal() {
+  editingEmitenId = null;
+  document.getElementById('modal-title').textContent = 'Tambah emiten baru';
+  document.getElementById('modal-sub').textContent = 'Isi data kuartal pertama untuk emiten ini.';
+  ['ticker','quarter','price','bvps','pbv','ni','pe','shares','eps','notes'].forEach(f => {
+    const el = document.getElementById('f-' + f);
+    if (el) el.value = '';
+  });
+  ['prev-fv1','prev-fv2','prev-fv3','prev-avg'].forEach(id => document.getElementById(id).textContent = '—');
+  document.getElementById('modal-add').classList.add('open');
+  setTimeout(() => document.getElementById('f-ticker').focus(), 50);
+}
+function closeModal() { document.getElementById('modal-add').classList.remove('open'); }
+
+function computePreview() {
+  const v = f => parseFloat(document.getElementById('f-' + f).value) || null;
+  const { fv1, fv2, fv3, avg } = calcFV(v('bvps'), v('pbv'), v('ni'), v('pe'), v('shares'), v('eps'));
+  document.getElementById('prev-fv1').textContent = fmt(fv1);
+  document.getElementById('prev-fv2').textContent = fmt(fv2);
+  document.getElementById('prev-fv3').textContent = fmt(fv3);
+  document.getElementById('prev-avg').textContent = fmt(avg);
+}
+
+function saveEntry() {
+  const ticker = document.getElementById('f-ticker').value.trim().toUpperCase();
+  const quarter = document.getElementById('f-quarter').value.trim();
+  if (!ticker) { alert('Kode emiten wajib diisi.'); return; }
+  const entry = {
+    id: uid(),
+    quarter: quarter || '—',
+    price: parseFloat(document.getElementById('f-price').value) || 0,
+    bvps: parseFloat(document.getElementById('f-bvps').value) || null,
+    pbv: parseFloat(document.getElementById('f-pbv').value) || null,
+    ni: parseFloat(document.getElementById('f-ni').value) || null,
+    pe: parseFloat(document.getElementById('f-pe').value) || null,
+    shares: parseFloat(document.getElementById('f-shares').value) || null,
+    eps: parseFloat(document.getElementById('f-eps').value) || null,
+    notes: document.getElementById('f-notes').value.trim(),
+    createdAt: Date.now()
+  };
+  state.emitens.push({ id: uid(), ticker, createdAt: Date.now(), entries: [entry] });
+  save();
+  closeModal();
+  renderCards();
+  updateStats();
+  showToast(ticker + ' berhasil ditambahkan.');
+}
+
+// ── Add quarter modal ──
+function openQuarterModal(emitenId) {
+  const em = state.emitens.find(e => e.id === emitenId);
+  if (!em) return;
+  document.getElementById('mq-title').textContent = 'Entry baru — ' + em.ticker;
+  document.getElementById('mq-sub').textContent = 'Update data setelah lapkeu terbaru rilis.';
+  document.getElementById('mq-emiten-id').value = emitenId;
+  ['quarter','price','bvps','pbv','ni','pe','shares','eps','notes'].forEach(f => {
+    const el = document.getElementById('mq-' + f);
+    if (el) el.value = '';
+  });
+  ['mq-fv1','mq-fv2','mq-fv3','mq-avg'].forEach(id => document.getElementById(id).textContent = '—');
+  document.getElementById('modal-quarter').classList.add('open');
+  setTimeout(() => document.getElementById('mq-quarter').focus(), 50);
+}
+function closeQuarterModal() { document.getElementById('modal-quarter').classList.remove('open'); }
+
+function computeQuarterPreview() {
+  const v = f => parseFloat(document.getElementById('mq-' + f).value) || null;
+  const { fv1, fv2, fv3, avg } = calcFV(v('bvps'), v('pbv'), v('ni'), v('pe'), v('shares'), v('eps'));
+  document.getElementById('mq-fv1').textContent = fmt(fv1);
+  document.getElementById('mq-fv2').textContent = fmt(fv2);
+  document.getElementById('mq-fv3').textContent = fmt(fv3);
+  document.getElementById('mq-avg').textContent = fmt(avg);
+}
+
+function saveQuarterEntry() {
+  const emitenId = document.getElementById('mq-emiten-id').value;
+  const em = state.emitens.find(e => e.id === emitenId);
+  if (!em) return;
+  const quarter = document.getElementById('mq-quarter').value.trim();
+  const entry = {
+    id: uid(),
+    quarter: quarter || '—',
+    price: parseFloat(document.getElementById('mq-price').value) || 0,
+    bvps: parseFloat(document.getElementById('mq-bvps').value) || null,
+    pbv: parseFloat(document.getElementById('mq-pbv').value) || null,
+    ni: parseFloat(document.getElementById('mq-ni').value) || null,
+    pe: parseFloat(document.getElementById('mq-pe').value) || null,
+    shares: parseFloat(document.getElementById('mq-shares').value) || null,
+    eps: parseFloat(document.getElementById('mq-eps').value) || null,
+    notes: document.getElementById('mq-notes').value.trim(),
+    createdAt: Date.now()
+  };
+  em.entries.push(entry);
+  save();
+  closeQuarterModal();
+  renderCards();
+  showToast('Entry kuartal ' + em.ticker + ' disimpan.');
+}
+
+// ── Close emiten (hit/miss) ──
+function closeEmiten(emitenId, result) {
+  const em = state.emitens.find(e => e.id === emitenId);
+  if (!em) return;
+  const label = result === 'hit' ? 'HIT' : 'MISS';
+  if (!confirm('Tandai ' + em.ticker + ' sebagai ' + label + ' dan pindahkan ke inventori?')) return;
+  const last = em.entries[em.entries.length - 1];
+  const { fv1, fv2, fv3, avg } = calcFV(last.bvps, last.pbv, last.ni, last.pe, last.shares, last.eps);
+  state.inventory.push({
+    id: uid(),
+    emitenId: em.id,
+    ticker: em.ticker,
+    quarter: last.quarter,
+    price: last.price,
+    fv1, fv2, fv3, avg,
+    notes: last.notes,
+    result,
+    entriesCount: em.entries.length,
+    closedAt: Date.now()
+  });
+  state.emitens = state.emitens.filter(e => e.id !== emitenId);
+  save();
+  renderCards();
+  updateStats();
+  showToast(em.ticker + ' ditutup sebagai ' + label + '.');
+}
+
+// ── Delete emiten ──
+function deleteEmiten(emitenId) {
+  const em = state.emitens.find(e => e.id === emitenId);
+  if (!em) return;
+  if (!confirm('Hapus ' + em.ticker + '? Data tidak bisa dikembalikan.')) return;
+  state.emitens = state.emitens.filter(e => e.id !== emitenId);
+  save();
+  renderCards();
+  updateStats();
+  showToast(em.ticker + ' dihapus.');
+}
+
+// ── Inventory ──
+function renderInventory() {
+  const tbody = document.getElementById('inv-body');
+  if (!state.inventory.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="inv-empty">Belum ada prediksi yang ditutup.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = [...state.inventory].reverse().map(inv => {
+    const d = fmtDisc(inv.price, inv.avg);
+    const discText = d ? (parseFloat(d) > 0 ? '+' + d + '%' : d + '%') : '—';
+    return `<tr>
+      <td><span class="inv-ticker">${escHtml(inv.ticker)}</span></td>
+      <td style="font-family:sans-serif;font-size:12px;color:var(--text2)">${escHtml(inv.quarter)}</td>
+      <td style="font-family:sans-serif;font-size:12px">${fmt(inv.price)}</td>
+      <td style="font-family:sans-serif;font-size:12px">${fmt(inv.fv1)}</td>
+      <td style="font-family:sans-serif;font-size:12px">${fmt(inv.fv2)}</td>
+      <td style="font-family:sans-serif;font-size:12px">${fmt(inv.fv3)}</td>
+      <td><span class="inv-badge ${inv.result}">${inv.result === 'hit' ? '✓ Hit' : '✗ Miss'}</span></td>
+      <td style="font-family:sans-serif;font-size:11px;color:var(--text3)">${new Date(inv.closedAt).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</td>
+      <td><span class="inv-notes" title="${escHtml(inv.notes || '')}">${escHtml(inv.notes || '—')}</span></td>
+      <td>
+        <div class="inv-actions">
+          <button class="btn" onclick="deleteInventory('${inv.id}')" title="Hapus" aria-label="Hapus dari inventori" style="padding:4px 8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function deleteInventory(id) {
+  if (!confirm('Hapus item dari inventori?')) return;
+  state.inventory = state.inventory.filter(i => i.id !== id);
+  save();
+  renderInventory();
+  updateStats();
+  showToast('Item dihapus dari inventori.');
+}
+
+// ── Export CSV ──
+function exportCSV() {
+  if (!state.inventory.length) { showToast('Inventori masih kosong.'); return; }
+  const rows = [
+    ['Emiten','Kuartal','Harga','FV1 (PBV)','FV2 (PE×NI)','FV3 (PE×EPS)','FV Rata-rata','Hasil','Ditutup','Catatan'],
+    ...state.inventory.map(i => [
+      i.ticker, i.quarter,
+      i.price || '', i.fv1 ? Math.round(i.fv1) : '', i.fv2 ? Math.round(i.fv2) : '', i.fv3 ? Math.round(i.fv3) : '',
+      i.avg ? Math.round(i.avg) : '',
+      i.result === 'hit' ? 'Hit' : 'Miss',
+      new Date(i.closedAt).toLocaleDateString('id-ID'),
+      (i.notes || '').replace(/\n/g,' ')
+    ])
+  ];
+  const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'nilaiwajar_inventori.csv';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('CSV berhasil diunduh.');
+}
+
+// ── Export PDF ──
+function exportPDF() {
+  if (!state.inventory.length) { showToast('Inventori masih kosong.'); return; }
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const hits = state.inventory.filter(i => i.result === 'hit').length;
+  const misses = state.inventory.filter(i => i.result === 'miss').length;
+  const total = hits + misses;
+  const winrate = total ? Math.round(hits / total * 100) + '%' : '—';
+
+  const rows = [...state.inventory].reverse().map(i => `
+    <tr>
+      <td style="font-weight:700;font-family:Georgia,serif">${escHtml(i.ticker)}</td>
+      <td>${escHtml(i.quarter)}</td>
+      <td>Rp ${i.price ? Math.round(i.price).toLocaleString('id-ID') : '—'}</td>
+      <td>${i.fv1 ? 'Rp ' + Math.round(i.fv1).toLocaleString('id-ID') : '—'}</td>
+      <td>${i.fv2 ? 'Rp ' + Math.round(i.fv2).toLocaleString('id-ID') : '—'}</td>
+      <td>${i.fv3 ? 'Rp ' + Math.round(i.fv3).toLocaleString('id-ID') : '—'}</td>
+      <td style="font-weight:700;color:${i.result==='hit'?'#16a34a':'#dc2626'}">${i.result==='hit'?'✓ Hit':'✗ Miss'}</td>
+      <td style="font-size:11px;color:#888">${new Date(i.closedAt).toLocaleDateString('id-ID')}</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>NilaiWajar — Inventori</title>
+  <style>
+    body{font-family:Georgia,serif;padding:32px;color:#1c1917;font-size:13px}
+    h1{font-size:22px;font-weight:700;margin-bottom:4px}
+    .sub{color:#888;font-family:sans-serif;font-size:12px;margin-bottom:24px}
+    .stats{display:flex;gap:20px;margin-bottom:24px;font-family:sans-serif}
+    .sc{background:#f5f4f1;border-radius:8px;padding:10px 16px;text-align:center}
+    .sn{font-size:22px;font-weight:700;font-family:Georgia,serif}
+    .sl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px}
+    table{width:100%;border-collapse:collapse;font-family:sans-serif;font-size:12px}
+    th{text-align:left;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:#888;border-bottom:1.5px solid #e7e5e0;background:#f5f4f1}
+    td{padding:10px 10px;border-bottom:1px solid #e7e5e0;vertical-align:middle}
+    tr:hover td{background:#fafaf9}
+    .footer{margin-top:32px;font-family:sans-serif;font-size:11px;color:#bbb;text-align:center}
+  </style></head><body>
+  <h1>NilaiWajar — Inventori Prediksi</h1>
+  <div class="sub">Dicetak ${new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+  <div class="stats">
+    <div class="sc"><div class="sn" style="color:#d97706">${state.inventory.length}</div><div class="sl">Total</div></div>
+    <div class="sc"><div class="sn" style="color:#16a34a">${hits}</div><div class="sl">Hit</div></div>
+    <div class="sc"><div class="sn" style="color:#dc2626">${misses}</div><div class="sl">Miss</div></div>
+    <div class="sc"><div class="sn">${winrate}</div><div class="sl">Win rate</div></div>
+  </div>
+  <table><thead><tr>
+    <th>Emiten</th><th>Kuartal</th><th>Harga</th><th>FV1</th><th>FV2</th><th>FV3</th><th>Hasil</th><th>Ditutup</th>
+  </tr></thead><tbody>${rows}</tbody></table>
+  <div class="footer">NilaiWajar · Data disimpan lokal di browser</div>
+  </body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  w.onload = () => { w.print(); };
+  showToast('Halaman print dibuka.');
+}
+
+// ── Close modal on backdrop click ──
+document.getElementById('modal-add').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.getElementById('modal-quarter').addEventListener('click', function(e) {
+  if (e.target === this) closeQuarterModal();
+});
+
+// ── Keyboard esc ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeQuarterModal(); }
+});
+
+// ── Init ──
+load();
+const savedTheme = localStorage.getItem('nw_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+updateThemeIcon();
+renderCards();
+updateStats();
+</script>
+</body>
+</html>

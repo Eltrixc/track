@@ -724,7 +724,7 @@
   <!-- Inventory Tab -->
   <div id="tab-inventory" style="display:none">
     <div class="export-bar">
-      <div class="section-title">Inventori prediksi</div>
+      <div class="section-title">Riwayat Prediksi</div>
       <button class="btn" onclick="exportCSV()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Export CSV
@@ -982,7 +982,7 @@
       <label class="miss-option">
         <input type="radio" name="miss-indicator" value="price_move_50" checked>
         <div class="miss-option-text">
-          <div class="miss-option-label" id="miss-label-price-move">Harga turun ≥50% dari harga awal</div>
+          <div class="miss-option-label" id="miss-label-price-move">Harga turun ≥30% dari harga awal</div>
           <div class="miss-option-desc" id="miss-desc-price-move">Berlaku untuk tebakan bullish. Untuk bearish: harga naik ≥50%.</div>
         </div>
       </label>
@@ -997,7 +997,7 @@
         <input type="radio" name="miss-indicator" value="sideways">
         <div class="miss-option-text">
           <div class="miss-option-label">Harga sideways sepanjang tahun</div>
-          <div class="miss-option-desc">Pergerakan harga dalam rentang -10% s/d +5% selama 1 tahun penuh.</div>
+          <div class="miss-option-desc">Pergerakan harga dalam rentang -20% s/d +15% selama 1 tahun penuh.</div>
         </div>
       </label>
       <label class="miss-option">
@@ -1049,9 +1049,9 @@ let editingEmitenId = null;
 
 // ── Miss indicator labels ──
 const MISS_LABELS = {
-  price_move_50: { bullish: 'Harga ↓ ≥50%', bearish: 'Harga ↑ ≥50%' },
+  price_move_50: { bullish: 'Harga ↓ ≥30%', bearish: 'Harga ↑ ≥30%' },
   price_rp50:    'Harga ≤ Rp 50',
-  sideways:      'Sideways 1 tahun',
+  sideways:      'Sideways',
   bankrupt:      'Bangkrut / Delisting',
   declining_perf:'Performa ↓ ≥4 kuartal'
 };

@@ -302,6 +302,9 @@
   }
   .mos-tooltip.visible{display:block}
   .mos-tooltip strong{color:var(--text);font-size:11.5px}
+
+  /* ── SHARE MODAL: z-index above card popup (300) ── */
+  #share-modal{z-index:500}
 </style>
 </head>
 <body>
@@ -578,11 +581,11 @@
   </div>
 </div>
 
-<!-- Share Modal -->
+<!-- Share Modal — z-index 500, above card popup (300) -->
 <div class="modal-backdrop" id="share-modal" onclick="if(event.target===document.getElementById('share-modal'))closeShareModal()">
   <div class="modal" style="max-width:640px">
-    <h2 style="margin-bottom:4px">Bagikan Hasil</h2>
-    <div class="modal-sub" style="margin-bottom:14px">Preview kartu hasil prediksi — klik Simpan PNG untuk mengunduh.</div>
+    <h2 style="margin-bottom:4px">Simpan Snapshot</h2>
+    <div class="modal-sub" style="margin-bottom:14px">Preview kartu informasi emiten — klik Simpan PNG untuk mengunduh.</div>
     <canvas id="share-canvas" style="width:100%;border-radius:8px;display:block;background:#1c1917"></canvas>
     <div class="modal-actions" style="justify-content:center;margin-top:14px">
       <button class="btn" onclick="closeShareModal()">Tutup</button>
@@ -870,13 +873,6 @@ function renderCards(){
     const mosPct=avg&&last.price?((avg-last.price)/last.price*100):null;
     const tebakan=em.tebakan||'bullish';
     const tanggalD=last.tanggalAwal?fmtDate(last.tanggalAwal):null;
-    const histHTML=em.entries.slice(0,-1).reverse().map(e=>{
-      const {fv1:h1,fv2:h2,fv3:h3}=calcFV(e.bvps,e.pbv,e.ni,e.pe,e.shares,e.eps);
-      return '<div class="history-entry"><div class="he-top"><span class="he-quarter">'+escHtml(e.quarter)+'</span><span class="he-price">Rp '+(e.price?Math.round(e.price).toLocaleString('id-ID'):'\u2014')+(e.tanggalAwal?' \u00b7 '+fmtDate(e.tanggalAwal):'')+' </span></div>'
-        +'<div class="he-fvs">'+(h1?'<span class="he-fv-chip">FV1: Rp '+Math.round(h1).toLocaleString('id-ID')+'</span>':'')+(h2?'<span class="he-fv-chip">FV2: Rp '+Math.round(h2).toLocaleString('id-ID')+'</span>':'')+(h3?'<span class="he-fv-chip">FV3: Rp '+Math.round(h3).toLocaleString('id-ID')+'</span>':'')+'</div>'
-        +(e.notes?'<div style="margin-top:4px;color:var(--text3)">'+escHtml(e.notes)+'</div>':'')
-        +'</div>';
-    }).join('');
 
     html+='<div class="emiten-card '+cardClass+'" id="card-'+em.id+'" draggable="true"'
       +' onclick="openCardPopup(event,\''+em.id+'\')"'
@@ -948,6 +944,7 @@ function openCardPopup(e, emitenId){
       +'</div>';
   }).join('');
 
+  // ── PERBAIKAN: Tombol hapus warna sama dengan tombol download (btn biasa, bukan btn-miss)
   const content=''
     +'<div class="card-header" style="padding-right:28px">'
       +'<div class="card-header-left">'
@@ -983,8 +980,10 @@ function openCardPopup(e, emitenId){
       +'<button class="btn" onclick="closeCardPopup();openQuarterModal(\''+emitenId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M12 5v14M5 12h14"/></svg> Entry baru</button>'
       +'<button class="btn btn-hit" onclick="closeCardPopup();openHitModal(\''+emitenId+'\')">\u2713 Hit</button>'
       +'<button class="btn btn-miss" onclick="closeCardPopup();openMissModal(\''+emitenId+'\')">\u2717 Miss</button>'
-      +'<button class="btn btn-icon" onclick="event.stopPropagation();openActiveSharePopup(\''+emitenId+'\')" title="Simpan PNG"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>'
-      +'<button class="btn btn-miss btn-icon" onclick="closeCardPopup();deleteEmiten(\''+emitenId+'\')" title="Hapus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>'
+      // Tombol download — btn biasa (neutral)
+      +'<button class="btn btn-icon" onclick="event.stopPropagation();closeCardPopup();openActiveSharePopup(\''+emitenId+'\')" title="Simpan PNG"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>'
+      // Tombol hapus — btn biasa (neutral), sama seperti download
+      +'<button class="btn btn-icon" onclick="closeCardPopup();deleteEmiten(\''+emitenId+'\')" title="Hapus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>'
     +'</div>';
 
   const popup=document.getElementById('card-popup-inner');
@@ -1269,8 +1268,8 @@ function renderInventory(){
       +(entriesHTML?'<div style="flex-basis:100%"><div class="expand-section-label" style="margin-bottom:6px">Riwayat Entry ('+((inv.allEntries||[]).length)+' kuartal)</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+entriesHTML+'</div></div>':'')
       +'<div style="flex-basis:100%;margin-top:6px">'
       +'<button class="btn" style="width:100%;justify-content:center;gap:7px;font-size:12px" onclick="event.stopPropagation();openSharePopup(\''+inv.id+'\')">'
-      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>'
-      +' Bagikan Hasil</button></div>'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+      +' Simpan Hasil sebagai PNG</button></div>'
       +'</div>';
     return '<tr class="inv-row" onclick="toggleInvExpand(event,\''+inv.id+'\')" data-inv-id="'+inv.id+'">'
       +'<td><div class="inv-ticker">'+escHtml(inv.ticker)+'</div><div class="inv-quarter">'+escHtml(inv.quarter)+'</div></td>'
@@ -1298,7 +1297,6 @@ function toggleInvExpand(e, invId){
   const mainRow=e.currentTarget;
   if(!expandRow) return;
   const isOpen=expandRow.style.display!=='none';
-  // tutup semua row yang terbuka dulu
   document.querySelectorAll('.inv-expand-row').forEach(r=>r.style.display='none');
   document.querySelectorAll('.inv-row').forEach(r=>r.classList.remove('inv-row-open'));
   if(!isOpen){
@@ -1480,16 +1478,19 @@ function exportPDF(){
   });
 });
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){ closeModal(); closeQuarterModal(); closeHitModal(); closeMissModal(); closeCardPopup(); }
+  if(e.key==='Escape'){ closeModal(); closeQuarterModal(); closeHitModal(); closeMissModal(); closeCardPopup(); closeShareModal(); }
 });
 
 // ============================================================
-// SHARE CARD
+// SHARE CARD — ARCHIVE (hasil prediksi: hit/miss)
 // ============================================================
 function openSharePopup(invId){
   const inv=state.inventory.find(i=>i.id===invId); if(!inv) return;
   const canvas=document.getElementById('share-canvas');
   canvas.dataset.ticker=inv.ticker;
+  // Update modal title untuk archive
+  document.querySelector('#share-modal h2').textContent='Bagikan Hasil';
+  document.querySelector('#share-modal .modal-sub').textContent='Preview kartu hasil prediksi — klik Simpan PNG untuk mengunduh.';
   document.getElementById('share-modal').classList.add('open');
   document.body.style.overflow='hidden';
   setTimeout(()=>drawShareCard(canvas,inv),60);
@@ -1515,6 +1516,8 @@ function _rrect(ctx,x,y,w,h,r){
   ctx.arcTo(x,y+h,x,y+h-r,r); ctx.lineTo(x,y+r);
   ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
 }
+
+// Archive share card — fokus pada hasil (hit/miss + return)
 function drawShareCard(canvas,inv){
   const W=600,H=340,dpr=Math.min(window.devicePixelRatio||1,2);
   canvas.width=W*dpr; canvas.height=H*dpr;
@@ -1531,28 +1534,22 @@ function drawShareCard(canvas,inv){
   const returnPositive=returnPct!==null?returnPct>=0:isHit;
   const returnCol=returnPositive?'#22c55e':'#ef4444';
 
-  // Background gradient
   const bgGrad=ctx.createLinearGradient(0,0,W,H);
   bgGrad.addColorStop(0,'#1c1917'); bgGrad.addColorStop(1,'#2c2826');
   ctx.fillStyle=bgGrad; ctx.fillRect(0,0,W,H);
 
-  // Dot grid texture
   ctx.fillStyle='rgba(255,255,255,0.02)';
   for(let x=32;x<W;x+=24) for(let y=20;y<H;y+=24){
     ctx.beginPath(); ctx.arc(x,y,1,0,Math.PI*2); ctx.fill();
   }
 
-  // Left accent bar
   const barGrad=ctx.createLinearGradient(0,0,0,H);
   barGrad.addColorStop(0,accentCol); barGrad.addColorStop(1,accentCol+'66');
   ctx.fillStyle=barGrad; ctx.fillRect(0,0,5,H);
 
-  // STOCKTRACKER branding (top left)
-  ctx.font='600 11px sans-serif';
-  ctx.fillStyle='#57534e';
+  ctx.font='600 11px sans-serif'; ctx.fillStyle='#57534e';
   ctx.fillText('STOCKTRACKER',22,26);
 
-  // Result badge (top right)
   const badgeTxt=isHit?'\u2713 HIT':'\u2717 MISS';
   ctx.font='bold 11px sans-serif';
   const bW=ctx.measureText(badgeTxt).width+18;
@@ -1563,38 +1560,28 @@ function drawShareCard(canvas,inv){
   ctx.fillStyle=accentCol;
   ctx.fillText(badgeTxt,W-bW-7,27);
 
-  // Ticker (large)
-  ctx.font='bold 56px Georgia,serif';
-  ctx.fillStyle='#fafaf9';
+  ctx.font='bold 56px Georgia,serif'; ctx.fillStyle='#fafaf9';
   ctx.fillText(inv.ticker,22,92);
 
-  // Tebakan + kuartal
-  ctx.font='13px sans-serif';
-  ctx.fillStyle='#a8a29e';
+  ctx.font='13px sans-serif'; ctx.fillStyle='#a8a29e';
   const tebStr=(isBullish?'\u25b2 Bullish':'\u25bc Bearish')+'   \u00b7   '+(inv.quarter||'');
   ctx.fillText(tebStr,24,114);
 
-  // Subtle divider
   ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(22,127); ctx.lineTo(W-22,127); ctx.stroke();
 
-  // Big % return (left)
   if(returnPct!==null){
     const sign=returnPct>=0?'+':'';
     const pctStr=sign+returnPct.toFixed(1)+'%';
-    ctx.font='bold 68px Georgia,serif';
-    ctx.fillStyle=returnCol;
+    ctx.font='bold 68px Georgia,serif'; ctx.fillStyle=returnCol;
     ctx.fillText(pctStr,22,210);
-    ctx.font='11px sans-serif';
-    ctx.fillStyle='#57534e';
+    ctx.font='11px sans-serif'; ctx.fillStyle='#57534e';
     ctx.fillText(isBullish?'return':'return (bearish)',24,228);
   } else {
-    ctx.font='bold 48px Georgia,serif';
-    ctx.fillStyle='#44403c';
+    ctx.font='bold 48px Georgia,serif'; ctx.fillStyle='#44403c';
     ctx.fillText('\u2014',22,205);
   }
 
-  // Right side: price panel
   ctx.textAlign='right';
   const rx=W-24;
   if(hAwal){
@@ -1603,7 +1590,6 @@ function drawShareCard(canvas,inv){
     ctx.font='bold 18px Georgia,serif'; ctx.fillStyle='#d6d3cc';
     ctx.fillText('Rp '+Math.round(hAwal).toLocaleString('id-ID'),rx,170);
   }
-  // Arrow between prices
   ctx.font='13px sans-serif'; ctx.fillStyle=accentCol+'bb';
   ctx.fillText('\u2193',rx,190);
   if(inv.hargaAkhir){
@@ -1614,18 +1600,15 @@ function drawShareCard(canvas,inv){
   }
   ctx.textAlign='left';
 
-  // Date + duration row
   const tglAwal=inv.tanggalAwal?fmtDate(inv.tanggalAwal):'?';
   const tglAkhir=inv.tanggalAkhir?fmtDate(inv.tanggalAkhir):'?';
   const dur=formatDuration(inv.tanggalAwal,inv.tanggalAkhir);
   ctx.font='12px sans-serif'; ctx.fillStyle='#78716c';
   ctx.fillText(tglAwal+'  \u2192  '+tglAkhir+'     \u00b7     '+dur,24,264);
 
-  // Bottom divider
   ctx.strokeStyle='rgba(255,255,255,0.05)';
   ctx.beginPath(); ctx.moveTo(22,280); ctx.lineTo(W-22,280); ctx.stroke();
 
-  // Footer: disclaimer + FV avg
   ctx.font='10px sans-serif'; ctx.fillStyle='#3d3835';
   ctx.fillText('Prediksi saham pribadi \u2014 bukan rekomendasi investasi',24,305);
   if(inv.avg){
@@ -1636,19 +1619,23 @@ function drawShareCard(canvas,inv){
 }
 
 // ============================================================
-// ACTIVE CARD → SHARE AS PNG
+// ACTIVE CARD SNAPSHOT — fokus pada valuasi & data, bukan hasil
 // ============================================================
 function openActiveSharePopup(emitenId){
   const em=state.emitens.find(e=>e.id===emitenId); if(!em) return;
   const canvas=document.getElementById('share-canvas');
   canvas.dataset.ticker=em.ticker;
+  // Update modal title untuk active snapshot
+  document.querySelector('#share-modal h2').textContent='Simpan Snapshot';
+  document.querySelector('#share-modal .modal-sub').textContent='Snapshot data valuasi '+em.ticker+' — klik Simpan PNG untuk mengunduh.';
   document.getElementById('share-modal').classList.add('open');
   document.body.style.overflow='hidden';
   setTimeout(()=>drawActiveCard(canvas,em),60);
 }
 
+// ── REDESIGN: Active card PNG — data-focused, bukan result-focused ──
 function drawActiveCard(canvas,em){
-  const W=600,H=340,dpr=Math.min(window.devicePixelRatio||1,2);
+  const W=600,H=400,dpr=Math.min(window.devicePixelRatio||1,2);
   canvas.width=W*dpr; canvas.height=H*dpr;
   canvas.style.width='100%'; canvas.style.height='auto';
   const ctx=canvas.getContext('2d');
@@ -1661,109 +1648,168 @@ function drawActiveCard(canvas,em){
   const isUnder=avg&&price&&price<avg;
   const isOver=avg&&price&&price>=avg;
   const mosPct=(avg&&price)?((avg-price)/price*100):null;
-  const accentCol='#d97706'; // amber – neutral active state
-  const statusCol=isUnder?'#22c55e':isOver?'#ef4444':accentCol;
+  const statusCol=isUnder?'#22c55e':isOver?'#ef4444':'#d97706';
+  const statusLabel=isUnder?'UNDERVALUE':isOver?'OVERVALUE':'ACTIVE';
 
-  // Background
+  // ── Background
   const bgGrad=ctx.createLinearGradient(0,0,W,H);
-  bgGrad.addColorStop(0,'#1c1917'); bgGrad.addColorStop(1,'#2c2826');
+  bgGrad.addColorStop(0,'#1c1917'); bgGrad.addColorStop(1,'#252220');
   ctx.fillStyle=bgGrad; ctx.fillRect(0,0,W,H);
 
-  // Dot grid texture
-  ctx.fillStyle='rgba(255,255,255,0.02)';
-  for(let x=32;x<W;x+=24) for(let y=20;y<H;y+=24){
+  // Dot grid
+  ctx.fillStyle='rgba(255,255,255,0.018)';
+  for(let x=28;x<W;x+=22) for(let y=18;y<H;y+=22){
     ctx.beginPath(); ctx.arc(x,y,1,0,Math.PI*2); ctx.fill();
   }
 
-  // Left accent bar (gradient – status colour)
+  // Left accent bar
   const barGrad=ctx.createLinearGradient(0,0,0,H);
-  barGrad.addColorStop(0,statusCol); barGrad.addColorStop(1,statusCol+'55');
+  barGrad.addColorStop(0,statusCol); barGrad.addColorStop(1,statusCol+'44');
   ctx.fillStyle=barGrad; ctx.fillRect(0,0,5,H);
 
-  // Branding
-  ctx.font='600 11px sans-serif'; ctx.fillStyle='#57534e';
-  ctx.fillText('STOCKTRACKER',22,26);
+  // ── TOP ROW: branding + status badge
+  ctx.font='600 10px sans-serif'; ctx.fillStyle='#57534e';
+  ctx.fillText('STOCKTRACKER · SNAPSHOT VALUASI',22,24);
 
-  // Status badge (top right)
-  const badgeTxt=isUnder?'UNDERVALUE':isOver?'OVERVALUE':'ACTIVE';
-  ctx.font='bold 11px sans-serif';
-  const bW=ctx.measureText(badgeTxt).width+18;
-  ctx.fillStyle=isUnder?'rgba(22,163,74,0.15)':isOver?'rgba(220,38,38,0.15)':'rgba(217,119,6,0.15)';
-  _rrect(ctx,W-bW-16,12,bW,22,5); ctx.fill();
-  ctx.strokeStyle=statusCol+'66'; ctx.lineWidth=1;
-  _rrect(ctx,W-bW-16,12,bW,22,5); ctx.stroke();
+  ctx.font='bold 10px sans-serif';
+  const bW=ctx.measureText(statusLabel).width+18;
+  ctx.fillStyle=isUnder?'rgba(22,163,74,0.12)':isOver?'rgba(220,38,38,0.12)':'rgba(217,119,6,0.12)';
+  _rrect(ctx,W-bW-16,11,bW,20,4); ctx.fill();
+  ctx.strokeStyle=statusCol+'55'; ctx.lineWidth=1;
+  _rrect(ctx,W-bW-16,11,bW,20,4); ctx.stroke();
   ctx.fillStyle=statusCol;
-  ctx.fillText(badgeTxt,W-bW-7,27);
+  ctx.fillText(statusLabel,W-bW-7,24);
 
-  // Ticker
-  ctx.font='bold 56px Georgia,serif'; ctx.fillStyle='#fafaf9';
-  ctx.fillText(em.ticker,22,92);
+  // ── TICKER + TEBAKAN + KUARTAL
+  ctx.font='bold 52px Georgia,serif'; ctx.fillStyle='#fafaf9';
+  ctx.fillText(em.ticker,22,82);
 
-  // Tebakan + kuartal
-  ctx.font='13px sans-serif'; ctx.fillStyle='#a8a29e';
-  const tebStr=(isBullish?'\u25b2 Bullish':'\u25bc Bearish')+'   \u00b7   '+(last.quarter||'');
-  ctx.fillText(tebStr,24,114);
+  ctx.font='12px sans-serif'; ctx.fillStyle='#78716c';
+  const subline=(isBullish?'\u25b2 Bullish':'\u25bc Bearish')
+    +(last.quarter?'   \u00b7   '+last.quarter:'')
+    +(last.tanggalAwal?'   \u00b7   Per '+fmtDate(last.tanggalAwal):'');
+  ctx.fillText(subline,24,103);
 
   // Divider
   ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(22,127); ctx.lineTo(W-22,127); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(22,116); ctx.lineTo(W-22,116); ctx.stroke();
 
-  // MOS big number (left)
+  // ── SECTION 1: Harga saat ini (kiri) + MOS badge (kanan)
+  const priceY=148;
+  // Label
+  ctx.font='9px sans-serif'; ctx.fillStyle='#57534e';
+  ctx.fillText('HARGA SAAT INI',22,priceY-16);
+  // Value
+  ctx.font='bold 38px Georgia,serif'; ctx.fillStyle='#fafaf9';
+  ctx.fillText(price?'Rp '+Math.round(price).toLocaleString('id-ID'):'—',22,priceY);
+
+  // MOS chip (kanan atas area tengah)
   if(mosPct!==null){
     const mosCol=mosPct>=0?'#22c55e':'#ef4444';
     const sign=mosPct>=0?'+':'';
-    ctx.font='bold 68px Georgia,serif'; ctx.fillStyle=mosCol;
-    ctx.fillText(sign+mosPct.toFixed(1)+'%',22,210);
-    ctx.font='11px sans-serif'; ctx.fillStyle='#57534e';
-    ctx.fillText('margin of safety',24,228);
-  } else {
-    ctx.font='bold 48px Georgia,serif'; ctx.fillStyle='#44403c';
-    ctx.fillText('\u2014',22,205);
-    ctx.font='11px sans-serif'; ctx.fillStyle='#57534e';
-    ctx.fillText('data belum lengkap',24,225);
-  }
-
-  // Right panel: price + FV rows
-  ctx.textAlign='right';
-  const rx=W-24;
-  const drawRow=(label,val,y,labelCol,valCol)=>{
-    ctx.font='9px sans-serif'; ctx.fillStyle=labelCol||'#57534e';
-    ctx.fillText(label,rx,y);
-    ctx.font='bold 14px Georgia,serif'; ctx.fillStyle=valCol||'#d6d3cc';
-    ctx.fillText(val,rx,y+16);
-  };
-  if(price) drawRow('HARGA SAAT INI','Rp '+Math.round(price).toLocaleString('id-ID'),142);
-  if(avg)   drawRow('FV RATA-RATA','Rp '+Math.round(avg).toLocaleString('id-ID'),176,'#d97706bb','#f59e0b');
-  if(fv1)   drawRow('FV1 (BVPS\u00d7PBV)','Rp '+Math.round(fv1).toLocaleString('id-ID'),210);
-  if(fv2)   drawRow('FV2 (NI\u00d7PE/Saham)','Rp '+Math.round(fv2).toLocaleString('id-ID'),230);
-  if(fv3)   drawRow('FV3 (PE\u00d7EPS)','Rp '+Math.round(fv3).toLocaleString('id-ID'),250);
-  ctx.textAlign='left';
-
-  // Progress bar (price / FV avg)
-  if(avg&&price){
-    const pct=Math.min(1,price/avg);
-    const barX=22,barY=248,barW=W/2-40,barH=5;
-    ctx.fillStyle='rgba(255,255,255,0.07)';
-    _rrect(ctx,barX,barY,barW,barH,2); ctx.fill();
-    ctx.fillStyle=statusCol;
-    _rrect(ctx,barX,barY,barW*pct,barH,2); ctx.fill();
-    ctx.font='10px sans-serif'; ctx.fillStyle='#57534e';
-    ctx.fillText('Harga vs FV Avg: '+Math.round(pct*100)+'%',barX,barY+18);
-  }
-
-  // Divider bottom
-  ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(22,280); ctx.lineTo(W-22,280); ctx.stroke();
-
-  // Footer
-  ctx.font='10px sans-serif'; ctx.fillStyle='#3d3835';
-  ctx.fillText('Prediksi saham pribadi \u2014 bukan rekomendasi investasi',24,305);
-  const tanggalD=last.tanggalAwal?fmtDate(last.tanggalAwal):null;
-  if(tanggalD){
-    ctx.textAlign='right'; ctx.fillStyle='#3d3835';
-    ctx.fillText('Per '+tanggalD,W-24,305);
+    const mosStr=sign+mosPct.toFixed(1)+'%';
+    ctx.textAlign='right';
+    ctx.font='9px sans-serif'; ctx.fillStyle='#57534e';
+    ctx.fillText('MARGIN OF SAFETY',W-24,priceY-16);
+    ctx.font='bold 34px Georgia,serif'; ctx.fillStyle=mosCol;
+    ctx.fillText(mosStr,W-24,priceY);
     ctx.textAlign='left';
   }
+
+  // ── SECTION 2: FV row table
+  const tableTop=170;
+  const cols=[
+    {label:'FV1 (BVPS\u00d7PBV)', val:fv1},
+    {label:'FV2 (NI\u00d7PE\u00f7Saham)', val:fv2},
+    {label:'FV3 (PE\u00d7EPS)', val:fv3},
+  ];
+  const cellW=(W-44)/3, cellH=58;
+
+  cols.forEach((col,i)=>{
+    const cx=22+i*cellW;
+    // Cell background
+    ctx.fillStyle='rgba(255,255,255,0.03)';
+    _rrect(ctx,cx+2,tableTop,cellW-4,cellH,4); ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
+    _rrect(ctx,cx+2,tableTop,cellW-4,cellH,4); ctx.stroke();
+
+    // Label
+    ctx.font='8.5px sans-serif'; ctx.fillStyle='#57534e';
+    ctx.fillText(col.label,cx+10,tableTop+15);
+
+    // Value
+    if(col.val){
+      const discPct=price?((col.val-price)/price*100):null;
+      const discCol=discPct!==null?(discPct>=0?'#22c55e':'#ef4444'):'#a8a29e';
+      ctx.font='bold 14px Georgia,serif'; ctx.fillStyle='#d6d3cc';
+      ctx.fillText('Rp '+Math.round(col.val).toLocaleString('id-ID'),cx+10,tableTop+36);
+      if(discPct!==null){
+        const sign=discPct>=0?'+':'';
+        ctx.font='bold 10px sans-serif'; ctx.fillStyle=discCol;
+        ctx.fillText(sign+discPct.toFixed(1)+'%',cx+10,tableTop+52);
+      }
+    } else {
+      ctx.font='13px sans-serif'; ctx.fillStyle='#3d3835';
+      ctx.fillText('—',cx+10,tableTop+36);
+    }
+  });
+
+  // ── SECTION 3: FV Average highlight bar
+  const fvBarY=tableTop+cellH+14;
+  ctx.fillStyle='rgba(217,119,6,0.1)';
+  _rrect(ctx,22,fvBarY,W-44,44,6); ctx.fill();
+  ctx.strokeStyle='rgba(217,119,6,0.25)'; ctx.lineWidth=1;
+  _rrect(ctx,22,fvBarY,W-44,44,6); ctx.stroke();
+
+  ctx.font='9px sans-serif'; ctx.fillStyle='#d97706';
+  ctx.fillText('FV RATA-RATA',30,fvBarY+15);
+  ctx.font='bold 20px Georgia,serif'; ctx.fillStyle='#f59e0b';
+  ctx.fillText(avg?'Rp '+Math.round(avg).toLocaleString('id-ID'):'—',30,fvBarY+37);
+
+  // Progress bar inside fv bar
+  if(avg&&price){
+    const pct=Math.min(1,price/avg);
+    const barX=200, barW=W-44-200-8, barY=fvBarY+22, barH=6;
+    ctx.fillStyle='rgba(255,255,255,0.07)';
+    _rrect(ctx,barX,barY,barW,barH,3); ctx.fill();
+    ctx.fillStyle=statusCol;
+    _rrect(ctx,barX,barY,barW*pct,barH,3); ctx.fill();
+    ctx.font='9px sans-serif'; ctx.fillStyle='#78716c';
+    ctx.fillText('Harga / FV: '+Math.round(pct*100)+'%',barX,barY-6);
+  }
+
+  // ── SECTION 4: fundamental mini-grid
+  const fundY=fvBarY+44+14;
+  const fundItems=[
+    ['BVPS',last.bvps?last.bvps.toLocaleString('id-ID'):null],
+    ['PBV',last.pbv?last.pbv+'x':null],
+    ['EPS',last.eps?last.eps.toLocaleString('id-ID'):null],
+    ['PE',last.pe?last.pe+'x':null],
+    ['Net Income',last.ni?'Rp '+last.ni+'T':null],
+    ['Saham Beredar',last.shares?last.shares+'M':null],
+  ];
+  const fColW=(W-44)/6;
+  fundItems.forEach((item,i)=>{
+    const fx=22+i*fColW;
+    ctx.font='8px sans-serif'; ctx.fillStyle='#44403c';
+    ctx.fillText(item[0],fx,fundY+12);
+    ctx.font='bold 11px sans-serif'; ctx.fillStyle=item[1]?'#a8a29e':'#3d3835';
+    ctx.fillText(item[1]||'—',fx,fundY+26);
+  });
+
+  // Divider bottom
+  const footY=H-26;
+  ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(22,footY-8); ctx.lineTo(W-22,footY-8); ctx.stroke();
+
+  // Footer
+  ctx.font='9px sans-serif'; ctx.fillStyle='#3d3835';
+  ctx.fillText('StockTracker \u00b7 Snapshot valuasi — bukan rekomendasi investasi',22,footY+8);
+
+  // Entry count
+  ctx.textAlign='right'; ctx.fillStyle='#3d3835';
+  ctx.fillText(em.entries.length+' entry data',W-24,footY+8);
+  ctx.textAlign='left';
 }
 
 // ============================================================
@@ -1802,7 +1848,6 @@ function toggleMosTooltip(e, btn) {
   const tip = mosTooltip;
   tip.classList.add('visible');
   mosOpen = true;
-  // Position: try right of button, clamp to viewport after
   tip.style.top = (rect.top + window.scrollY - 4) + 'px';
   tip.style.left = (rect.right + 8) + 'px';
   const tipRect = tip.getBoundingClientRect();

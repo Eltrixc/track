@@ -108,7 +108,19 @@
   .progress-bar{height:4px;background:var(--bg2);border-radius:2px;overflow:hidden}
   .progress-fill{height:100%;border-radius:2px;transition:width .4s}
 
-  .notes-box{font-family:sans-serif;font-size:12px;color:var(--text2);background:var(--bg2);border-radius:6px;padding:8px 10px;line-height:1.5;min-height:32px;white-space:pre-wrap;word-break:break-word}
+  .notes-box{font-family:sans-serif;font-size:12px;color:var(--text2);background:var(--bg2);border-radius:6px;padding:8px 10px;line-height:1.5;min-height:32px;word-break:break-word}
+  .notes-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+  .notes-col{border-radius:5px;padding:7px 9px}
+  .notes-col.pos{background:var(--green-bg)}
+  .notes-col.neg{background:var(--red-bg)}
+  .notes-col-label{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+  .notes-col.pos .notes-col-label{color:var(--green-t)}
+  .notes-col.neg .notes-col-label{color:var(--red-t)}
+  .notes-item{padding:2px 0;font-size:11px;line-height:1.45;display:flex;gap:5px}
+  .notes-item::before{content:'\2022';flex-shrink:0;margin-top:1px}
+  .notes-col.pos .notes-item{color:var(--green-t)}
+  .notes-col.neg .notes-item{color:var(--red-t)}
+  .notes-general{font-size:12px;color:var(--text2);line-height:1.5;white-space:pre-wrap}
 
   .history-toggle{font-family:sans-serif;font-size:11px;color:var(--text3);cursor:pointer;display:flex;align-items:center;gap:4px;user-select:none}
   .history-toggle:hover{color:var(--accent)}
@@ -253,12 +265,6 @@
 <div class="main">
 
   <div id="tab-active">
-    <div class="stats-bar">
-      <div class="stat-card"><div class="stat-num accent" id="s-active">0</div><div class="stat-lbl">Active</div></div>
-      <div class="stat-card"><div class="stat-num green"  id="s-hit">0</div><div class="stat-lbl">Hit</div></div>
-      <div class="stat-card"><div class="stat-num red"    id="s-miss">0</div><div class="stat-lbl">Miss</div></div>
-      <div class="stat-card"><div class="stat-num"        id="s-winrate">&#x2014;</div><div class="stat-lbl">Win rate</div></div>
-    </div>
     <div class="actions-bar">
       <div>
         <div class="section-title">Prediksi Aktif</div>
@@ -273,6 +279,12 @@
   </div>
 
   <div id="tab-inventory" style="display:none">
+    <div class="stats-bar">
+      <div class="stat-card"><div class="stat-num accent" id="s-active">0</div><div class="stat-lbl">Active</div></div>
+      <div class="stat-card"><div class="stat-num green"  id="s-hit">0</div><div class="stat-lbl">Hit</div></div>
+      <div class="stat-card"><div class="stat-num red"    id="s-miss">0</div><div class="stat-lbl">Miss</div></div>
+      <div class="stat-card"><div class="stat-num"        id="s-winrate">&#x2014;</div><div class="stat-lbl">Win rate</div></div>
+    </div>
     <div class="inv-toolbar">
       <div class="section-title">Riwayat Prediksi</div>
       <label style="font-family:sans-serif;font-size:12px;color:var(--text3)">Urutan:</label>
@@ -564,11 +576,27 @@ function escHtml(s){
 function formatNotes(text){
   if(!text) return '';
   const lines=text.split('\n');
-  const plus=lines.filter(x=>x.trim().startsWith('+')).map(x=>x.replace('+','').trim());
-  const minus=lines.filter(x=>x.trim().startsWith('-')).map(x=>x.replace('-','').trim());
+  const plus=[], minus=[], general=[];
+  lines.forEach(line=>{
+    const t=line.trim();
+    if(!t) return;
+    if(t.startsWith('[+]'))      plus.push(escHtml(t.slice(3).trim()));
+    else if(t.startsWith('[−]')||t.startsWith('[-]')) minus.push(escHtml(t.replace(/^\[-\]|\[−\]/,'').trim()));
+    else if(t.startsWith('+'))   plus.push(escHtml(t.slice(1).trim()));
+    else if(t.startsWith('-'))   minus.push(escHtml(t.slice(1).trim()));
+    else                         general.push(escHtml(t));
+  });
+  const hasCols=plus.length||minus.length;
   let html='';
-  if(plus.length)  html+='<div style="color:var(--green-t)"><b>\u2713 Positif</b><br>'+plus.join('<br>')+'</div>';
-  if(minus.length) html+='<div style="margin-top:6px;color:var(--red-t)"><b>\u2717 Risiko</b><br>'+minus.join('<br>')+'</div>';
+  if(hasCols){
+    html+='<div class="notes-cols">';
+    html+='<div class="notes-col pos"><div class="notes-col-label">\u2713 Positif</div>'
+      +(plus.length?plus.map(x=>'<div class="notes-item"><span>'+x+'</span></div>').join(''):'<div style="font-size:11px;color:var(--text3);font-style:italic">—</div>')+'</div>';
+    html+='<div class="notes-col neg"><div class="notes-col-label">\u2717 Risiko</div>'
+      +(minus.length?minus.map(x=>'<div class="notes-item"><span>'+x+'</span></div>').join(''):'<div style="font-size:11px;color:var(--text3);font-style:italic">—</div>')+'</div>';
+    html+='</div>';
+  }
+  if(general.length) html+='<div class="notes-general">'+(hasCols?'<div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Catatan</div>':'')+general.join('<br>')+'</div>';
   return html||escHtml(text);
 }
 function showToast(msg){
@@ -1048,12 +1076,21 @@ function renderInventory(){
         +'</div>';
     }).join(''):'';
     const expandInner='<div class="inv-expand-inner">'
+      +(teb==='bullish'&&hAwal&&inv.hargaAkhir?(()=>{
+        const pct=((inv.hargaAkhir-hAwal)/hAwal*100);
+        const pos=pct>=0, sign=pos?'+':'';
+        const col=pos?'var(--green-t)':'var(--red-t)', bg=pos?'var(--green-bg)':'var(--red-bg)';
+        return '<div class="expand-kv" style="flex-basis:100%;flex-direction:row;align-items:center;justify-content:space-between;background:'+bg+';border-radius:6px;padding:8px 12px;border-left:none">'
+          +'<span class="expand-k" style="color:'+col+';font-size:11px;font-weight:600">Perubahan Harga (Bullish)</span>'
+          +'<span style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:'+col+'">'+sign+pct.toFixed(1)+'%</span>'
+          +'</div>';
+      })():'')
       +'<div class="expand-kv"><span class="expand-k">FV1 (BVPS\xd7PBV)</span><span class="expand-v">'+fmt(inv.fv1)+'</span></div>'
       +'<div class="expand-kv"><span class="expand-k">FV2 (NI\xd7PE/Saham)</span><span class="expand-v">'+fmt(inv.fv2)+'</span></div>'
       +'<div class="expand-kv"><span class="expand-k">FV3 (PE\xd7EPS)</span><span class="expand-v">'+fmt(inv.fv3)+'</span></div>'
       +'<div class="expand-kv"><span class="expand-k">FV Rata-rata</span><span class="expand-v" style="color:var(--accent)">'+fmt(inv.avg)+'</span></div>'
       +(inv.result==='miss'&&inv.missIndicator?'<div class="expand-kv"><span class="expand-k">Indikator Miss</span><span class="expand-v" style="color:var(--red-t)">'+escHtml(missLbl)+'</span></div>':'')
-      +(inv.notes?'<div class="expand-kv" style="flex-basis:100%"><span class="expand-k">Catatan</span><span class="expand-v" style="font-weight:400;color:var(--text2)">'+escHtml(inv.notes)+'</span></div>':'')
+      +(inv.notes?'<div class="expand-kv notes-box" style="flex-basis:100%;background:transparent;padding:0"><span class="expand-k" style="margin-bottom:4px;display:block">Catatan</span>'+formatNotes(inv.notes)+'</div>':'')
       +(entriesHTML?'<div style="flex-basis:100%"><div class="expand-section-label" style="margin-bottom:6px">Riwayat Entry ('+((inv.allEntries||[]).length)+' kuartal)</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+entriesHTML+'</div></div>':'')
       +'</div>';
     return '<tr class="inv-row" onclick="toggleInvExpand(event,\''+inv.id+'\')" data-inv-id="'+inv.id+'">'

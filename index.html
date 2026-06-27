@@ -235,6 +235,19 @@
   @keyframes spin{to{transform:rotate(360deg)}}
   .spin-icon{animation:spin .7s linear infinite;display:inline-block}
 
+  /* ── NOTES INPUT UI ── */
+  .notes-section-wrap{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+  .notes-section-label{font-family:sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:flex;align-items:center;gap:4px}
+  .notes-section-label.pos{color:var(--green-t)}.notes-section-label.neg{color:var(--red-t)}
+  .notes-rows-list{display:flex;flex-direction:column;gap:4px;margin-bottom:5px}
+  .notes-input-row{display:flex;align-items:center;gap:5px}
+  .notes-input-item{font-family:sans-serif;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;flex:1;transition:border-color .15s}
+  .notes-input-item:focus{border-color:var(--accent)}
+  .notes-remove-btn{width:22px;height:22px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0;padding:0}
+  .notes-remove-btn:hover{background:var(--red-bg);color:var(--red-t)}
+  .notes-add-row-btn{font-size:11px!important;padding:4px 10px!important;color:var(--text3)!important;border-style:dashed!important}
+  .notes-add-row-btn:hover{color:var(--accent)!important;border-color:var(--accent)!important;background:var(--accent-bg)!important}
+
   @media(max-width:640px){
     .topbar{padding:0 14px;gap:10px}.main{padding:14px}
     .stats-bar{grid-template-columns:repeat(2,1fr)}
@@ -358,8 +371,21 @@
       <div class="computed-row" style="border:1px solid var(--accent);background:var(--accent-bg)"><span class="computed-lbl" style="font-weight:600">Rata-rata FV</span><span class="computed-val" id="prev-avg" style="color:var(--accent)">&#x2014;</span></div>
     </div>
     <div class="form-divider" style="margin-top:16px">Catatan</div>
-    <div class="form-grid full" style="margin-top:12px">
-      <div class="form-field"><label>Catatan Analisis</label><textarea id="f-notes" placeholder="Cash &gt; Debt ✓, Mikro kap ✗, PER rendah..."></textarea></div>
+    <div class="notes-section-wrap">
+      <div>
+        <div class="notes-section-label pos">&#x2713; Positif</div>
+        <div class="notes-rows-list" id="f-notes-plus"></div>
+        <button type="button" class="btn notes-add-row-btn" onclick="addNotesRow('f','plus')">&#xFF0B; Tambah poin</button>
+      </div>
+      <div>
+        <div class="notes-section-label neg">&#x2717; Risiko</div>
+        <div class="notes-rows-list" id="f-notes-minus"></div>
+        <button type="button" class="btn notes-add-row-btn" onclick="addNotesRow('f','minus')">&#xFF0B; Tambah poin</button>
+      </div>
+      <div class="form-field">
+        <label>Catatan umum (opsional)</label>
+        <textarea id="f-notes-general" placeholder="Catatan bebas, konteks, dsb..." style="min-height:52px"></textarea>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal()">Batal</button>
@@ -403,8 +429,21 @@
       <div class="computed-row" style="border:1px solid var(--accent);background:var(--accent-bg)"><span class="computed-lbl" style="font-weight:600">Rata-rata FV</span><span class="computed-val" id="mq-avg" style="color:var(--accent)">&#x2014;</span></div>
     </div>
     <div class="form-divider" style="margin-top:16px">Catatan</div>
-    <div class="form-grid full" style="margin-top:12px">
-      <div class="form-field"><label>Catatan Analisis</label><textarea id="mq-notes" placeholder="Update analisis setelah lapkeu..."></textarea></div>
+    <div class="notes-section-wrap">
+      <div>
+        <div class="notes-section-label pos">&#x2713; Positif</div>
+        <div class="notes-rows-list" id="mq-notes-plus"></div>
+        <button type="button" class="btn notes-add-row-btn" onclick="addNotesRow('mq','plus')">&#xFF0B; Tambah poin</button>
+      </div>
+      <div>
+        <div class="notes-section-label neg">&#x2717; Risiko</div>
+        <div class="notes-rows-list" id="mq-notes-minus"></div>
+        <button type="button" class="btn notes-add-row-btn" onclick="addNotesRow('mq','minus')">&#xFF0B; Tambah poin</button>
+      </div>
+      <div class="form-field">
+        <label>Catatan umum (opsional)</label>
+        <textarea id="mq-notes-general" placeholder="Update analisis setelah lapkeu..." style="min-height:52px"></textarea>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn" onclick="closeQuarterModal()">Batal</button>
@@ -480,6 +519,22 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
     <div id="card-popup-content"></div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-backdrop" id="share-modal" onclick="if(event.target===document.getElementById('share-modal'))closeShareModal()">
+  <div class="modal" style="max-width:640px">
+    <h2 style="margin-bottom:4px">Bagikan Hasil</h2>
+    <div class="modal-sub" style="margin-bottom:14px">Preview kartu hasil prediksi — klik Simpan PNG untuk mengunduh.</div>
+    <canvas id="share-canvas" style="width:100%;border-radius:8px;display:block;background:#1c1917"></canvas>
+    <div class="modal-actions" style="justify-content:center;margin-top:14px">
+      <button class="btn" onclick="closeShareModal()">Tutup</button>
+      <button class="btn btn-primary" onclick="downloadShareImage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Simpan PNG
+      </button>
+    </div>
   </div>
 </div>
 
@@ -603,6 +658,58 @@ function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+// ============================================================
+// NOTES INPUT HELPERS
+// ============================================================
+function parseNotes(str){
+  if(!str) return{plus:[],minus:[],general:''};
+  const plus=[],minus=[],general=[];
+  str.split('\n').forEach(line=>{
+    const t=line.trim(); if(!t) return;
+    if(t.startsWith('[+]'))                       plus.push(t.slice(3).trim());
+    else if(t.startsWith('[−]')||t.startsWith('[-]')) minus.push(t.replace(/^\[-\]|\[−\]/,'').trim());
+    else if(t.startsWith('+'))                    plus.push(t.slice(1).trim());
+    else if(t.startsWith('-'))                    minus.push(t.slice(1).trim());
+    else                                          general.push(t);
+  });
+  return{plus,minus,general:general.join('\n')};
+}
+function serializeNotes(plusLines,minusLines,generalText){
+  const parts=[];
+  plusLines.forEach(l=>{if(l.trim()) parts.push('[+] '+l.trim());});
+  minusLines.forEach(l=>{if(l.trim()) parts.push('[-] '+l.trim());});
+  if(generalText&&generalText.trim()) parts.push(generalText.trim());
+  return parts.join('\n');
+}
+function addNotesRow(prefix,type,value){
+  const container=document.getElementById(prefix+'-notes-'+type); if(!container) return;
+  const row=document.createElement('div'); row.className='notes-input-row';
+  const inp=document.createElement('input');
+  inp.type='text'; inp.className='notes-input-item'; inp.placeholder='Tulis poin...';
+  if(value) inp.value=value;
+  const btn=document.createElement('button');
+  btn.type='button'; btn.className='notes-remove-btn'; btn.textContent='\xd7';
+  btn.onclick=()=>row.remove();
+  row.appendChild(inp); row.appendChild(btn); container.appendChild(row);
+}
+function clearNotesSections(prefix){
+  ['plus','minus'].forEach(t=>{const el=document.getElementById(prefix+'-notes-'+t);if(el)el.innerHTML='';});
+  const gen=document.getElementById(prefix+'-notes-general'); if(gen) gen.value='';
+}
+function fillNotesSections(prefix,notesStr){
+  clearNotesSections(prefix);
+  const{plus,minus,general}=parseNotes(notesStr);
+  plus.forEach(l=>addNotesRow(prefix,'plus',l));
+  minus.forEach(l=>addNotesRow(prefix,'minus',l));
+  const gen=document.getElementById(prefix+'-notes-general'); if(gen) gen.value=general;
+}
+function getSerializedNotes(prefix){
+  const plus=Array.from(document.querySelectorAll('#'+prefix+'-notes-plus .notes-input-item')).map(el=>el.value.trim()).filter(Boolean);
+  const minus=Array.from(document.querySelectorAll('#'+prefix+'-notes-minus .notes-input-item')).map(el=>el.value.trim()).filter(Boolean);
+  const gen=(document.getElementById(prefix+'-notes-general')?.value||'').trim();
+  return serializeNotes(plus,minus,gen);
 }
 
 // ============================================================
@@ -843,7 +950,8 @@ function openAddModal(){
   document.getElementById('modal-title').textContent='Tambah emiten baru';
   document.getElementById('modal-sub').textContent='Isi data kuartal pertama untuk emiten ini.';
   document.getElementById('modal-save-btn').textContent='Simpan';
-  ['ticker','quarter','price','bvps','pbv','ni','pe','shares','eps','notes'].forEach(f=>{const el=document.getElementById('f-'+f);if(el)el.value='';});
+  ['ticker','quarter','price','bvps','pbv','ni','pe','shares','eps'].forEach(f=>{const el=document.getElementById('f-'+f);if(el)el.value='';});
+  clearNotesSections('f');
   document.getElementById('f-tebakan').value='bullish';
   document.getElementById('f-tanggal').value=todayISO();
   ['prev-fv1','prev-fv2','prev-fv3','prev-avg'].forEach(id=>document.getElementById(id).textContent='\u2014');
@@ -868,7 +976,7 @@ function openEditModal(emitenId){
   document.getElementById('f-pe').value      =last.pe||'';
   document.getElementById('f-shares').value  =last.shares||'';
   document.getElementById('f-eps').value     =last.eps||'';
-  document.getElementById('f-notes').value   =last.notes||'';
+  fillNotesSections('f',last.notes||'');
   computePreview();
   document.getElementById('modal-add').classList.add('open');
   setTimeout(()=>document.getElementById('f-ticker').focus(),50);
@@ -896,7 +1004,7 @@ function saveEntry(){
     pe:         parseFloat(document.getElementById('f-pe').value)||null,
     shares:     parseFloat(document.getElementById('f-shares').value)||null,
     eps:        parseFloat(document.getElementById('f-eps').value)||null,
-    notes:      document.getElementById('f-notes').value.trim(),
+    notes:      getSerializedNotes('f'),
   };
   if(editingEmitenId){
     const em=state.emitens.find(e=>e.id===editingEmitenId);
@@ -917,7 +1025,8 @@ function openQuarterModal(emitenId){
   document.getElementById('mq-title').textContent='Entry baru \u2014 '+em.ticker;
   document.getElementById('mq-emiten-id').value=emitenId;
   document.getElementById('mq-tanggal').value=todayISO();
-  ['quarter','price','bvps','pbv','ni','pe','shares','eps','notes'].forEach(f=>{const el=document.getElementById('mq-'+f);if(el)el.value='';});
+  ['quarter','price','bvps','pbv','ni','pe','shares','eps'].forEach(f=>{const el=document.getElementById('mq-'+f);if(el)el.value='';});
+  clearNotesSections('mq');
   ['mq-fv1','mq-fv2','mq-fv3','mq-avg'].forEach(id=>document.getElementById(id).textContent='\u2014');
   document.getElementById('modal-quarter').classList.add('open');
   setTimeout(()=>document.getElementById('mq-quarter').focus(),50);
@@ -944,7 +1053,7 @@ function saveQuarterEntry(){
     pe:     parseFloat(document.getElementById('mq-pe').value)||null,
     shares: parseFloat(document.getElementById('mq-shares').value)||null,
     eps:    parseFloat(document.getElementById('mq-eps').value)||null,
-    notes:  document.getElementById('mq-notes').value.trim(),
+    notes:  getSerializedNotes('mq'),
     createdAt:Date.now()
   });
   save(); closeQuarterModal(); renderCards();
@@ -1075,23 +1184,32 @@ function renderInventory(){
         +'<span style="font-size:10px;color:var(--text3)">FV Avg: '+fmt(eavg)+'</span>'
         +'</div>';
     }).join(''):'';
+    const returnPct=(hAwal&&inv.hargaAkhir)?(teb==='bearish'?(hAwal-inv.hargaAkhir)/hAwal*100:(inv.hargaAkhir-hAwal)/hAwal*100):null;
+    const mosPct=(inv.avg&&hAwal)?((inv.avg-hAwal)/hAwal*100):null;
+    const fvReturnPct=(inv.avg&&inv.hargaAkhir)?((inv.hargaAkhir-inv.avg)/inv.avg*100):null;
     const expandInner='<div class="inv-expand-inner">'
-      +(teb==='bullish'&&hAwal&&inv.hargaAkhir?(()=>{
-        const pct=((inv.hargaAkhir-hAwal)/hAwal*100);
-        const pos=pct>=0, sign=pos?'+':'';
+      +(returnPct!==null?(()=>{
+        const pos=returnPct>=0, sign=pos?'+':'';
         const col=pos?'var(--green-t)':'var(--red-t)', bg=pos?'var(--green-bg)':'var(--red-bg)';
+        const lbl=teb==='bearish'?'Return (Bearish)':'Return (Bullish)';
         return '<div class="expand-kv" style="flex-basis:100%;flex-direction:row;align-items:center;justify-content:space-between;background:'+bg+';border-radius:6px;padding:8px 12px;border-left:none">'
-          +'<span class="expand-k" style="color:'+col+';font-size:11px;font-weight:600">Perubahan Harga (Bullish)</span>'
-          +'<span style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:'+col+'">'+sign+pct.toFixed(1)+'%</span>'
+          +'<span class="expand-k" style="color:'+col+';font-size:11px;font-weight:600">'+lbl+'</span>'
+          +'<span style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:'+col+'">'+sign+returnPct.toFixed(1)+'%</span>'
           +'</div>';
       })():'')
       +'<div class="expand-kv"><span class="expand-k">FV1 (BVPS\xd7PBV)</span><span class="expand-v">'+fmt(inv.fv1)+'</span></div>'
       +'<div class="expand-kv"><span class="expand-k">FV2 (NI\xd7PE/Saham)</span><span class="expand-v">'+fmt(inv.fv2)+'</span></div>'
       +'<div class="expand-kv"><span class="expand-k">FV3 (PE\xd7EPS)</span><span class="expand-v">'+fmt(inv.fv3)+'</span></div>'
       +'<div class="expand-kv"><span class="expand-k">FV Rata-rata</span><span class="expand-v" style="color:var(--accent)">'+fmt(inv.avg)+'</span></div>'
+      +(mosPct!==null?'<div class="expand-kv"><span class="expand-k">Margin of Safety</span><span class="expand-v" style="color:'+(mosPct>=0?'var(--green-t)':'var(--red-t)')+'">'+( mosPct>=0?'+':'')+mosPct.toFixed(1)+'%</span></div>':'')
+      +(fvReturnPct!==null?'<div class="expand-kv"><span class="expand-k">Harga Akhir vs FV</span><span class="expand-v" style="color:'+(fvReturnPct>=0?'var(--green-t)':'var(--red-t)')+'">'+( fvReturnPct>=0?'+':'')+fvReturnPct.toFixed(1)+'%</span></div>':'')
       +(inv.result==='miss'&&inv.missIndicator?'<div class="expand-kv"><span class="expand-k">Indikator Miss</span><span class="expand-v" style="color:var(--red-t)">'+escHtml(missLbl)+'</span></div>':'')
       +(inv.notes?'<div class="expand-kv notes-box" style="flex-basis:100%;background:transparent;padding:0"><span class="expand-k" style="margin-bottom:4px;display:block">Catatan</span>'+formatNotes(inv.notes)+'</div>':'')
       +(entriesHTML?'<div style="flex-basis:100%"><div class="expand-section-label" style="margin-bottom:6px">Riwayat Entry ('+((inv.allEntries||[]).length)+' kuartal)</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+entriesHTML+'</div></div>':'')
+      +'<div style="flex-basis:100%;margin-top:6px">'
+      +'<button class="btn" style="width:100%;justify-content:center;gap:7px;font-size:12px" onclick="event.stopPropagation();openSharePopup(\''+inv.id+'\')">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>'
+      +' Bagikan Hasil</button></div>'
       +'</div>';
     return '<tr class="inv-row" onclick="toggleInvExpand(event,\''+inv.id+'\')" data-inv-id="'+inv.id+'">'
       +'<td><div class="inv-ticker">'+escHtml(inv.ticker)+'</div><div class="inv-quarter">'+escHtml(inv.quarter)+'</div></td>'
@@ -1303,6 +1421,158 @@ function exportPDF(){
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){ closeModal(); closeQuarterModal(); closeHitModal(); closeMissModal(); closeCardPopup(); }
 });
+
+// ============================================================
+// SHARE CARD
+// ============================================================
+function openSharePopup(invId){
+  const inv=state.inventory.find(i=>i.id===invId); if(!inv) return;
+  const canvas=document.getElementById('share-canvas');
+  canvas.dataset.ticker=inv.ticker;
+  document.getElementById('share-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+  setTimeout(()=>drawShareCard(canvas,inv),60);
+}
+function closeShareModal(){
+  document.getElementById('share-modal').classList.remove('open');
+  document.body.style.overflow='';
+}
+function downloadShareImage(){
+  const canvas=document.getElementById('share-canvas');
+  const ticker=canvas.dataset.ticker||'stocktracker';
+  const a=document.createElement('a');
+  a.href=canvas.toDataURL('image/png');
+  a.download=ticker+'_share.png';
+  a.click();
+  showToast('Gambar berhasil diunduh.');
+}
+function _rrect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.arcTo(x+w,y,x+w,y+r,r); ctx.lineTo(x+w,y+h-r);
+  ctx.arcTo(x+w,y+h,x+w-r,y+h,r); ctx.lineTo(x+r,y+h);
+  ctx.arcTo(x,y+h,x,y+h-r,r); ctx.lineTo(x,y+r);
+  ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+}
+function drawShareCard(canvas,inv){
+  const W=600,H=340,dpr=Math.min(window.devicePixelRatio||1,2);
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width='100%'; canvas.style.height='auto';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  const teb=inv.tebakan||'bullish', isBullish=teb==='bullish';
+  const isHit=inv.result==='hit';
+  const hAwal=inv.hargaAwal??inv.price??null;
+  const accentCol=isHit?'#22c55e':'#ef4444';
+  const returnPct=(hAwal&&inv.hargaAkhir)?
+    (isBullish?(inv.hargaAkhir-hAwal)/hAwal*100:(hAwal-inv.hargaAkhir)/hAwal*100):null;
+  const returnPositive=returnPct!==null?returnPct>=0:isHit;
+  const returnCol=returnPositive?'#22c55e':'#ef4444';
+
+  // Background gradient
+  const bgGrad=ctx.createLinearGradient(0,0,W,H);
+  bgGrad.addColorStop(0,'#1c1917'); bgGrad.addColorStop(1,'#2c2826');
+  ctx.fillStyle=bgGrad; ctx.fillRect(0,0,W,H);
+
+  // Dot grid texture
+  ctx.fillStyle='rgba(255,255,255,0.02)';
+  for(let x=32;x<W;x+=24) for(let y=20;y<H;y+=24){
+    ctx.beginPath(); ctx.arc(x,y,1,0,Math.PI*2); ctx.fill();
+  }
+
+  // Left accent bar
+  const barGrad=ctx.createLinearGradient(0,0,0,H);
+  barGrad.addColorStop(0,accentCol); barGrad.addColorStop(1,accentCol+'66');
+  ctx.fillStyle=barGrad; ctx.fillRect(0,0,5,H);
+
+  // STOCKTRACKER branding (top left)
+  ctx.font='600 11px sans-serif';
+  ctx.fillStyle='#57534e';
+  ctx.fillText('STOCKTRACKER',22,26);
+
+  // Result badge (top right)
+  const badgeTxt=isHit?'\u2713 HIT':'\u2717 MISS';
+  ctx.font='bold 11px sans-serif';
+  const bW=ctx.measureText(badgeTxt).width+18;
+  ctx.fillStyle=isHit?'rgba(22,163,74,0.15)':'rgba(220,38,38,0.15)';
+  _rrect(ctx,W-bW-16,12,bW,22,5); ctx.fill();
+  ctx.strokeStyle=accentCol+'66'; ctx.lineWidth=1;
+  _rrect(ctx,W-bW-16,12,bW,22,5); ctx.stroke();
+  ctx.fillStyle=accentCol;
+  ctx.fillText(badgeTxt,W-bW-7,27);
+
+  // Ticker (large)
+  ctx.font='bold 56px Georgia,serif';
+  ctx.fillStyle='#fafaf9';
+  ctx.fillText(inv.ticker,22,92);
+
+  // Tebakan + kuartal
+  ctx.font='13px sans-serif';
+  ctx.fillStyle='#a8a29e';
+  const tebStr=(isBullish?'\u25b2 Bullish':'\u25bc Bearish')+'   \u00b7   '+(inv.quarter||'');
+  ctx.fillText(tebStr,24,114);
+
+  // Subtle divider
+  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(22,127); ctx.lineTo(W-22,127); ctx.stroke();
+
+  // Big % return (left)
+  if(returnPct!==null){
+    const sign=returnPct>=0?'+':'';
+    const pctStr=sign+returnPct.toFixed(1)+'%';
+    ctx.font='bold 68px Georgia,serif';
+    ctx.fillStyle=returnCol;
+    ctx.fillText(pctStr,22,210);
+    ctx.font='11px sans-serif';
+    ctx.fillStyle='#57534e';
+    ctx.fillText(isBullish?'return':'return (bearish)',24,228);
+  } else {
+    ctx.font='bold 48px Georgia,serif';
+    ctx.fillStyle='#44403c';
+    ctx.fillText('\u2014',22,205);
+  }
+
+  // Right side: price panel
+  ctx.textAlign='right';
+  const rx=W-24;
+  if(hAwal){
+    ctx.font='9px sans-serif'; ctx.fillStyle='#57534e';
+    ctx.fillText('HARGA AWAL',rx,150);
+    ctx.font='bold 18px Georgia,serif'; ctx.fillStyle='#d6d3cc';
+    ctx.fillText('Rp '+Math.round(hAwal).toLocaleString('id-ID'),rx,170);
+  }
+  // Arrow between prices
+  ctx.font='13px sans-serif'; ctx.fillStyle=accentCol+'bb';
+  ctx.fillText('\u2193',rx,190);
+  if(inv.hargaAkhir){
+    ctx.font='9px sans-serif'; ctx.fillStyle='#57534e';
+    ctx.fillText('HARGA AKHIR',rx,208);
+    ctx.font='bold 18px Georgia,serif'; ctx.fillStyle='#fafaf9';
+    ctx.fillText('Rp '+Math.round(inv.hargaAkhir).toLocaleString('id-ID'),rx,228);
+  }
+  ctx.textAlign='left';
+
+  // Date + duration row
+  const tglAwal=inv.tanggalAwal?fmtDate(inv.tanggalAwal):'?';
+  const tglAkhir=inv.tanggalAkhir?fmtDate(inv.tanggalAkhir):'?';
+  const dur=formatDuration(inv.tanggalAwal,inv.tanggalAkhir);
+  ctx.font='12px sans-serif'; ctx.fillStyle='#78716c';
+  ctx.fillText(tglAwal+'  \u2192  '+tglAkhir+'     \u00b7     '+dur,24,264);
+
+  // Bottom divider
+  ctx.strokeStyle='rgba(255,255,255,0.05)';
+  ctx.beginPath(); ctx.moveTo(22,280); ctx.lineTo(W-22,280); ctx.stroke();
+
+  // Footer: disclaimer + FV avg
+  ctx.font='10px sans-serif'; ctx.fillStyle='#3d3835';
+  ctx.fillText('Prediksi saham pribadi \u2014 bukan rekomendasi investasi',24,305);
+  if(inv.avg){
+    ctx.textAlign='right'; ctx.fillStyle='#3d3835';
+    ctx.fillText('FV Avg: '+fmt(inv.avg),W-24,305);
+    ctx.textAlign='left';
+  }
+}
 
 // ============================================================
 // INIT

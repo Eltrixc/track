@@ -586,7 +586,7 @@
   <div class="modal" style="max-width:640px">
     <h2 style="margin-bottom:4px">Simpan Snapshot</h2>
     <div class="modal-sub" style="margin-bottom:14px">Preview kartu informasi emiten — klik Simpan PNG untuk mengunduh.</div>
-    <canvas id="share-canvas" style="width:100%;border-radius:8px;display:block;background:#1c1917"></canvas>
+    <canvas id="share-canvas" style="display:block;margin:0 auto;border-radius:0 10px 10px 0;box-shadow:0 4px 20px rgba(0,0,0,.15)"></canvas>
     <div class="modal-actions" style="justify-content:center;margin-top:14px">
       <button class="btn" onclick="closeShareModal()">Tutup</button>
       <button class="btn btn-primary" onclick="downloadShareImage()">
@@ -1633,183 +1633,269 @@ function openActiveSharePopup(emitenId){
   setTimeout(()=>drawActiveCard(canvas,em),60);
 }
 
-// ── REDESIGN: Active card PNG — data-focused, bukan result-focused ──
-function drawActiveCard(canvas,em){
-  const W=600,H=400,dpr=Math.min(window.devicePixelRatio||1,2);
+// ── Faithful card canvas replication — reads live CSS variables for theme ──
+function drawActiveCard(canvas, em) {
+  // Read live CSS vars (works for both light & dark)
+  const cs = getComputedStyle(document.documentElement);
+  const v = n => cs.getPropertyValue(n).trim();
+  const c = {
+    surface:v('--surface'), bg2:v('--bg2'), border:v('--border'),
+    text:v('--text'), text2:v('--text2'), text3:v('--text3'),
+    accent:v('--accent'),
+    green:v('--green'), greenBg:v('--green-bg'), greenT:v('--green-t'),
+    red:v('--red'),     redBg:v('--red-bg'),   redT:v('--red-t'),
+  };
+
+  const last = em.entries[em.entries.length - 1];
+  const {fv1,fv2,fv3,avg} = calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
+  const teb = em.tebakan||'bullish', iBull = teb==='bullish';
+  const px  = last.price||null;
+  const isUnder = avg&&px&&px<avg, isOver = avg&&px&&px>=avg;
+  const mosPct  = (avg&&px) ? (avg-px)/px*100 : null;
+  const leftBar = isUnder ? c.green : isOver ? c.red : c.accent;
+  const fmtRp   = n => n ? 'Rp '+Math.round(n).toLocaleString('id-ID') : '\u2014';
+  const discPct = fv => (fv&&px) ? (fv-px)/px*100 : null;
+
+  // Parse notes
+  const nd = last.notes ? parseNotes(last.notes) : null;
+  const hasNotes = nd && (nd.plus.length||nd.minus.length||nd.general);
+  const hasProgress = !!(avg&&px);
+
+  const P=16, W=320, dpr=Math.min(window.devicePixelRatio||1,2);
+
+  // Text-wrap helper (uses temp canvas for measuring)
+  const _tmp = document.createElement('canvas').getContext('2d');
+  const wrap = (text,maxW,font)=>{
+    _tmp.font=font; let lines=[],cur='';
+    text.split(' ').forEach(w=>{
+      const t=cur?cur+' '+w:w;
+      if(_tmp.measureText(t).width>maxW&&cur){lines.push(cur);cur=w;}else cur=t;
+    }); if(cur)lines.push(cur); return lines;
+  };
+  // Truncate with ellipsis
+  const trunc=(ctx,text,maxW)=>{
+    if(ctx.measureText(text).width<=maxW)return text;
+    let t=text;
+    while(ctx.measureText(t+'\u2026').width>maxW&&t.length)t=t.slice(0,-1);
+    return t+'\u2026';
+  };
+
+  // ── Calculate total height ──────────────────────────────────────────
+  const ROW=28, GAP=10;
+  let H=P;
+  H+=26;        // ticker (20px Georgia)
+  H+=5;         // gap
+  H+=20;        // tebakan badge
+  H+=GAP;       // gap
+  H+=18;        // meta row
+  H+=12;        // gap
+  H+=28;        // price-main
+  H+=8;         // gap before fv rows
+  H+=ROW*3;     // fv1 fv2 fv3
+  if(mosPct!==null) H+=ROW;
+  H+=GAP;
+  if(hasProgress){ H+=34; H+=GAP; }
+
+  let notesH=0;
+  if(hasNotes){
+    const hasGrid=nd.plus.length||nd.minus.length;
+    if(hasGrid){
+      const maxI=Math.max(nd.plus.length,nd.minus.length);
+      notesH+=8+14+maxI*16+8;
+    }
+    if(nd.general){
+      const ls=wrap(nd.general,W-2*P-20,'12px sans-serif');
+      notesH+=(hasGrid?8:0)+ls.length*18+16;
+    }
+    if(notesH>0){ H+=notesH+GAP; }
+  }
+  H+=P;
+
+  // ── Setup canvas ────────────────────────────────────────────────────
   canvas.width=W*dpr; canvas.height=H*dpr;
-  canvas.style.width='100%'; canvas.style.height='auto';
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
   const ctx=canvas.getContext('2d');
   ctx.scale(dpr,dpr);
 
-  const last=em.entries[em.entries.length-1];
-  const {fv1,fv2,fv3,avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
-  const teb=em.tebakan||'bullish', isBullish=teb==='bullish';
-  const price=last.price||null;
-  const isUnder=avg&&price&&price<avg;
-  const isOver=avg&&price&&price>=avg;
-  const mosPct=(avg&&price)?((avg-price)/price*100):null;
-  const statusCol=isUnder?'#22c55e':isOver?'#ef4444':'#d97706';
-  const statusLabel=isUnder?'UNDERVALUE':isOver?'OVERVALUE':'ACTIVE';
+  // Rounded-rect helper (local)
+  const rr=(x,y,w,h,r)=>{
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+    ctx.arcTo(x+w,y,x+w,y+r,r); ctx.lineTo(x+w,y+h-r);
+    ctx.arcTo(x+w,y+h,x+w-r,y+h,r); ctx.lineTo(x+r,y+h);
+    ctx.arcTo(x,y+h,x,y+h-r,r); ctx.lineTo(x,y+r);
+    ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+  };
 
-  // ── Background
-  const bgGrad=ctx.createLinearGradient(0,0,W,H);
-  bgGrad.addColorStop(0,'#1c1917'); bgGrad.addColorStop(1,'#252220');
-  ctx.fillStyle=bgGrad; ctx.fillRect(0,0,W,H);
+  // ── Card shape: straight left, 10px radius on right (matches CSS) ──
+  const R=10;
+  const cardShape=()=>{
+    ctx.beginPath();
+    ctx.moveTo(0,0); ctx.lineTo(W-R,0);
+    ctx.arcTo(W,0,W,R,R); ctx.lineTo(W,H-R);
+    ctx.arcTo(W,H,W-R,H,R); ctx.lineTo(0,H);
+    ctx.closePath();
+  };
+  // Fill background
+  ctx.fillStyle=c.surface; cardShape(); ctx.fill();
+  // Border stroke
+  ctx.strokeStyle=c.border; ctx.lineWidth=1; cardShape(); ctx.stroke();
+  // Left accent bar (3px, overdraws the border on left side)
+  ctx.fillStyle=leftBar; ctx.fillRect(0,0,3,H);
 
-  // Dot grid
-  ctx.fillStyle='rgba(255,255,255,0.018)';
-  for(let x=28;x<W;x+=22) for(let y=18;y<H;y+=22){
-    ctx.beginPath(); ctx.arc(x,y,1,0,Math.PI*2); ctx.fill();
-  }
+  let y=P;
 
-  // Left accent bar
-  const barGrad=ctx.createLinearGradient(0,0,0,H);
-  barGrad.addColorStop(0,statusCol); barGrad.addColorStop(1,statusCol+'44');
-  ctx.fillStyle=barGrad; ctx.fillRect(0,0,5,H);
+  // ── TICKER ──────────────────────────────────────────────────────────
+  ctx.font='bold 20px Georgia,serif'; ctx.fillStyle=c.text;
+  ctx.fillText(em.ticker, P, y+20);
 
-  // ── TOP ROW: branding + status badge
-  ctx.font='600 10px sans-serif'; ctx.fillStyle='#57534e';
-  ctx.fillText('STOCKTRACKER · SNAPSHOT VALUASI',22,24);
+  // Valuation badge (top-right, same row as ticker)
+  const bLbl = isUnder?'Undervalue':isOver?'Overvalue':'Belum terhitung';
+  const bBg  = isUnder?c.greenBg:isOver?c.redBg:c.bg2;
+  const bFg  = isUnder?c.greenT:isOver?c.redT:c.text3;
+  ctx.font='600 11px sans-serif';
+  const bW=ctx.measureText(bLbl).width+20, bH=24, bX=W-P-bW;
+  ctx.fillStyle=bBg; rr(bX,y,bW,bH,12); ctx.fill();
+  ctx.fillStyle=bFg; ctx.fillText(bLbl, bX+10, y+16);
 
-  ctx.font='bold 10px sans-serif';
-  const bW=ctx.measureText(statusLabel).width+18;
-  ctx.fillStyle=isUnder?'rgba(22,163,74,0.12)':isOver?'rgba(220,38,38,0.12)':'rgba(217,119,6,0.12)';
-  _rrect(ctx,W-bW-16,11,bW,20,4); ctx.fill();
-  ctx.strokeStyle=statusCol+'55'; ctx.lineWidth=1;
-  _rrect(ctx,W-bW-16,11,bW,20,4); ctx.stroke();
-  ctx.fillStyle=statusCol;
-  ctx.fillText(statusLabel,W-bW-7,24);
+  y+=26+5;
 
-  // ── TICKER + TEBAKAN + KUARTAL
-  ctx.font='bold 52px Georgia,serif'; ctx.fillStyle='#fafaf9';
-  ctx.fillText(em.ticker,22,82);
+  // ── TEBAKAN BADGE ───────────────────────────────────────────────────
+  const tLbl = iBull?'\u25b2 Bullish':'\u25bc Bearish';
+  const tBg  = iBull?c.greenBg:c.redBg, tFg=iBull?c.greenT:c.redT;
+  ctx.font='600 11px sans-serif';
+  const tW=ctx.measureText(tLbl).width+16;
+  ctx.fillStyle=tBg; rr(P,y,tW,20,10); ctx.fill();
+  ctx.fillStyle=tFg; ctx.fillText(tLbl, P+8, y+14);
+  y+=20+GAP;
 
-  ctx.font='12px sans-serif'; ctx.fillStyle='#78716c';
-  const subline=(isBullish?'\u25b2 Bullish':'\u25bc Bearish')
-    +(last.quarter?'   \u00b7   '+last.quarter:'')
-    +(last.tanggalAwal?'   \u00b7   Per '+fmtDate(last.tanggalAwal):'');
-  ctx.fillText(subline,24,103);
+  // ── META ROW ────────────────────────────────────────────────────────
+  ctx.font='11px sans-serif'; ctx.fillStyle=c.text3;
+  const metaParts=[last.quarter,em.entries.length+' entry',...(last.tanggalAwal?[fmtDate(last.tanggalAwal)]:[])].filter(Boolean);
+  ctx.fillText(metaParts.join('   \u00b7   '), P, y+13);
+  y+=18+12;
 
-  // Divider
-  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(22,116); ctx.lineTo(W-22,116); ctx.stroke();
+  // ── PRICE MAIN (label + value on same baseline) ─────────────────────
+  ctx.font='11px sans-serif'; ctx.fillStyle=c.text3;
+  ctx.fillText('Harga', P, y+22);
+  const lblW=ctx.measureText('Harga').width+8;
+  ctx.font='bold 22px Georgia,serif'; ctx.fillStyle=c.text;
+  ctx.fillText(fmtRp(px), P+lblW, y+22);
+  y+=28+8;
 
-  // ── SECTION 1: Harga saat ini (kiri) + MOS badge (kanan)
-  const priceY=148;
-  // Label
-  ctx.font='9px sans-serif'; ctx.fillStyle='#57534e';
-  ctx.fillText('HARGA SAAT INI',22,priceY-16);
-  // Value
-  ctx.font='bold 38px Georgia,serif'; ctx.fillStyle='#fafaf9';
-  ctx.fillText(price?'Rp '+Math.round(price).toLocaleString('id-ID'):'—',22,priceY);
-
-  // MOS chip (kanan atas area tengah)
-  if(mosPct!==null){
-    const mosCol=mosPct>=0?'#22c55e':'#ef4444';
-    const sign=mosPct>=0?'+':'';
-    const mosStr=sign+mosPct.toFixed(1)+'%';
-    ctx.textAlign='right';
-    ctx.font='9px sans-serif'; ctx.fillStyle='#57534e';
-    ctx.fillText('MARGIN OF SAFETY',W-24,priceY-16);
-    ctx.font='bold 34px Georgia,serif'; ctx.fillStyle=mosCol;
-    ctx.fillText(mosStr,W-24,priceY);
-    ctx.textAlign='left';
-  }
-
-  // ── SECTION 2: FV row table
-  const tableTop=170;
-  const cols=[
-    {label:'FV1 (BVPS\u00d7PBV)', val:fv1},
-    {label:'FV2 (NI\u00d7PE\u00f7Saham)', val:fv2},
-    {label:'FV3 (PE\u00d7EPS)', val:fv3},
+  // ── FV ROWS ─────────────────────────────────────────────────────────
+  const fvRows=[
+    {label:'FV1 \u2014 BVPS \u00d7 PBV',          val:fv1},
+    {label:'FV2 \u2014 (NI \u00d7 PE) \u00f7 Saham', val:fv2},
+    {label:'FV3 \u2014 PE \u00d7 EPS',             val:fv3},
   ];
-  const cellW=(W-44)/3, cellH=58;
+  if(mosPct!==null) fvRows.push({label:'Margin of Safety',val:null,mos:true});
 
-  cols.forEach((col,i)=>{
-    const cx=22+i*cellW;
-    // Cell background
-    ctx.fillStyle='rgba(255,255,255,0.03)';
-    _rrect(ctx,cx+2,tableTop,cellW-4,cellH,4); ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
-    _rrect(ctx,cx+2,tableTop,cellW-4,cellH,4); ctx.stroke();
+  const MAX_LABEL=W-2*P-96; // max label width before it would crowd the right
+
+  fvRows.forEach((row,i)=>{
+    const isLastRow=i===fvRows.length-1;
+
+    // Bottom border for non-last rows
+    if(!isLastRow){
+      ctx.strokeStyle=c.border; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(P,y+ROW); ctx.lineTo(W-P,y+ROW); ctx.stroke();
+    }
 
     // Label
-    ctx.font='8.5px sans-serif'; ctx.fillStyle='#57534e';
-    ctx.fillText(col.label,cx+10,tableTop+15);
+    ctx.font=(row.mos?'600 ':'')+'12px sans-serif';
+    ctx.fillStyle=row.mos?c.text2:c.text3;
+    ctx.fillText(trunc(ctx,row.label,MAX_LABEL), P, y+19);
 
-    // Value
-    if(col.val){
-      const discPct=price?((col.val-price)/price*100):null;
-      const discCol=discPct!==null?(discPct>=0?'#22c55e':'#ef4444'):'#a8a29e';
-      ctx.font='bold 14px Georgia,serif'; ctx.fillStyle='#d6d3cc';
-      ctx.fillText('Rp '+Math.round(col.val).toLocaleString('id-ID'),cx+10,tableTop+36);
-      if(discPct!==null){
-        const sign=discPct>=0?'+':'';
-        ctx.font='bold 10px sans-serif'; ctx.fillStyle=discCol;
-        ctx.fillText(sign+discPct.toFixed(1)+'%',cx+10,tableTop+52);
-      }
+    if(row.mos){
+      // MoS value
+      const mosCol=mosPct>=0?c.greenT:c.redT;
+      const mosStr=(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%';
+      ctx.font='600 13px sans-serif'; ctx.fillStyle=mosCol;
+      ctx.textAlign='right'; ctx.fillText(mosStr, W-P, y+19); ctx.textAlign='left';
     } else {
-      ctx.font='13px sans-serif'; ctx.fillStyle='#3d3835';
-      ctx.fillText('—',cx+10,tableTop+36);
+      const dp=discPct(row.val);
+      // Draw fv-num + disc-pill right-aligned
+      if(row.val&&dp!==null){
+        const sign=dp>=0?'+':'';
+        const pillTxt=sign+dp.toFixed(1)+'%';
+        const pFg=dp>=0?c.greenT:c.redT, pBg=dp>=0?c.greenBg:c.redBg;
+        ctx.font='600 10px sans-serif';
+        const pW=ctx.measureText(pillTxt).width+12, pH=16, pX=W-P-pW;
+        ctx.fillStyle=pBg; rr(pX,y+6,pW,pH,8); ctx.fill();
+        ctx.fillStyle=pFg; ctx.fillText(pillTxt, pX+6, y+18);
+        // FV value left of pill
+        ctx.font='600 12px sans-serif'; ctx.fillStyle=c.text;
+        ctx.textAlign='right'; ctx.fillText(fmtRp(row.val), pX-6, y+19); ctx.textAlign='left';
+      } else {
+        ctx.font='600 12px sans-serif'; ctx.fillStyle=row.val?c.text:c.text3;
+        ctx.textAlign='right'; ctx.fillText(fmtRp(row.val), W-P, y+19); ctx.textAlign='left';
+      }
     }
+
+    y+=ROW;
   });
 
-  // ── SECTION 3: FV Average highlight bar
-  const fvBarY=tableTop+cellH+14;
-  ctx.fillStyle='rgba(217,119,6,0.1)';
-  _rrect(ctx,22,fvBarY,W-44,44,6); ctx.fill();
-  ctx.strokeStyle='rgba(217,119,6,0.25)'; ctx.lineWidth=1;
-  _rrect(ctx,22,fvBarY,W-44,44,6); ctx.stroke();
+  y+=GAP;
 
-  ctx.font='9px sans-serif'; ctx.fillStyle='#d97706';
-  ctx.fillText('FV RATA-RATA',30,fvBarY+15);
-  ctx.font='bold 20px Georgia,serif'; ctx.fillStyle='#f59e0b';
-  ctx.fillText(avg?'Rp '+Math.round(avg).toLocaleString('id-ID'):'—',30,fvBarY+37);
-
-  // Progress bar inside fv bar
-  if(avg&&price){
-    const pct=Math.min(1,price/avg);
-    const barX=200, barW=W-44-200-8, barY=fvBarY+22, barH=6;
-    ctx.fillStyle='rgba(255,255,255,0.07)';
-    _rrect(ctx,barX,barY,barW,barH,3); ctx.fill();
-    ctx.fillStyle=statusCol;
-    _rrect(ctx,barX,barY,barW*pct,barH,3); ctx.fill();
-    ctx.font='9px sans-serif'; ctx.fillStyle='#78716c';
-    ctx.fillText('Harga / FV: '+Math.round(pct*100)+'%',barX,barY-6);
+  // ── PROGRESS BAR ────────────────────────────────────────────────────
+  if(hasProgress){
+    const pct=Math.min(100,Math.round(px/avg*100));
+    const pColor=isUnder?c.green:c.red;
+    // Label row
+    ctx.font='10px sans-serif'; ctx.fillStyle=c.text3;
+    ctx.fillText('Harga vs FV rata-rata ('+fmtRp(avg)+')', P, y+10);
+    ctx.textAlign='right'; ctx.fillText(pct+'%', W-P, y+10); ctx.textAlign='left';
+    // Track
+    const bY=y+14, bH=4, bW2=W-2*P;
+    ctx.fillStyle=c.bg2; rr(P,bY,bW2,bH,2); ctx.fill();
+    // Fill
+    ctx.fillStyle=pColor; rr(P,bY,Math.max(bW2*(pct/100),0),bH,2); ctx.fill();
+    y+=34+GAP;
   }
 
-  // ── SECTION 4: fundamental mini-grid
-  const fundY=fvBarY+44+14;
-  const fundItems=[
-    ['BVPS',last.bvps?last.bvps.toLocaleString('id-ID'):null],
-    ['PBV',last.pbv?last.pbv+'x':null],
-    ['EPS',last.eps?last.eps.toLocaleString('id-ID'):null],
-    ['PE',last.pe?last.pe+'x':null],
-    ['Net Income',last.ni?'Rp '+last.ni+'T':null],
-    ['Saham Beredar',last.shares?last.shares+'M':null],
-  ];
-  const fColW=(W-44)/6;
-  fundItems.forEach((item,i)=>{
-    const fx=22+i*fColW;
-    ctx.font='8px sans-serif'; ctx.fillStyle='#44403c';
-    ctx.fillText(item[0],fx,fundY+12);
-    ctx.font='bold 11px sans-serif'; ctx.fillStyle=item[1]?'#a8a29e':'#3d3835';
-    ctx.fillText(item[1]||'—',fx,fundY+26);
-  });
+  // ── NOTES BOX ───────────────────────────────────────────────────────
+  if(hasNotes&&notesH>0){
+    ctx.fillStyle=c.bg2; rr(P,y,W-2*P,notesH,6); ctx.fill();
+    let ny=y+8;
+    const hasGrid=nd.plus.length||nd.minus.length;
+    const colW=(W-2*P-8)/2-4;
 
-  // Divider bottom
-  const footY=H-26;
-  ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(22,footY-8); ctx.lineTo(W-22,footY-8); ctx.stroke();
+    if(hasGrid){
+      // Positive col
+      if(nd.plus.length){
+        const colH=8+14+nd.plus.length*16+8;
+        ctx.fillStyle=c.greenBg; rr(P+4,ny,colW,colH,5); ctx.fill();
+        ctx.font='700 10px sans-serif'; ctx.fillStyle=c.greenT;
+        ctx.fillText('\u2713 POSITIF', P+4+8, ny+8+10);
+        nd.plus.forEach((item,i)=>{
+          ctx.font='11px sans-serif'; ctx.fillStyle=c.greenT;
+          ctx.fillText('\u2022 '+trunc(ctx,item,colW-18), P+4+8, ny+8+14+14+i*16);
+        });
+      }
+      // Negative col
+      if(nd.minus.length){
+        const nx2=P+4+colW+8;
+        const colH=8+14+nd.minus.length*16+8;
+        ctx.fillStyle=c.redBg; rr(nx2,ny,colW,colH,5); ctx.fill();
+        ctx.font='700 10px sans-serif'; ctx.fillStyle=c.redT;
+        ctx.fillText('\u2717 RISIKO', nx2+8, ny+8+10);
+        nd.minus.forEach((item,i)=>{
+          ctx.font='11px sans-serif'; ctx.fillStyle=c.redT;
+          ctx.fillText('\u2022 '+trunc(ctx,item,colW-18), nx2+8, ny+8+14+14+i*16);
+        });
+      }
+      const maxI=Math.max(nd.plus.length,nd.minus.length);
+      ny+=8+14+maxI*16+8;
+    }
 
-  // Footer
-  ctx.font='9px sans-serif'; ctx.fillStyle='#3d3835';
-  ctx.fillText('StockTracker \u00b7 Snapshot valuasi — bukan rekomendasi investasi',22,footY+8);
-
-  // Entry count
-  ctx.textAlign='right'; ctx.fillStyle='#3d3835';
-  ctx.fillText(em.entries.length+' entry data',W-24,footY+8);
-  ctx.textAlign='left';
+    if(nd.general){
+      if(hasGrid) ny+=8;
+      const ls=wrap(nd.general,W-2*P-20,'12px sans-serif');
+      ctx.font='12px sans-serif'; ctx.fillStyle=c.text2;
+      ls.forEach((line,i)=>{ ctx.fillText(line, P+8, ny+8+14+i*18); });
+    }
+  }
 }
 
 // ============================================================

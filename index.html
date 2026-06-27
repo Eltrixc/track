@@ -189,28 +189,33 @@
   .toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:var(--bg);font-family:sans-serif;font-size:13px;padding:10px 16px;border-radius:var(--radius);z-index:999;opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none;max-width:320px}
   .toast.show{opacity:1;transform:translateY(0)}
 
-  /* ── EXPAND IN PLACE ── */
-  .emiten-card{cursor:pointer;transition:border-color .2s,opacity .15s,box-shadow .15s,transform .15s}
-  .emiten-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.1),var(--shadow)}
-  .emiten-card.expanded{border-left-width:4px;box-shadow:0 6px 20px rgba(0,0,0,.12),var(--shadow)}
-  .card-expand-panel{display:none;flex-direction:column;gap:10px;border-top:1px solid var(--border);padding-top:10px;margin-top:2px;animation:expandIn .18s ease}
-  .emiten-card.expanded .card-expand-panel{display:flex}
-  .card-footer{cursor:default}
-  .expand-indicator{font-family:sans-serif;font-size:10px;color:var(--text3);display:flex;align-items:center;gap:4px;margin-top:4px;user-select:none;justify-content:center}
-  .expand-indicator svg{transition:transform .2s}
-  .emiten-card.expanded .expand-indicator svg{transform:rotate(180deg)}
+  /* ── CARD POPUP OVERLAY ── */
+  .emiten-card{cursor:pointer;transition:border-color .2s,opacity .15s,box-shadow .15s}
+  .emiten-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.1),var(--shadow);transform:translateY(-1px)}
+
+  .card-popup-backdrop{display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.25);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+  .card-popup-backdrop.open{display:flex}
+  .card-popup{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:0 12px 12px 0;padding:20px;width:100%;max-width:480px;max-height:82vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.22);display:flex;flex-direction:column;gap:12px;position:relative;animation:popupIn .18s cubic-bezier(.34,1.3,.64,1)}
+  .card-popup.overvalue{border-left-color:var(--red)}
+  .card-popup.undervalue{border-left-color:var(--green)}
+  .card-popup-close{position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s}
+  .card-popup-close:hover{background:var(--border);color:var(--text)}
+  .card-popup-hint{font-family:sans-serif;font-size:10px;color:var(--text3);text-align:center;margin-top:2px}
+
   .expand-section-label{font-family:sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:4px}
   .expand-kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;font-family:sans-serif;font-size:12px}
   .expand-kv{display:flex;flex-direction:column;gap:1px}
   .expand-k{font-size:10px;color:var(--text3)}
   .expand-v{font-weight:600;color:var(--text)}
 
+  @keyframes popupIn{from{opacity:0;transform:scale(.95) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
   /* archive row expand */
   .inv-table tbody tr.inv-row{cursor:pointer;transition:background .12s}
   .inv-table tbody tr.inv-row:hover td{background:var(--accent-bg)}
   .inv-table tbody tr.inv-expand-row td{padding:0;background:var(--bg2)}
-  .inv-expand-inner{padding:14px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px 24px;font-family:sans-serif;font-size:12px;animation:expandIn .18s ease}
-  .inv-expand-inner .expand-kv{border-left:2px solid var(--border2);padding-left:10px}
+  .inv-expand-inner{padding:14px 16px;display:flex;flex-wrap:wrap;gap:10px 24px;font-family:sans-serif;font-size:12px;animation:expandIn .18s ease}
+  .inv-expand-inner .expand-kv{border-left:2px solid var(--border2);padding-left:10px;min-width:140px}
   .inv-row.inv-row-open td{background:var(--accent-bg)!important}
 
   @keyframes expandIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
@@ -456,6 +461,16 @@
   </div>
 </div>
 
+<!-- Card Popup -->
+<div class="card-popup-backdrop" id="card-popup-backdrop" onclick="handleCardPopupBackdropClick(event)">
+  <div class="card-popup" id="card-popup-inner">
+    <button class="card-popup-close" onclick="closeCardPopup()" title="Tutup">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div id="card-popup-content"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -672,7 +687,7 @@ function renderCards(){
     }).join('');
 
     html+='<div class="emiten-card '+cardClass+'" id="card-'+em.id+'" draggable="true"'
-      +' onclick="toggleCardExpand(event,\''+em.id+'\')"'
+      +' onclick="openCardPopup(event,\''+em.id+'\')"'
       +' ondragstart="onDragStart(event,\''+em.id+'\')"'
       +' ondragend="onDragEnd(event,\''+em.id+'\')"'
       +' ondragover="onDragOver(event,\''+em.id+'\')"'
@@ -697,32 +712,7 @@ function renderCards(){
       +'</div>'
       +(avg&&last.price?'<div class="progress-wrap"><div class="progress-label"><span>Harga vs FV rata-rata ('+fmt(avg)+')</span><span>'+progress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%;background:'+pColor+'"></div></div></div>':'')
       +(last.notes?'<div class="notes-box">'+formatNotes(last.notes)+'</div>':'')
-      +(em.entries.length>1?'<div><div class="history-toggle" onclick="toggleHistory(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg> Riwayat '+(em.entries.length-1)+' kuartal sebelumnya</div><div class="history-list" style="display:none">'+histHTML+'</div></div>':'')
-      +'<div class="expand-indicator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg> Detail lebih lanjut</div>'
-      +'<div class="card-expand-panel">'
-        +'<div class="expand-section-label">Data Fundamental</div>'
-        +'<div class="expand-kv-grid">'
-          +'<div class="expand-kv"><span class="expand-k">BVPS</span><span class="expand-v">'+(last.bvps?last.bvps.toLocaleString('id-ID'):'\u2014')+'</span></div>'
-          +'<div class="expand-kv"><span class="expand-k">PBV</span><span class="expand-v">'+(last.pbv?last.pbv+'x':'\u2014')+'</span></div>'
-          +'<div class="expand-kv"><span class="expand-k">EPS</span><span class="expand-v">'+(last.eps?last.eps.toLocaleString('id-ID'):'\u2014')+'</span></div>'
-          +'<div class="expand-kv"><span class="expand-k">PE</span><span class="expand-v">'+(last.pe?last.pe+'x':'\u2014')+'</span></div>'
-          +'<div class="expand-kv"><span class="expand-k">Net Income (T)</span><span class="expand-v">'+(last.ni?'Rp '+last.ni.toLocaleString('id-ID')+'T':'\u2014')+'</span></div>'
-          +'<div class="expand-kv"><span class="expand-k">Saham Beredar (M)</span><span class="expand-v">'+(last.shares?last.shares.toLocaleString('id-ID')+'M':'\u2014')+'</span></div>'
-        +'</div>'
-        +(avg?'<div style="margin-top:6px"><div class="expand-section-label">Fair Value</div><div class="expand-kv-grid">'
-          +'<div class="expand-kv"><span class="expand-k">FV Avg</span><span class="expand-v">'+fmt(avg)+'</span></div>'
-          +(fv1?'<div class="expand-kv"><span class="expand-k">FV1 (BVPS\xd7PBV)</span><span class="expand-v">'+fmt(fv1)+'</span></div>':'')
-          +(fv2?'<div class="expand-kv"><span class="expand-k">FV2 (NI\xd7PE/Saham)</span><span class="expand-v">'+fmt(fv2)+'</span></div>':'')
-          +(fv3?'<div class="expand-kv"><span class="expand-k">FV3 (PE\xd7EPS)</span><span class="expand-v">'+fmt(fv3)+'</span></div>':'')
-        +'</div></div>':'')
-      +'</div>'
-      +'<div class="card-footer">'
-        +'<button class="btn btn-edit btn-icon" onclick="openEditModal(\''+em.id+'\')" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
-        +'<button class="btn" onclick="openQuarterModal(\''+em.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M12 5v14M5 12h14"/></svg> Entry baru</button>'
-        +'<button class="btn btn-hit"  onclick="openHitModal(\''+em.id+'\')">\u2713 Hit</button>'
-        +'<button class="btn btn-miss" onclick="openMissModal(\''+em.id+'\')">\u2717 Miss</button>'
-        +'<button class="btn btn-miss btn-icon" onclick="deleteEmiten(\''+em.id+'\')" title="Hapus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>'
-      +'</div>'
+      +'<div class="card-popup-hint">&#x1F50D; Klik untuk detail &amp; aksi</div>'
       +'</div>';
   });
 
@@ -739,13 +729,82 @@ function toggleHistory(el){
   list.style.display=open?'none':'flex';
   el.querySelector('svg').style.transform=open?'':'rotate(180deg)';
 }
-function toggleCardExpand(e, emitenId){
-  // jangan toggle kalau klik di tombol, drag handle, atau history toggle
-  if(e.target.closest('.card-footer,.drag-handle,.history-toggle,.history-list')) return;
-  const card=document.getElementById('card-'+emitenId);
-  if(!card) return;
-  card.classList.toggle('expanded');
+
+function openCardPopup(e, emitenId){
+  if(e.target.closest('.drag-handle')) return;
+  const em=state.emitens.find(x=>x.id===emitenId); if(!em) return;
+  const last=em.entries[em.entries.length-1]; if(!last) return;
+  const {fv1,fv2,fv3,avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
+  const isUnder=avg&&last.price<avg, isOver=avg&&last.price>=avg;
+  const cardClass=isUnder?'undervalue':isOver?'overvalue':'';
+  const tebakan=em.tebakan||'bullish';
+  const tanggalD=last.tanggalAwal?fmtDate(last.tanggalAwal):null;
+  const pColor=isUnder?'var(--green)':'var(--red)';
+  const progress=avg&&last.price?Math.min(100,Math.round(last.price/avg*100)):0;
+  const discStr=fv=>{
+    if(!fv||!last.price) return '';
+    const d=fmtDisc(last.price,fv),cls=parseFloat(d)>0?'pos':'neg',sgn=parseFloat(d)>0?'+':'';
+    return '<span class="disc-pill '+cls+'">'+sgn+d+'%</span>';
+  };
+  const histHTML=em.entries.slice(0,-1).reverse().map(e=>{
+    const {fv1:h1,fv2:h2,fv3:h3,avg:ha}=calcFV(e.bvps,e.pbv,e.ni,e.pe,e.shares,e.eps);
+    return '<div class="history-entry"><div class="he-top"><span class="he-quarter">'+escHtml(e.quarter)+'</span><span class="he-price">Rp '+(e.price?Math.round(e.price).toLocaleString('id-ID'):'\u2014')+(e.tanggalAwal?' \u00b7 '+fmtDate(e.tanggalAwal):'')+' </span></div>'
+      +'<div class="he-fvs">'+(h1?'<span class="he-fv-chip">FV1: Rp '+Math.round(h1).toLocaleString('id-ID')+'</span>':'')+(h2?'<span class="he-fv-chip">FV2: Rp '+Math.round(h2).toLocaleString('id-ID')+'</span>':'')+(h3?'<span class="he-fv-chip">FV3: Rp '+Math.round(h3).toLocaleString('id-ID')+'</span>':'')+'</div>'
+      +(e.notes?'<div style="margin-top:4px;color:var(--text3)">'+escHtml(e.notes)+'</div>':'')
+      +'</div>';
+  }).join('');
+
+  const content=''
+    +'<div class="card-header" style="padding-right:28px">'
+      +'<div class="card-header-left">'
+        +'<div class="ticker">'+escHtml(em.ticker)+'</div>'
+        +'<span class="tebakan-inline '+tebakan+'">'+(tebakan==='bullish'?'\uD83D\uDD3C Bullish':'\uD83D\uDD3D Bearish')+'</span>'
+      +'</div>'
+      +'<span class="badge '+(isUnder?'green':isOver?'red':'pending')+'">'+(isUnder?'Undervalue':isOver?'Overvalue':'Belum terhitung')+'</span>'
+    +'</div>'
+    +'<div class="meta-row"><span>'+escHtml(last.quarter)+'</span><span class="meta-dot"></span><span>'+em.entries.length+' entry</span>'+(tanggalD?'<span class="meta-dot"></span><span>'+tanggalD+'</span>':'')+'</div>'
+    +'<div class="fv-section">'
+      +'<div class="price-main"><span class="price-label">Harga</span><span class="price-val">Rp '+(last.price?Math.round(last.price).toLocaleString('id-ID'):'\u2014')+'</span></div>'
+      +'<div class="fv-row"><span class="fv-label">FV1 \u2014 BVPS \xd7 PBV</span><span class="fv-vals"><span class="fv-num">'+fmt(fv1)+'</span>'+discStr(fv1)+'</span></div>'
+      +'<div class="fv-row"><span class="fv-label">FV2 \u2014 (NI \xd7 PE) \xf7 Saham</span><span class="fv-vals"><span class="fv-num">'+fmt(fv2)+'</span>'+discStr(fv2)+'</span></div>'
+      +'<div class="fv-row"><span class="fv-label">FV3 \u2014 PE \xd7 EPS</span><span class="fv-vals"><span class="fv-num">'+fmt(fv3)+'</span>'+discStr(fv3)+'</span></div>'
+    +'</div>'
+    +(avg&&last.price?'<div class="progress-wrap"><div class="progress-label"><span>Harga vs FV rata-rata ('+fmt(avg)+')</span><span>'+progress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%;background:'+pColor+'"></div></div></div>':'')
+    +'<div style="border-top:1px solid var(--border);padding-top:10px">'
+      +'<div class="expand-section-label">Data Fundamental</div>'
+      +'<div class="expand-kv-grid">'
+        +'<div class="expand-kv"><span class="expand-k">BVPS</span><span class="expand-v">'+(last.bvps?last.bvps.toLocaleString('id-ID'):'\u2014')+'</span></div>'
+        +'<div class="expand-kv"><span class="expand-k">PBV</span><span class="expand-v">'+(last.pbv?last.pbv+'x':'\u2014')+'</span></div>'
+        +'<div class="expand-kv"><span class="expand-k">EPS</span><span class="expand-v">'+(last.eps?last.eps.toLocaleString('id-ID'):'\u2014')+'</span></div>'
+        +'<div class="expand-kv"><span class="expand-k">PE</span><span class="expand-v">'+(last.pe?last.pe+'x':'\u2014')+'</span></div>'
+        +'<div class="expand-kv"><span class="expand-k">Net Income (T)</span><span class="expand-v">'+(last.ni?'Rp '+last.ni.toLocaleString('id-ID')+'T':'\u2014')+'</span></div>'
+        +'<div class="expand-kv"><span class="expand-k">Saham (M)</span><span class="expand-v">'+(last.shares?last.shares.toLocaleString('id-ID')+'M':'\u2014')+'</span></div>'
+      +'</div>'
+    +'</div>'
+    +(last.notes?'<div class="notes-box">'+formatNotes(last.notes)+'</div>':'')
+    +(em.entries.length>1?'<div><div class="history-toggle" onclick="toggleHistory(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg> Riwayat '+(em.entries.length-1)+' kuartal sebelumnya</div><div class="history-list" style="display:none">'+histHTML+'</div></div>':'')
+    +'<div class="card-footer">'
+      +'<button class="btn btn-edit btn-icon" onclick="closeCardPopup();openEditModal(\''+emitenId+'\')" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+      +'<button class="btn" onclick="closeCardPopup();openQuarterModal(\''+emitenId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M12 5v14M5 12h14"/></svg> Entry baru</button>'
+      +'<button class="btn btn-hit" onclick="closeCardPopup();openHitModal(\''+emitenId+'\')">\u2713 Hit</button>'
+      +'<button class="btn btn-miss" onclick="closeCardPopup();openMissModal(\''+emitenId+'\')">\u2717 Miss</button>'
+      +'<button class="btn btn-miss btn-icon" onclick="closeCardPopup();deleteEmiten(\''+emitenId+'\')" title="Hapus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>'
+    +'</div>';
+
+  const popup=document.getElementById('card-popup-inner');
+  popup.className='card-popup'+(cardClass?' '+cardClass:'');
+  document.getElementById('card-popup-content').innerHTML=content;
+  document.getElementById('card-popup-backdrop').classList.add('open');
+  document.body.style.overflow='hidden';
 }
+function closeCardPopup(){
+  document.getElementById('card-popup-backdrop').classList.remove('open');
+  document.body.style.overflow='';
+}
+function handleCardPopupBackdropClick(e){
+  if(e.target===document.getElementById('card-popup-backdrop')) closeCardPopup();
+}
+
 function filterCards(){ renderCards(); }
 
 // ============================================================
@@ -988,19 +1047,14 @@ function renderInventory(){
         +'<span style="font-size:10px;color:var(--text3)">FV Avg: '+fmt(eavg)+'</span>'
         +'</div>';
     }).join(''):'';
-    const lastEntry=(inv.allEntries&&inv.allEntries.length)?inv.allEntries[inv.allEntries.length-1]:null;
     const expandInner='<div class="inv-expand-inner">'
-      +'<div class="expand-kv"><span class="expand-k">BVPS</span><span class="expand-v">'+(lastEntry&&lastEntry.bvps!=null?lastEntry.bvps.toLocaleString('id-ID'):'\u2014')+'</span></div>'
-      +'<div class="expand-kv"><span class="expand-k">PBV</span><span class="expand-v">'+(lastEntry&&lastEntry.pbv!=null?lastEntry.pbv+'x':'\u2014')+'</span></div>'
-      +'<div class="expand-kv"><span class="expand-k">EPS</span><span class="expand-v">'+(lastEntry&&lastEntry.eps!=null?lastEntry.eps.toLocaleString('id-ID'):'\u2014')+'</span></div>'
-      +'<div class="expand-kv"><span class="expand-k">PE</span><span class="expand-v">'+(lastEntry&&lastEntry.pe!=null?lastEntry.pe+'x':'\u2014')+'</span></div>'
-      +'<div class="expand-kv"><span class="expand-k">FV1</span><span class="expand-v">'+fmt(inv.fv1)+'</span></div>'
-      +'<div class="expand-kv"><span class="expand-k">FV2</span><span class="expand-v">'+fmt(inv.fv2)+'</span></div>'
-      +'<div class="expand-kv"><span class="expand-k">FV3</span><span class="expand-v">'+fmt(inv.fv3)+'</span></div>'
-      +'<div class="expand-kv"><span class="expand-k">FV Rata-rata</span><span class="expand-v">'+fmt(inv.avg)+'</span></div>'
+      +'<div class="expand-kv"><span class="expand-k">FV1 (BVPS\xd7PBV)</span><span class="expand-v">'+fmt(inv.fv1)+'</span></div>'
+      +'<div class="expand-kv"><span class="expand-k">FV2 (NI\xd7PE/Saham)</span><span class="expand-v">'+fmt(inv.fv2)+'</span></div>'
+      +'<div class="expand-kv"><span class="expand-k">FV3 (PE\xd7EPS)</span><span class="expand-v">'+fmt(inv.fv3)+'</span></div>'
+      +'<div class="expand-kv"><span class="expand-k">FV Rata-rata</span><span class="expand-v" style="color:var(--accent)">'+fmt(inv.avg)+'</span></div>'
       +(inv.result==='miss'&&inv.missIndicator?'<div class="expand-kv"><span class="expand-k">Indikator Miss</span><span class="expand-v" style="color:var(--red-t)">'+escHtml(missLbl)+'</span></div>':'')
-      +(inv.notes?'<div class="expand-kv" style="grid-column:1/-1"><span class="expand-k">Catatan</span><span class="expand-v" style="font-weight:400;color:var(--text2)">'+escHtml(inv.notes)+'</span></div>':'')
-      +(entriesHTML?'<div style="grid-column:1/-1"><div class="expand-section-label" style="margin-bottom:6px">Riwayat Entry ('+((inv.allEntries||[]).length)+' kuartal)</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+entriesHTML+'</div></div>':'')
+      +(inv.notes?'<div class="expand-kv" style="flex-basis:100%"><span class="expand-k">Catatan</span><span class="expand-v" style="font-weight:400;color:var(--text2)">'+escHtml(inv.notes)+'</span></div>':'')
+      +(entriesHTML?'<div style="flex-basis:100%"><div class="expand-section-label" style="margin-bottom:6px">Riwayat Entry ('+((inv.allEntries||[]).length)+' kuartal)</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+entriesHTML+'</div></div>':'')
       +'</div>';
     return '<tr class="inv-row" onclick="toggleInvExpand(event,\''+inv.id+'\')" data-inv-id="'+inv.id+'">'
       +'<td><div class="inv-ticker">'+escHtml(inv.ticker)+'</div><div class="inv-quarter">'+escHtml(inv.quarter)+'</div></td>'
@@ -1210,7 +1264,7 @@ function exportPDF(){
   });
 });
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){ closeModal(); closeQuarterModal(); closeHitModal(); closeMissModal(); }
+  if(e.key==='Escape'){ closeModal(); closeQuarterModal(); closeHitModal(); closeMissModal(); closeCardPopup(); }
 });
 
 // ============================================================

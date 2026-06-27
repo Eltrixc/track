@@ -255,12 +255,62 @@
     .logo{font-size:15px}.form-grid{grid-template-columns:1fr}
     .drag-handle{display:none}
   }
+
+  /* ── LOGO TOOLTIP ── */
+  .logo-wrap{position:relative;display:inline-block;cursor:default}
+  .logo-wrap .logo-tooltip{
+    display:none;position:absolute;top:calc(100% + 8px);left:0;
+    background:var(--text);color:var(--bg);
+    font-family:sans-serif;font-size:11px;font-weight:400;
+    padding:5px 10px;border-radius:6px;white-space:nowrap;
+    box-shadow:0 4px 12px rgba(0,0,0,.18);z-index:999;
+    opacity:0;transform:translateY(-4px);transition:opacity .18s,transform .18s;
+    pointer-events:none;letter-spacing:0
+  }
+  .logo-wrap .logo-tooltip::before{
+    content:'';position:absolute;bottom:100%;left:14px;
+    border:5px solid transparent;border-bottom-color:var(--text)
+  }
+  .logo-wrap:hover .logo-tooltip{display:block;opacity:1;transform:translateY(0)}
+
+  /* ── CYCLICAL WARNING BANNER ── */
+  .cyclical-warning{
+    background:var(--accent-bg);border-bottom:1px solid var(--accent);
+    padding:7px 24px;display:flex;align-items:center;gap:10px;
+    font-family:sans-serif;font-size:12px;color:var(--accent-t);
+    position:sticky;top:56px;z-index:90
+  }
+  .cyclical-warning svg{flex-shrink:0;color:var(--accent)}
+  .cyclical-warning span{flex:1;line-height:1.4}
+  .cyclical-dismiss{background:none;border:none;cursor:pointer;color:var(--accent-t);opacity:.6;font-size:16px;padding:0 2px;line-height:1;flex-shrink:0;transition:opacity .15s}
+  .cyclical-dismiss:hover{opacity:1}
+
+  /* ── MOS INFO BUTTON ── */
+  .mos-info-btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:14px;height:14px;border-radius:50%;border:1px solid var(--border2);
+    background:var(--bg2);color:var(--text3);font-size:9px;font-weight:700;
+    cursor:pointer;flex-shrink:0;transition:background .15s,color .15s,border-color .15s;
+    font-family:sans-serif;vertical-align:middle;margin-left:4px;position:relative
+  }
+  .mos-info-btn:hover{background:var(--accent-bg);color:var(--accent-t);border-color:var(--accent)}
+  .mos-tooltip{
+    display:none;position:fixed;z-index:9999;
+    background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    padding:10px 12px;width:230px;font-family:sans-serif;font-size:11px;
+    color:var(--text2);line-height:1.55;box-shadow:0 6px 20px rgba(0,0,0,.15)
+  }
+  .mos-tooltip.visible{display:block}
+  .mos-tooltip strong{color:var(--text);font-size:11.5px}
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="logo">Stock<span>Tracker</span></div>
+  <div class="logo-wrap">
+    <div class="logo">Stock<span>Tracker</span></div>
+    <div class="logo-tooltip">Designed and developed by BosGeng</div>
+  </div>
   <div class="tab-group">
     <button class="tab-btn active" onclick="switchTab('active')">Active <span class="tab-badge" id="badge-active">0</span></button>
     <button class="tab-btn" onclick="switchTab('inventory')">Archive <span class="tab-badge" id="badge-inv">0</span></button>
@@ -273,6 +323,12 @@
   <button class="icon-btn" onclick="toggleTheme()" title="Toggle dark mode">
     <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
   </button>
+</div>
+
+<div class="cyclical-warning" id="cyclical-warning">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  <span><strong>Catatan akurasi model:</strong> Model prediksi ini menggunakan pendekatan valuasi berbasis fundamental (PBV, PE, EPS). Hasilnya kurang akurat untuk emiten di <strong>sektor siklikal</strong> karena kinerja keuangannya sangat dipengaruhi siklus ekonomi, bukan tren fundamental jangka panjang.</span>
+  <button class="cyclical-dismiss" onclick="document.getElementById('cyclical-warning').style.display='none'" title="Tutup">&#x2715;</button>
 </div>
 
 <div class="main">
@@ -1201,7 +1257,7 @@ function renderInventory(){
       +'<div class="expand-kv"><span class="expand-k">FV2 (NI\xd7PE/Saham)</span><span class="expand-v">'+fmt(inv.fv2)+'</span></div>'
       +'<div class="expand-kv"><span class="expand-k">FV3 (PE\xd7EPS)</span><span class="expand-v">'+fmt(inv.fv3)+'</span></div>'
       +'<div class="expand-kv"><span class="expand-k">FV Rata-rata</span><span class="expand-v" style="color:var(--accent)">'+fmt(inv.avg)+'</span></div>'
-      +(mosPct!==null?'<div class="expand-kv"><span class="expand-k">Margin of Safety</span><span class="expand-v" style="color:'+(mosPct>=0?'var(--green-t)':'var(--red-t)')+'">'+( mosPct>=0?'+':'')+mosPct.toFixed(1)+'%</span></div>':'')
+      +(mosPct!==null?'<div class="expand-kv"><span class="expand-k">Margin of Safety <button class="mos-info-btn" onclick="event.stopPropagation();toggleMosTooltip(event,this)" title="Apa itu Margin of Safety?">i</button></span><span class="expand-v" style="color:'+(mosPct>=0?'var(--green-t)':'var(--red-t)')+'">'+( mosPct>=0?'+':'')+mosPct.toFixed(1)+'%</span></div>':'')
       +(fvReturnPct!==null?'<div class="expand-kv"><span class="expand-k">Harga Akhir vs FV</span><span class="expand-v" style="color:'+(fvReturnPct>=0?'var(--green-t)':'var(--red-t)')+'">'+( fvReturnPct>=0?'+':'')+fvReturnPct.toFixed(1)+'%</span></div>':'')
       +(inv.result==='miss'&&inv.missIndicator?'<div class="expand-kv"><span class="expand-k">Indikator Miss</span><span class="expand-v" style="color:var(--red-t)">'+escHtml(missLbl)+'</span></div>':'')
       +(inv.notes?'<div class="expand-kv notes-box" style="flex-basis:100%;background:transparent;padding:0"><span class="expand-k" style="margin-bottom:4px;display:block">Catatan</span>'+formatNotes(inv.notes)+'</div>':'')
@@ -1585,5 +1641,55 @@ if(sortSel) sortSel.value=state.invSort||'newest';
 renderCards();
 updateStats();
 </script>
+
+<!-- MOS Tooltip Popup -->
+<div class="mos-tooltip" id="mos-tooltip">
+  <strong>📐 Margin of Safety (MOS)</strong>
+  <div style="margin-top:6px">Selisih antara <em>Fair Value rata-rata</em> dan <em>harga beli</em>, dinyatakan dalam persen:</div>
+  <div style="margin:7px 0;padding:6px 8px;background:var(--bg2);border-radius:5px;font-size:10.5px;text-align:center;font-family:Georgia,serif">
+    MOS = (FV Avg − Harga Awal) / Harga Awal × 100%
+  </div>
+  <div style="color:var(--green-t)">✔ <strong>Positif</strong> → kamu beli di bawah FV (ada "bantal" keamanan)</div>
+  <div style="margin-top:4px;color:var(--red-t)">✘ <strong>Negatif</strong> → kamu beli di atas FV (premium, risiko lebih tinggi)</div>
+  <div style="margin-top:6px;color:var(--text3);font-size:10px">Konsep oleh Benjamin Graham & Warren Buffett. MOS ≥20% umumnya dianggap layak.</div>
+</div>
+
+<script>
+// ── MOS TOOLTIP LOGIC ──
+const mosTooltip = document.getElementById('mos-tooltip');
+let mosOpen = false;
+
+function toggleMosTooltip(e, btn) {
+  e.stopPropagation();
+  if (mosOpen) { hideMosTooltip(); return; }
+  const rect = btn.getBoundingClientRect();
+  const tip = mosTooltip;
+  tip.classList.add('visible');
+  mosOpen = true;
+  // Position: try right of button, clamp to viewport after
+  tip.style.top = (rect.top + window.scrollY - 4) + 'px';
+  tip.style.left = (rect.right + 8) + 'px';
+  const tipRect = tip.getBoundingClientRect();
+  if (tipRect.right > window.innerWidth - 12) {
+    tip.style.left = (rect.left - tipRect.width - 8) + 'px';
+  }
+  if (tipRect.bottom > window.innerHeight - 12) {
+    tip.style.top = (rect.bottom + window.scrollY - tipRect.height) + 'px';
+  }
+}
+
+function hideMosTooltip() {
+  mosTooltip.classList.remove('visible');
+  mosOpen = false;
+}
+
+document.addEventListener('click', function(e) {
+  if (!mosTooltip.contains(e.target) && mosOpen) hideMosTooltip();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && mosOpen) hideMosTooltip();
+});
+</script>
+
 </body>
 </html>

@@ -189,6 +189,32 @@
   .toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:var(--bg);font-family:sans-serif;font-size:13px;padding:10px 16px;border-radius:var(--radius);z-index:999;opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none;max-width:320px}
   .toast.show{opacity:1;transform:translateY(0)}
 
+  /* ── EXPAND IN PLACE ── */
+  .emiten-card{cursor:pointer;transition:border-color .2s,opacity .15s,box-shadow .15s,transform .15s}
+  .emiten-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.1),var(--shadow)}
+  .emiten-card.expanded{border-left-width:4px;box-shadow:0 6px 20px rgba(0,0,0,.12),var(--shadow)}
+  .card-expand-panel{display:none;flex-direction:column;gap:10px;border-top:1px solid var(--border);padding-top:10px;margin-top:2px;animation:expandIn .18s ease}
+  .emiten-card.expanded .card-expand-panel{display:flex}
+  .card-footer{cursor:default}
+  .expand-indicator{font-family:sans-serif;font-size:10px;color:var(--text3);display:flex;align-items:center;gap:4px;margin-top:4px;user-select:none;justify-content:center}
+  .expand-indicator svg{transition:transform .2s}
+  .emiten-card.expanded .expand-indicator svg{transform:rotate(180deg)}
+  .expand-section-label{font-family:sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:4px}
+  .expand-kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;font-family:sans-serif;font-size:12px}
+  .expand-kv{display:flex;flex-direction:column;gap:1px}
+  .expand-k{font-size:10px;color:var(--text3)}
+  .expand-v{font-weight:600;color:var(--text)}
+
+  /* archive row expand */
+  .inv-table tbody tr.inv-row{cursor:pointer;transition:background .12s}
+  .inv-table tbody tr.inv-row:hover td{background:var(--accent-bg)}
+  .inv-table tbody tr.inv-expand-row td{padding:0;background:var(--bg2)}
+  .inv-expand-inner{padding:14px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px 24px;font-family:sans-serif;font-size:12px;animation:expandIn .18s ease}
+  .inv-expand-inner .expand-kv{border-left:2px solid var(--border2);padding-left:10px}
+  .inv-row.inv-row-open td{background:var(--accent-bg)!important}
+
+  @keyframes expandIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
   @keyframes spin{to{transform:rotate(360deg)}}
   .spin-icon{animation:spin .7s linear infinite;display:inline-block}
 
@@ -646,6 +672,7 @@ function renderCards(){
     }).join('');
 
     html+='<div class="emiten-card '+cardClass+'" id="card-'+em.id+'" draggable="true"'
+      +' onclick="toggleCardExpand(event,\''+em.id+'\')"'
       +' ondragstart="onDragStart(event,\''+em.id+'\')"'
       +' ondragend="onDragEnd(event,\''+em.id+'\')"'
       +' ondragover="onDragOver(event,\''+em.id+'\')"'
@@ -671,6 +698,24 @@ function renderCards(){
       +(avg&&last.price?'<div class="progress-wrap"><div class="progress-label"><span>Harga vs FV rata-rata ('+fmt(avg)+')</span><span>'+progress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%;background:'+pColor+'"></div></div></div>':'')
       +(last.notes?'<div class="notes-box">'+formatNotes(last.notes)+'</div>':'')
       +(em.entries.length>1?'<div><div class="history-toggle" onclick="toggleHistory(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg> Riwayat '+(em.entries.length-1)+' kuartal sebelumnya</div><div class="history-list" style="display:none">'+histHTML+'</div></div>':'')
+      +'<div class="expand-indicator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg> Detail lebih lanjut</div>'
+      +'<div class="card-expand-panel">'
+        +'<div class="expand-section-label">Data Fundamental</div>'
+        +'<div class="expand-kv-grid">'
+          +'<div class="expand-kv"><span class="expand-k">BVPS</span><span class="expand-v">'+(last.bvps?last.bvps.toLocaleString('id-ID'):'\u2014')+'</span></div>'
+          +'<div class="expand-kv"><span class="expand-k">PBV</span><span class="expand-v">'+(last.pbv?last.pbv+'x':'\u2014')+'</span></div>'
+          +'<div class="expand-kv"><span class="expand-k">EPS</span><span class="expand-v">'+(last.eps?last.eps.toLocaleString('id-ID'):'\u2014')+'</span></div>'
+          +'<div class="expand-kv"><span class="expand-k">PE</span><span class="expand-v">'+(last.pe?last.pe+'x':'\u2014')+'</span></div>'
+          +'<div class="expand-kv"><span class="expand-k">Net Income (T)</span><span class="expand-v">'+(last.ni?'Rp '+last.ni.toLocaleString('id-ID')+'T':'\u2014')+'</span></div>'
+          +'<div class="expand-kv"><span class="expand-k">Saham Beredar (M)</span><span class="expand-v">'+(last.shares?last.shares.toLocaleString('id-ID')+'M':'\u2014')+'</span></div>'
+        +'</div>'
+        +(avg?'<div style="margin-top:6px"><div class="expand-section-label">Fair Value</div><div class="expand-kv-grid">'
+          +'<div class="expand-kv"><span class="expand-k">FV Avg</span><span class="expand-v">'+fmt(avg)+'</span></div>'
+          +(fv1?'<div class="expand-kv"><span class="expand-k">FV1 (BVPS\xd7PBV)</span><span class="expand-v">'+fmt(fv1)+'</span></div>':'')
+          +(fv2?'<div class="expand-kv"><span class="expand-k">FV2 (NI\xd7PE/Saham)</span><span class="expand-v">'+fmt(fv2)+'</span></div>':'')
+          +(fv3?'<div class="expand-kv"><span class="expand-k">FV3 (PE\xd7EPS)</span><span class="expand-v">'+fmt(fv3)+'</span></div>':'')
+        +'</div></div>':'')
+      +'</div>'
       +'<div class="card-footer">'
         +'<button class="btn btn-edit btn-icon" onclick="openEditModal(\''+em.id+'\')" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
         +'<button class="btn" onclick="openQuarterModal(\''+em.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M12 5v14M5 12h14"/></svg> Entry baru</button>'
@@ -693,6 +738,13 @@ function toggleHistory(el){
   const list=el.nextElementSibling, open=list.style.display!=='none';
   list.style.display=open?'none':'flex';
   el.querySelector('svg').style.transform=open?'':'rotate(180deg)';
+}
+function toggleCardExpand(e, emitenId){
+  // jangan toggle kalau klik di tombol, drag handle, atau history toggle
+  if(e.target.closest('.card-footer,.drag-handle,.history-toggle,.history-list')) return;
+  const card=document.getElementById('card-'+emitenId);
+  if(!card) return;
+  card.classList.toggle('expanded');
 }
 function filterCards(){ renderCards(); }
 
@@ -928,7 +980,29 @@ function renderInventory(){
     const missLbl=inv.result==='miss'&&inv.missIndicator?getMissLabel(inv.missIndicator,teb):'\u2014';
     const dur=formatDuration(inv.tanggalAwal,inv.tanggalAkhir);
     const hAwal=inv.hargaAwal??inv.price??null;
-    return '<tr>'
+    const entriesHTML=(inv.allEntries&&inv.allEntries.length>1)?inv.allEntries.map((e,i)=>{
+      const {fv1:ef1,fv2:ef2,fv3:ef3,avg:eavg}=calcFV(e.bvps,e.pbv,e.ni,e.pe,e.shares,e.eps);
+      return '<div class="expand-kv" style="border-left:2px solid var(--border2);padding-left:10px">'
+        +'<span class="expand-k">'+escHtml(e.quarter)+(i===inv.allEntries.length-1?' (terakhir)':'')+'</span>'
+        +'<span class="expand-v">'+(e.price?'Rp '+Math.round(e.price).toLocaleString('id-ID'):'\u2014')+'</span>'
+        +'<span style="font-size:10px;color:var(--text3)">FV Avg: '+fmt(eavg)+'</span>'
+        +'</div>';
+    }).join(''):'';
+    const lastEntry=(inv.allEntries&&inv.allEntries.length)?inv.allEntries[inv.allEntries.length-1]:null;
+    const expandInner='<div class="inv-expand-inner">'
+      +'<div class="expand-kv"><span class="expand-k">BVPS</span><span class="expand-v">'+(lastEntry&&lastEntry.bvps!=null?lastEntry.bvps.toLocaleString('id-ID'):'\u2014')+'</span></div>'
+      +'<div class="expand-kv"><span class="expand-k">PBV</span><span class="expand-v">'+(lastEntry&&lastEntry.pbv!=null?lastEntry.pbv+'x':'\u2014')+'</span></div>'
+      +'<div class="expand-kv"><span class="expand-k">EPS</span><span class="expand-v">'+(lastEntry&&lastEntry.eps!=null?lastEntry.eps.toLocaleString('id-ID'):'\u2014')+'</span></div>'
+      +'<div class="expand-kv"><span class="expand-k">PE</span><span class="expand-v">'+(lastEntry&&lastEntry.pe!=null?lastEntry.pe+'x':'\u2014')+'</span></div>'
+      +'<div class="expand-kv"><span class="expand-k">FV1</span><span class="expand-v">'+fmt(inv.fv1)+'</span></div>'
+      +'<div class="expand-kv"><span class="expand-k">FV2</span><span class="expand-v">'+fmt(inv.fv2)+'</span></div>'
+      +'<div class="expand-kv"><span class="expand-k">FV3</span><span class="expand-v">'+fmt(inv.fv3)+'</span></div>'
+      +'<div class="expand-kv"><span class="expand-k">FV Rata-rata</span><span class="expand-v">'+fmt(inv.avg)+'</span></div>'
+      +(inv.result==='miss'&&inv.missIndicator?'<div class="expand-kv"><span class="expand-k">Indikator Miss</span><span class="expand-v" style="color:var(--red-t)">'+escHtml(missLbl)+'</span></div>':'')
+      +(inv.notes?'<div class="expand-kv" style="grid-column:1/-1"><span class="expand-k">Catatan</span><span class="expand-v" style="font-weight:400;color:var(--text2)">'+escHtml(inv.notes)+'</span></div>':'')
+      +(entriesHTML?'<div style="grid-column:1/-1"><div class="expand-section-label" style="margin-bottom:6px">Riwayat Entry ('+((inv.allEntries||[]).length)+' kuartal)</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+entriesHTML+'</div></div>':'')
+      +'</div>';
+    return '<tr class="inv-row" onclick="toggleInvExpand(event,\''+inv.id+'\')" data-inv-id="'+inv.id+'">'
       +'<td><div class="inv-ticker">'+escHtml(inv.ticker)+'</div><div class="inv-quarter">'+escHtml(inv.quarter)+'</div></td>'
       +'<td><span class="inv-badge '+teb+'">'+(teb==='bullish'?'\uD83D\uDD3C Bullish':'\uD83D\uDD3D Bearish')+'</span></td>'
       +'<td><div class="inv-price-main">'+(hAwal?fmt(hAwal):'\u2014')+'</div>'+(inv.tanggalAwal?'<div class="inv-date-sub">'+fmtDate(inv.tanggalAwal)+'</div>':'')+'</td>'
@@ -939,12 +1013,28 @@ function renderInventory(){
       +'<td><span class="inv-badge '+inv.result+'">'+(inv.result==='hit'?'\u2713 Hit':'\u2717 Miss')+'</span></td>'
       +'<td><div class="inv-duration">'+dur+'</div></td>'
       +'<td>'+(inv.result==='miss'&&inv.missIndicator?'<span class="inv-miss-chip">'+escHtml(missLbl)+'</span>':'<span style="color:var(--text3);font-size:12px">\u2014</span>')+'</td>'
-      +'<td><div style="display:flex;gap:5px">'
+      +'<td onclick="event.stopPropagation()"><div style="display:flex;gap:5px">'
         +'<button class="btn btn-restore" onclick="restoreFromInventory(\''+inv.id+'\')" title="Pulihkan ke aktif" style="padding:4px 8px;font-size:11px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg> Restore</button>'
         +'<button class="btn" onclick="deleteInventory(\''+inv.id+'\')" title="Hapus" style="padding:4px 8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>'
       +'</div></td>'
-      +'</tr>';
+      +'</tr>'
+      +'<tr class="inv-expand-row" id="inv-expand-'+inv.id+'" style="display:none"><td colspan="11">'+expandInner+'</td></tr>';
   }).join('');
+}
+
+function toggleInvExpand(e, invId){
+  if(e.target.closest('button')) return;
+  const expandRow=document.getElementById('inv-expand-'+invId);
+  const mainRow=e.currentTarget;
+  if(!expandRow) return;
+  const isOpen=expandRow.style.display!=='none';
+  // tutup semua row yang terbuka dulu
+  document.querySelectorAll('.inv-expand-row').forEach(r=>r.style.display='none');
+  document.querySelectorAll('.inv-row').forEach(r=>r.classList.remove('inv-row-open'));
+  if(!isOpen){
+    expandRow.style.display='';
+    mainRow.classList.add('inv-row-open');
+  }
 }
 
 function restoreFromInventory(invId){
@@ -1135,4 +1225,4 @@ renderCards();
 updateStats();
 </script>
 </body>
-</html>'''
+</html>

@@ -223,19 +223,19 @@
 
   <div id="tab-active">
     <div class="stats-bar">
-      <div class="stat-card"><div class="stat-num accent" id="s-active">0</div><div class="stat-lbl">Aktif</div></div>
+      <div class="stat-card"><div class="stat-num accent" id="s-active">0</div><div class="stat-lbl">Active</div></div>
       <div class="stat-card"><div class="stat-num green"  id="s-hit">0</div><div class="stat-lbl">Hit</div></div>
       <div class="stat-card"><div class="stat-num red"    id="s-miss">0</div><div class="stat-lbl">Miss</div></div>
       <div class="stat-card"><div class="stat-num"        id="s-winrate">&#x2014;</div><div class="stat-lbl">Win rate</div></div>
     </div>
     <div class="actions-bar">
       <div>
-        <div class="section-title">Emiten aktif</div>
+        <div class="section-title">Prediksi Aktif</div>
         <div id="drag-hint" style="font-family:sans-serif;font-size:11px;color:var(--text3);margin-top:3px;display:none">&#x283F; Drag kartu untuk mengubah urutan</div>
       </div>
       <button class="btn btn-primary" onclick="openAddModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M12 5v14M5 12h14"/></svg>
-        Tambah emiten
+        Tambah Emiten
       </button>
     </div>
     <div class="emiten-grid" id="emiten-grid"></div>
@@ -361,7 +361,7 @@
     </div>
     <div class="form-divider" style="margin-top:16px">Catatan</div>
     <div class="form-grid full" style="margin-top:12px">
-      <div class="form-field"><label>Catatan analisis</label><textarea id="mq-notes" placeholder="Update analisis setelah lapkeu..."></textarea></div>
+      <div class="form-field"><label>Catatan Analisis</label><textarea id="mq-notes" placeholder="Update analisis setelah lapkeu..."></textarea></div>
     </div>
     <div class="modal-actions">
       <button class="btn" onclick="closeQuarterModal()">Batal</button>
@@ -845,8 +845,8 @@ function openMissModal(emitenId){
   document.getElementById('mcm-emiten-id').value=emitenId;
   document.getElementById('mcm-price').value='';
   document.getElementById('mcm-date').value=todayISO();
-  document.getElementById('miss-label-price-move').textContent=teb==='bearish'?'Harga naik \u226550% dari harga awal':'Harga turun \u226550% dari harga awal';
-  document.getElementById('miss-desc-price-move').textContent=teb==='bearish'?'Berlaku untuk tebakan bearish. Harga naik \u226550% berarti prediksi meleset.':'Berlaku untuk tebakan bullish. Harga turun \u226550% berarti prediksi meleset.';
+  document.getElementById('miss-label-price-move').textContent=teb==='bearish'?'Harga naik \u226530% dari harga awal':'Harga turun \u226530% dari harga awal';
+  document.getElementById('miss-desc-price-move').textContent=teb==='bearish'?'Berlaku untuk tebakan bearish. Harga naik \u226530% berarti prediksi meleset.':'Berlaku untuk tebakan bullish. Harga turun \u226530% berarti prediksi meleset.';
   document.querySelectorAll('input[name="miss-indicator"]')[0].checked=true;
   document.getElementById('modal-close-miss').classList.add('open');
 }

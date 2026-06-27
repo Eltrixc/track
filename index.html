@@ -327,7 +327,7 @@
 
 <div class="cyclical-warning" id="cyclical-warning">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-  <span><strong>Catatan akurasi model:</strong> Model prediksi ini menggunakan pendekatan valuasi berbasis fundamental (PBV, PE, EPS). Hasilnya kurang akurat untuk emiten di <strong>sektor siklikal</strong> karena kinerja keuangannya sangat dipengaruhi siklus ekonomi, bukan tren fundamental jangka panjang.</span>
+  <span><strong>Catatan akurasi model:</strong> Model prediksi ini menggunakan pendekatan valuasi berbasis fundamental (PBV, PE, EPS). Hasilnya kurang akurat untuk emiten di <strong>sektor siklikal</strong> (komoditas, properti, otomotif, dll) karena kinerja keuangannya sangat dipengaruhi siklus ekonomi, bukan tren fundamental jangka panjang.</span>
   <button class="cyclical-dismiss" onclick="document.getElementById('cyclical-warning').style.display='none'" title="Tutup">&#x2715;</button>
 </div>
 
@@ -867,6 +867,7 @@ function renderCards(){
     };
     const progress=avg&&last.price?Math.min(100,Math.round(last.price/avg*100)):0;
     const pColor=isUnder?'var(--green)':'var(--red)';
+    const mosPct=avg&&last.price?((avg-last.price)/last.price*100):null;
     const tebakan=em.tebakan||'bullish';
     const tanggalD=last.tanggalAwal?fmtDate(last.tanggalAwal):null;
     const histHTML=em.entries.slice(0,-1).reverse().map(e=>{
@@ -900,6 +901,7 @@ function renderCards(){
         +'<div class="fv-row"><span class="fv-label">FV1 \u2014 BVPS \xd7 PBV</span><span class="fv-vals"><span class="fv-num">'+fmt(fv1)+'</span>'+discStr(fv1)+'</span></div>'
         +'<div class="fv-row"><span class="fv-label">FV2 \u2014 (NI \xd7 PE) \xf7 Saham</span><span class="fv-vals"><span class="fv-num">'+fmt(fv2)+'</span>'+discStr(fv2)+'</span></div>'
         +'<div class="fv-row"><span class="fv-label">FV3 \u2014 PE \xd7 EPS</span><span class="fv-vals"><span class="fv-num">'+fmt(fv3)+'</span>'+discStr(fv3)+'</span></div>'
+        +(mosPct!==null?'<div class="fv-row" style="border-top:1px dashed var(--border2);margin-top:2px;padding-top:6px"><span class="fv-label" style="font-weight:600;color:var(--text2)">Margin of Safety <button class="mos-info-btn" onclick="event.stopPropagation();toggleMosTooltip(event,this)" title="Apa itu Margin of Safety?">i</button></span><span class="fv-vals"><span class="fv-num" style="font-size:13px;color:'+(mosPct>=0?'var(--green-t)':'var(--red-t)')+'">'+(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%</span></span></div>':'')
       +'</div>'
       +(avg&&last.price?'<div class="progress-wrap"><div class="progress-label"><span>Harga vs FV rata-rata ('+fmt(avg)+')</span><span>'+progress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%;background:'+pColor+'"></div></div></div>':'')
       +(last.notes?'<div class="notes-box">'+formatNotes(last.notes)+'</div>':'')
@@ -932,6 +934,7 @@ function openCardPopup(e, emitenId){
   const tanggalD=last.tanggalAwal?fmtDate(last.tanggalAwal):null;
   const pColor=isUnder?'var(--green)':'var(--red)';
   const progress=avg&&last.price?Math.min(100,Math.round(last.price/avg*100)):0;
+  const mosPctCard=avg&&last.price?((avg-last.price)/last.price*100):null;
   const discStr=fv=>{
     if(!fv||!last.price) return '';
     const d=fmtDisc(last.price,fv),cls=parseFloat(d)>0?'pos':'neg',sgn=parseFloat(d)>0?'+':'';
@@ -959,6 +962,7 @@ function openCardPopup(e, emitenId){
       +'<div class="fv-row"><span class="fv-label">FV1 \u2014 BVPS \xd7 PBV</span><span class="fv-vals"><span class="fv-num">'+fmt(fv1)+'</span>'+discStr(fv1)+'</span></div>'
       +'<div class="fv-row"><span class="fv-label">FV2 \u2014 (NI \xd7 PE) \xf7 Saham</span><span class="fv-vals"><span class="fv-num">'+fmt(fv2)+'</span>'+discStr(fv2)+'</span></div>'
       +'<div class="fv-row"><span class="fv-label">FV3 \u2014 PE \xd7 EPS</span><span class="fv-vals"><span class="fv-num">'+fmt(fv3)+'</span>'+discStr(fv3)+'</span></div>'
+      +(mosPctCard!==null?'<div class="fv-row" style="border-top:1px dashed var(--border2);margin-top:2px;padding-top:6px"><span class="fv-label" style="font-weight:600;color:var(--text2)">Margin of Safety <button class="mos-info-btn" onclick="event.stopPropagation();toggleMosTooltip(event,this)" title="Apa itu Margin of Safety?">i</button></span><span class="fv-vals"><span class="fv-num" style="font-size:13px;color:'+(mosPctCard>=0?'var(--green-t)':'var(--red-t)')+'">'+(mosPctCard>=0?'+':'')+mosPctCard.toFixed(1)+'%</span></span></div>':'')
     +'</div>'
     +(avg&&last.price?'<div class="progress-wrap"><div class="progress-label"><span>Harga vs FV rata-rata ('+fmt(avg)+')</span><span>'+progress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%;background:'+pColor+'"></div></div></div>':'')
     +'<div style="border-top:1px solid var(--border);padding-top:10px">'

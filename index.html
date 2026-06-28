@@ -2362,7 +2362,7 @@ function saveApiKey() {
   const input = document.getElementById('ai-key-input');
   const val = (input?.value || '').trim();
   if (!val) { showToast('Masukkan API key terlebih dahulu.'); return; }
-  if (!val.startsWith('AIza')) { showToast('Format key tidak valid. Gemini key biasanya diawali AIza…'); return; }
+  if (!val.startsWith('AIza') && !val.startsWith('AQ.')) { showToast('Format key tidak valid. Pastikan key dari aistudio.google.com/apikey'); return; }
   localStorage.setItem('nw_gemini_key', val);
   showToast('Gemini API key berhasil disimpan.');
   initApiKeyBanner();

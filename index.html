@@ -275,38 +275,7 @@
   }
   .logo-wrap:hover .logo-tooltip{display:block;opacity:1;transform:translateY(0)}
 
-  /* ── LIVE PRICE TICKER BAR ── */
-  .price-ticker-bar{
-    background:var(--surface);border-bottom:1px solid var(--border);
-    height:34px;overflow:hidden;display:flex;align-items:center;
-    position:sticky;top:56px;z-index:90
-  }
-  .price-ticker-track{
-    display:flex;align-items:center;gap:0;
-    white-space:nowrap;
-    animation:tickerScroll 40s linear infinite;
-    will-change:transform;
-  }
-  .price-ticker-bar:hover .price-ticker-track{ animation-play-state:paused }
-  @keyframes tickerScroll{
-    0%  { transform:translateX(0) }
-    100%{ transform:translateX(-50%) }
-  }
-  .ticker-item{
-    display:inline-flex;align-items:center;gap:6px;
-    padding:0 20px;font-family:sans-serif;font-size:12px;
-    border-right:1px solid var(--border);
-    cursor:default;
-  }
-  .ticker-item .t-sym{font-weight:700;color:var(--text);font-size:11px;letter-spacing:.3px}
-  .ticker-item .t-price{color:var(--text2);font-size:12px}
-  .ticker-item .t-chg{font-size:11px;font-weight:600;padding:1px 5px;border-radius:4px}
-  .ticker-item .t-chg.up{background:var(--green-bg);color:var(--green-t)}
-  .ticker-item .t-chg.dn{background:var(--red-bg);color:var(--red-t)}
-  .ticker-item .t-chg.flat{background:var(--bg2);color:var(--text3)}
-  .ticker-loading{font-family:sans-serif;font-size:11px;color:var(--text3);padding:0 20px;display:flex;align-items:center;gap:4px}
-
-  /* ── CYCLICAL WARNING BANNER (moved to bottom) ── */
+  /* ── CYCLICAL WARNING BANNER (bottom fixed) ── */
   .cyclical-warning{
     background:var(--accent-bg);border-top:1px solid var(--accent);
     padding:7px 24px;display:flex;align-items:center;gap:10px;
@@ -361,18 +330,9 @@
   </button>
 </div>
 
-<!-- Live Price Ticker Bar -->
-<div class="price-ticker-bar" id="price-ticker-bar">
-  <div class="ticker-loading" id="ticker-loading">
-    <svg class="spin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="margin-right:5px"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>
-    Memuat harga live…
-  </div>
-  <div class="price-ticker-track" id="ticker-track" style="display:none"></div>
-</div>
-
 <div class="cyclical-warning" id="cyclical-warning">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-  <span><strong>Catatan akurasi model:</strong> Model prediksi ini menggunakan pendekatan valuasi berbasis fundamental (PBV, PE, EPS). Hasilnya kurang akurat untuk emiten di <strong>sektor siklikal</strong> (komoditas, properti, otomotif, dll) karena kinerja keuangannya sangat dipengaruhi siklus ekonomi, bukan tren fundamental jangka panjang.</span>
+  <span><strong>Catatan akurasi model:</strong> Model prediksi ini menggunakan pendekatan valuasi berbasis fundamental (PBV, PE, EPS). Sehingga hasilnya mungkin bisa kurang akurat untuk emiten di <strong>sektor siklikal</strong> (komoditas, properti, otomotif, dll) karena kinerja keuangannya sangat dipengaruhi siklus ekonomi, bukan tren fundamental jangka panjang.</span>
   <button class="cyclical-dismiss" onclick="document.getElementById('cyclical-warning').style.display='none'" title="Tutup">&#x2715;</button>
 </div>
 
@@ -635,6 +595,24 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Simpan PNG
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Edit Archive (kuartal & tanggal only) -->
+<div class="modal-backdrop" id="modal-inv-edit">
+  <div class="modal modal-sm">
+    <h2>&#x270E; Edit Kuartal &amp; Tanggal</h2>
+    <div class="modal-sub">Hanya kuartal dan tanggal yang dapat diubah.</div>
+    <input type="hidden" id="mie-inv-id">
+    <div class="form-grid">
+      <div class="form-field" style="grid-column:1/-1"><label>Kuartal</label><input type="text" id="mie-quarter" placeholder="Q1 2026" maxlength="10"></div>
+      <div class="form-field"><label>Tanggal prediksi awal</label><input type="date" id="mie-tgl-awal"></div>
+      <div class="form-field"><label>Tanggal ditutup</label><input type="date" id="mie-tgl-akhir"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeInvEditModal()">Batal</button>
+      <button class="btn btn-primary" onclick="saveInvEdit()">Simpan</button>
     </div>
   </div>
 </div>
@@ -1306,10 +1284,12 @@ function renderInventory(){
       +(mosPct!==null?'<div class="expand-kv"><span class="expand-k">Margin of Safety <button class="mos-info-btn" onclick="event.stopPropagation();toggleMosTooltip(event,this)" title="Apa itu Margin of Safety?">i</button></span><span class="expand-v" style="color:'+(mosPct>=0?'var(--green-t)':'var(--red-t)')+'">'+( mosPct>=0?'+':'')+mosPct.toFixed(1)+'%</span></div>':'')
       +(fvReturnPct!==null?'<div class="expand-kv"><span class="expand-k">Harga Akhir vs FV</span><span class="expand-v" style="color:'+(fvReturnPct>=0?'var(--green-t)':'var(--red-t)')+'">'+( fvReturnPct>=0?'+':'')+fvReturnPct.toFixed(1)+'%</span></div>':'')
       +(inv.result==='miss'&&inv.missIndicator?'<div class="expand-kv"><span class="expand-k">Indikator Miss</span><span class="expand-v" style="color:var(--red-t)">'+escHtml(missLbl)+'</span></div>':'')
-      +(inv.notes?'<div class="expand-kv notes-box" style="flex-basis:100%;background:transparent;padding:0"><span class="expand-k" style="margin-bottom:4px;display:block">Catatan</span>'+formatNotes(inv.notes)+'</div>':'')
       +(entriesHTML?'<div style="flex-basis:100%"><div class="expand-section-label" style="margin-bottom:6px">Riwayat Entry ('+((inv.allEntries||[]).length)+' kuartal)</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+entriesHTML+'</div></div>':'')
-      +'<div style="flex-basis:100%;margin-top:6px">'
-      +'<button class="btn" style="width:100%;justify-content:center;gap:7px;font-size:12px" onclick="event.stopPropagation();openSharePopup(\''+inv.id+'\')">'
+      +'<div style="flex-basis:100%;margin-top:6px;display:flex;gap:8px">'
+      +'<button class="btn btn-edit" style="flex:1;justify-content:center;gap:7px;font-size:12px" onclick="event.stopPropagation();openInvEditModal(\''+inv.id+'\')">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
+      +' Edit Kuartal &amp; Tanggal</button>'
+      +'<button class="btn" style="flex:1;justify-content:center;gap:7px;font-size:12px" onclick="event.stopPropagation();openSharePopup(\''+inv.id+'\')">'
       +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
       +' Simpan Hasil sebagai PNG</button></div>'
       +'</div>';
@@ -1368,6 +1348,30 @@ function deleteInventory(id){
   state.inventory=state.inventory.filter(i=>i.id!==id);
   save(); renderInventory(); updateStats();
   showToast('Item dihapus dari inventori.');
+}
+
+function openInvEditModal(invId){
+  const inv=state.inventory.find(i=>i.id===invId); if(!inv) return;
+  document.getElementById('mie-inv-id').value=invId;
+  document.getElementById('mie-quarter').value=inv.quarter||'';
+  document.getElementById('mie-tgl-awal').value=inv.tanggalAwal||'';
+  document.getElementById('mie-tgl-akhir').value=inv.tanggalAkhir||'';
+  document.getElementById('modal-inv-edit').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeInvEditModal(){
+  document.getElementById('modal-inv-edit').classList.remove('open');
+  document.body.style.overflow='';
+}
+function saveInvEdit(){
+  const invId=document.getElementById('mie-inv-id').value;
+  const inv=state.inventory.find(i=>i.id===invId); if(!inv) return;
+  inv.quarter    = document.getElementById('mie-quarter').value.trim()||inv.quarter;
+  inv.tanggalAwal= document.getElementById('mie-tgl-awal').value||inv.tanggalAwal;
+  inv.tanggalAkhir=document.getElementById('mie-tgl-akhir').value||inv.tanggalAkhir;
+  save(); renderInventory(); updateStats();
+  closeInvEditModal();
+  showToast('Perubahan disimpan.');
 }
 
 // ============================================================
@@ -1969,145 +1973,14 @@ const sortSel=document.getElementById('inv-sort');
 if(sortSel) sortSel.value=state.invSort||'newest';
 renderCards();
 updateStats();
-
-// ============================================================
-// LIVE PRICE TICKER — Twelve Data API
-// ============================================================
-const TD_API_KEY = 'a1bd17cced674c40b603d3d4a03363b8';
-let tickerData = {};
-let tickerTimer = null;
-
-function getAllTickers(){
-  const set = new Set();
-  (state.emitens||[]).forEach(e=>{ if(e.ticker) set.add(e.ticker.toUpperCase()); });
-  (state.inventory||[]).forEach(i=>{ if(i.ticker) set.add(i.ticker.toUpperCase()); });
-  return [...set];
-}
-
-// Twelve Data batch quote endpoint — satu request untuk semua ticker
-async function fetchAllPrices(tickers){
-  if(!tickers.length) return {};
-  // Format: BBCA:IDX,TLKM:IDX,...
-  const symbols = tickers.map(t => `${t}:IDX`).join(',');
-  const url = `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbols)}&apikey=${TD_API_KEY}&dp=2`;
-  try {
-    const res = await fetch(url);
-    if(!res.ok) return {};
-    const d = await res.json();
-
-    // Jika API return error global (e.g. quota habis)
-    if(d.status === 'error' || d.code) {
-      console.warn('[Ticker] Twelve Data error:', d.message || d);
-      return {};
-    }
-
-    const result = {};
-
-    // Kalau satu ticker, Twelve Data return object langsung (bukan wrapped per-symbol)
-    if(tickers.length === 1){
-      const q = d;
-      if(q.status !== 'error' && q.close){
-        const price  = parseFloat(q.close);
-        const prev   = parseFloat(q.previous_close);
-        if(!isNaN(price) && !isNaN(prev)){
-          result[tickers[0]] = {
-            price,
-            change: +(price - prev).toFixed(0),
-            pct:    +((price - prev) / prev * 100).toFixed(2)
-          };
-        }
-      }
-    } else {
-      // Multi-ticker: response adalah object dengan key = "BBCA:IDX" dll
-      for(const [sym, q] of Object.entries(d)){
-        if(!q || q.status === 'error' || !q.close) continue;
-        const ticker = sym.split(':')[0];
-        const price  = parseFloat(q.close);
-        const prev   = parseFloat(q.previous_close);
-        if(isNaN(price) || isNaN(prev)) continue;
-        result[ticker] = {
-          price,
-          change: +(price - prev).toFixed(0),
-          pct:    +((price - prev) / prev * 100).toFixed(2)
-        };
-      }
-    }
-    return result;
-  } catch(e){
-    console.error('[Ticker] fetch error:', e);
-    return {};
-  }
-}
-
-function buildTickerHTML(tickers, data){
-  if(!tickers.length) return '';
-  const items = tickers.map(tk=>{
-    const d = data[tk];
-    if(!d || d.price==null){
-      return `<span class="ticker-item"><span class="t-sym">${tk}</span><span class="t-price" style="color:var(--text3)">—</span></span>`;
-    }
-    const sign   = d.change >= 0 ? '+' : '';
-    const cls    = d.change > 0 ? 'up' : d.change < 0 ? 'dn' : 'flat';
-    const chgStr = `${sign}${d.change} (${sign}${d.pct}%)`;
-    return `<span class="ticker-item"><span class="t-sym">${tk}</span><span class="t-price">Rp ${Math.round(d.price).toLocaleString('id-ID')}</span><span class="t-chg ${cls}">${chgStr}</span></span>`;
-  }).join('');
-  return items + items; // duplikat untuk seamless loop
-}
-
-async function refreshTicker(){
-  const tickers = getAllTickers();
-  const track   = document.getElementById('ticker-track');
-  const loading = document.getElementById('ticker-loading');
-
-  if(!tickers.length){
-    loading.innerHTML = '<span style="padding:0 16px">Belum ada emiten — tambah emiten untuk melihat harga live</span>';
-    loading.style.display = '';
-    track.style.display = 'none';
-    return;
-  }
-
-  // Tunjukkan loading hanya kalau cache masih kosong
-  const hasCache = tickers.some(t => tickerData[t]);
-  if(!hasCache){
-    loading.style.display = '';
-    track.style.display   = 'none';
-  }
-
-  const fresh = await fetchAllPrices(tickers);
-  Object.assign(tickerData, fresh);
-
-  const html = buildTickerHTML(tickers, tickerData);
-  const anyData = tickers.some(t => tickerData[t]?.price != null);
-
-  if(anyData){
-    track.innerHTML = html;
-    const dur = Math.max(20, 25 + tickers.length * 6);
-    track.style.animationDuration = dur + 's';
-    loading.style.display = 'none';
-    track.style.display   = '';
-  } else {
-    // Semua gagal — tunjukkan pesan error spesifik
-    loading.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="margin-right:5px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Harga live tidak tersedia — cek quota API atau koneksi internet</span>`;
-    loading.style.display = '';
-    track.style.display   = 'none';
-  }
-}
-
-// Hook ke save agar ticker otomatis refresh saat emiten berubah
-const _origSave = save;
-window.save = function(){ _origSave(); refreshTicker(); };
-
-// Kick off
-refreshTicker();
-tickerTimer = setInterval(refreshTicker, 60000); // refresh tiap 60 detik
 </script>
 
 <!-- MOS Tooltip Popup -->
 <div class="mos-tooltip" id="mos-tooltip">
-  <strong>📐 Margin of Safety (MoS)</strong>
+  <strong>📐 Margin of Safety (MOS)</strong>
   <div style="margin-top:6px">Selisih antara <em>Fair Value rata-rata</em> dan <em>harga beli</em>, dinyatakan dalam persen:</div>
   <div style="margin:7px 0;padding:6px 8px;background:var(--bg2);border-radius:5px;font-size:10.5px;text-align:center;font-family:Georgia,serif">
-    MoS = (FV Avg − Harga Awal) / Harga Awal × 100%
+    MOS = (FV Avg − Harga Awal) / Harga Awal × 100%
   </div>
   <div style="color:var(--green-t)">✔ <strong>Positif</strong> → kamu beli di bawah FV (ada "bantal" keamanan)</div>
   <div style="margin-top:4px;color:var(--red-t)">✘ <strong>Negatif</strong> → kamu beli di atas FV (premium, risiko lebih tinggi)</div>

@@ -2562,7 +2562,7 @@ async function fetchAllPrices(symbols) {
     }
     const json = await res.json();
     console.log('[Ticker] response:', JSON.stringify(json).slice(0, 300));
-    return json?.data ?? null;
+    return json?.data?.results ?? null;
   } catch(e) {
     console.error('[Ticker] fetch error:', e);
     return null;

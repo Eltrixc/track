@@ -147,6 +147,8 @@
   .inv-table-wrap{overflow-x:auto}
   .inv-table{width:100%;border-collapse:collapse;font-family:sans-serif;font-size:13px}
   .inv-table th{text-align:left;padding:10px 12px;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg2);white-space:nowrap}
+  .inv-table td{white-space:nowrap}
+  .inv-table .col-tebakan,.inv-table .col-hasil{white-space:nowrap;width:1px}
   .inv-table td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
   .inv-table tr:last-child td{border-bottom:none}
   .inv-table tr:hover td{background:var(--bg2)}
@@ -384,9 +386,9 @@
     <div class="inv-table-wrap">
       <table class="inv-table">
         <thead><tr>
-          <th>Emiten</th><th>Tebakan</th><th>Harga Awal</th><th>Harga Akhir</th>
+          <th>Emiten</th><th class="col-tebakan">Tebakan</th><th>Harga Awal</th><th>Harga Akhir</th>
           <th>FV1 (PBV)</th><th>FV2 (PE&#xD7;NI)</th><th>FV3 (PE&#xD7;EPS)</th>
-          <th>Hasil</th><th>Durasi</th><th>Indikator Miss</th><th></th>
+          <th class="col-hasil">Hasil</th><th>Durasi</th><th>Indikator Miss</th><th></th>
         </tr></thead>
         <tbody id="inv-body"><tr><td colspan="11" class="inv-empty">Belum ada prediksi yang ditutup.</td></tr></tbody>
       </table>
@@ -1273,13 +1275,13 @@ function renderInventory(){
       +'</div>';
     return '<tr class="inv-row" onclick="toggleInvExpand(event,\''+inv.id+'\')" data-inv-id="'+inv.id+'">'
       +'<td><div class="inv-ticker">'+escHtml(inv.ticker)+'</div><div class="inv-quarter">'+escHtml(inv.quarter)+'</div></td>'
-      +'<td><span class="inv-badge '+teb+'">'+(teb==='bullish'?'\uD83D\uDD3C Bullish':'\uD83D\uDD3D Bearish')+'</span></td>'
+      +'<td class="col-tebakan"><span class="inv-badge '+teb+'">'+(teb==='bullish'?'\uD83D\uDD3C Bullish':'\uD83D\uDD3D Bearish')+'</span></td>'
       +'<td><div class="inv-price-main">'+(hAwal?fmt(hAwal):'\u2014')+'</div>'+(inv.tanggalAwal?'<div class="inv-date-sub">'+fmtDate(inv.tanggalAwal)+'</div>':'')+'</td>'
       +'<td><div class="inv-price-main">'+(inv.hargaAkhir?fmt(inv.hargaAkhir):'\u2014')+'</div>'+(inv.tanggalAkhir?'<div class="inv-date-sub">'+fmtDate(inv.tanggalAkhir)+'</div>':'')+'</td>'
       +'<td style="font-family:sans-serif;font-size:12px">'+fmt(inv.fv1)+'</td>'
       +'<td style="font-family:sans-serif;font-size:12px">'+fmt(inv.fv2)+'</td>'
       +'<td style="font-family:sans-serif;font-size:12px">'+fmt(inv.fv3)+'</td>'
-      +'<td><span class="inv-badge '+inv.result+'">'+(inv.result==='hit'?'\u2713 Hit':'\u2717 Miss')+'</span></td>'
+      +'<td class="col-hasil"><span class="inv-badge '+inv.result+'">'+(inv.result==='hit'?'\u2713 Hit':'\u2717 Miss')+'</span></td>'
       +'<td><div class="inv-duration">'+dur+'</div></td>'
       +'<td>'+(inv.result==='miss'&&inv.missIndicator?'<span class="inv-miss-chip">'+escHtml(missLbl)+'</span>':'<span style="color:var(--text3);font-size:12px">\u2014</span>')+'</td>'
       +'<td onclick="event.stopPropagation()"><div style="display:flex;gap:5px">'

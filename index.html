@@ -1971,12 +1971,12 @@ renderCards();
 updateStats();
 
 // ============================================================
-// LIVE PRICE TICKER
+// LIVE PRICE TICKER — Twelve Data API
 // ============================================================
-let tickerData = {};   // { 'BBCA': {price, change, pct, name}, ... }
+const TD_API_KEY = 'a1bd17cced674c40b603d3d4a03363b8';
+let tickerData = {};
 let tickerTimer = null;
 
-// Kumpulkan semua ticker unik dari state (active + archive)
 function getAllTickers(){
   const set = new Set();
   (state.emitens||[]).forEach(e=>{ if(e.ticker) set.add(e.ticker.toUpperCase()); });
@@ -1984,39 +1984,49 @@ function getAllTickers(){
   return [...set];
 }
 
-async function fetchTickerPrice(ticker){
-  const sym = ticker + '.JK';
-  try{
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=2d`;
-    const res = await fetch(url, {headers:{'Accept':'application/json'}});
-    if(!res.ok) return null;
+// Twelve Data batch quote endpoint — satu request untuk semua ticker
+async function fetchAllPrices(tickers){
+  if(!tickers.length) return {};
+  // Format: BBCA:IDX,TLKM:IDX,...
+  const symbols = tickers.map(t => `${t}:IDX`).join(',');
+  const url = `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbols)}&apikey=${TD_API_KEY}&dp=2`;
+  try {
+    const res = await fetch(url);
+    if(!res.ok) return {};
     const d = await res.json();
-    const meta = d?.chart?.result?.[0]?.meta;
-    if(!meta) return null;
-    const price   = meta.regularMarketPrice ?? null;
-    const prevCls = meta.chartPreviousClose ?? meta.previousClose ?? null;
-    const change  = (price!=null&&prevCls!=null) ? +(price-prevCls).toFixed(0) : null;
-    const pct     = (price!=null&&prevCls!=null) ? +((price-prevCls)/prevCls*100).toFixed(2) : null;
-    return { price, change, pct };
-  } catch(e){ return null; }
+
+    const result = {};
+    // Kalau satu ticker, Twelve Data return object langsung (bukan array)
+    const entries = tickers.length === 1
+      ? { [tickers[0]+':IDX']: d }
+      : d;
+
+    for(const [sym, q] of Object.entries(entries)){
+      if(q.status === 'error' || !q.close) continue;
+      const ticker = sym.split(':')[0];
+      const price  = parseFloat(q.close);
+      const prev   = parseFloat(q.previous_close);
+      const change = +(price - prev).toFixed(0);
+      const pct    = +((price - prev) / prev * 100).toFixed(2);
+      result[ticker] = { price, change, pct };
+    }
+    return result;
+  } catch(e){ return {}; }
 }
 
 function buildTickerHTML(tickers, data){
   if(!tickers.length) return '';
   const items = tickers.map(tk=>{
     const d = data[tk];
-    if(!d || d.price==null) return `<span class="ticker-item"><span class="t-sym">${tk}</span><span class="t-price" style="color:var(--text3)">—</span></span>`;
-    const sign = d.change>=0 ? '+' : '';
-    const cls  = d.change>0 ? 'up' : d.change<0 ? 'dn' : 'flat';
+    if(!d || d.price==null){
+      return `<span class="ticker-item"><span class="t-sym">${tk}</span><span class="t-price" style="color:var(--text3)">—</span></span>`;
+    }
+    const sign   = d.change >= 0 ? '+' : '';
+    const cls    = d.change > 0 ? 'up' : d.change < 0 ? 'dn' : 'flat';
     const chgStr = `${sign}${d.change} (${sign}${d.pct}%)`;
-    return `<span class="ticker-item">
-      <span class="t-sym">${tk}</span>
-      <span class="t-price">Rp ${Math.round(d.price).toLocaleString('id-ID')}</span>
-      <span class="t-chg ${cls}">${chgStr}</span>
-    </span>`;
+    return `<span class="ticker-item"><span class="t-sym">${tk}</span><span class="t-price">Rp ${Math.round(d.price).toLocaleString('id-ID')}</span><span class="t-chg ${cls}">${chgStr}</span></span>`;
   }).join('');
-  // Duplicate for seamless loop
-  return items + items;
+  return items + items; // duplikat untuk seamless loop
 }
 
 async function refreshTicker(){
@@ -2026,35 +2036,30 @@ async function refreshTicker(){
 
   if(!tickers.length){
     loading.innerHTML = '<span style="color:var(--text3);font-size:11px;padding:0 16px">Belum ada emiten — tambah emiten untuk melihat harga live</span>';
-    loading.style.display='';
-    track.style.display='none';
+    loading.style.display = '';
+    track.style.display = 'none';
     return;
   }
 
-  // Fetch semua secara paralel
-  const results = await Promise.all(tickers.map(async tk=>{
-    const r = await fetchTickerPrice(tk);
-    return [tk, r];
-  }));
-  results.forEach(([tk,r])=>{ if(r) tickerData[tk]=r; });
+  const fresh = await fetchAllPrices(tickers);
+  // Merge ke cache (biar ticker yang gagal fetch tetap tampil data lama)
+  Object.assign(tickerData, fresh);
 
-  // Render
   const html = buildTickerHTML(tickers, tickerData);
   if(html){
     track.innerHTML = html;
-    // Sesuaikan kecepatan scroll dengan jumlah item (40s base, +5s per item)
-    const dur = Math.max(20, 30 + tickers.length * 5);
+    const dur = Math.max(20, 25 + tickers.length * 6);
     track.style.animationDuration = dur + 's';
-    loading.style.display='none';
-    track.style.display='';
+    loading.style.display = 'none';
+    track.style.display   = '';
   } else {
-    loading.innerHTML='<span style="color:var(--text3);font-size:11px;padding:0 16px">Gagal memuat harga — cek koneksi internet</span>';
-    loading.style.display='';
-    track.style.display='none';
+    loading.innerHTML = '<span style="color:var(--text3);font-size:11px;padding:0 16px">Gagal memuat harga — cek koneksi internet</span>';
+    loading.style.display = '';
+    track.style.display   = 'none';
   }
 }
 
-// Hook ke save agar ticker otomatis refresh ketika ada perubahan emiten
+// Hook ke save agar ticker otomatis refresh saat emiten berubah
 const _origSave = save;
 window.save = function(){ _origSave(); refreshTicker(); };
 

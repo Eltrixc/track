@@ -1696,12 +1696,19 @@ function drawActiveCard(canvas, em) {
   H+=GAP;
   if(hasProgress){ H+=34; H+=GAP; }
 
+  const colW=(W-2*P-8)/2-4;
+  const NOTE_LINE_H=16, NOTE_ITEM_PAD=4;
+  // Helper: count wrapped lines for a note item
+  const noteItemLines=(text)=>wrap(text,colW-18,'11px sans-serif').length;
+
   let notesH=0;
   if(hasNotes){
     const hasGrid=nd.plus.length||nd.minus.length;
     if(hasGrid){
-      const maxI=Math.max(nd.plus.length,nd.minus.length);
-      notesH+=8+14+maxI*16+8;
+      const plusLines=nd.plus.reduce((s,it)=>s+noteItemLines(it),0);
+      const minusLines=nd.minus.reduce((s,it)=>s+noteItemLines(it),0);
+      const maxLines=Math.max(nd.plus.length?plusLines:0, nd.minus.length?minusLines:0);
+      notesH+=8+14+maxLines*NOTE_LINE_H+8;
     }
     if(nd.general){
       const ls=wrap(nd.general,W-2*P-20,'12px sans-serif');
@@ -1859,34 +1866,46 @@ function drawActiveCard(canvas, em) {
     ctx.fillStyle=c.bg2; rr(P,y,W-2*P,notesH,6); ctx.fill();
     let ny=y+8;
     const hasGrid=nd.plus.length||nd.minus.length;
-    const colW=(W-2*P-8)/2-4;
+
+    // Helper: draw wrapped note items, returns total height used
+    const drawNoteItems=(items,startX,startY,color)=>{
+      let lineOffset=0;
+      items.forEach(item=>{
+        const wrappedLines=wrap('\u2022 '+item,colW-16,'11px sans-serif');
+        ctx.font='11px sans-serif'; ctx.fillStyle=color;
+        wrappedLines.forEach((wl,wi)=>{
+          const xOff = wi===0 ? 0 : 10; // indent continuation lines slightly
+          ctx.fillText(wl, startX+xOff, startY+lineOffset+wi*NOTE_LINE_H);
+        });
+        lineOffset+=wrappedLines.length*NOTE_LINE_H;
+      });
+      return lineOffset;
+    };
 
     if(hasGrid){
+      // Calculate actual wrapped heights for each column
+      const plusTotalLines=nd.plus.reduce((s,it)=>s+wrap('\u2022 '+it,colW-16,'11px sans-serif').length,0);
+      const minusTotalLines=nd.minus.reduce((s,it)=>s+wrap('\u2022 '+it,colW-16,'11px sans-serif').length,0);
+      const maxLines=Math.max(nd.plus.length?plusTotalLines:0, nd.minus.length?minusTotalLines:0);
+      const gridColH=8+14+maxLines*NOTE_LINE_H+8;
+
       // Positive col
       if(nd.plus.length){
-        const colH=8+14+nd.plus.length*16+8;
-        ctx.fillStyle=c.greenBg; rr(P+4,ny,colW,colH,5); ctx.fill();
+        const colH=8+14+plusTotalLines*NOTE_LINE_H+8;
+        ctx.fillStyle=c.greenBg; rr(P+4,ny,colW,gridColH,5); ctx.fill();
         ctx.font='700 10px sans-serif'; ctx.fillStyle=c.greenT;
         ctx.fillText('\u2713 POSITIF', P+4+8, ny+8+10);
-        nd.plus.forEach((item,i)=>{
-          ctx.font='11px sans-serif'; ctx.fillStyle=c.greenT;
-          ctx.fillText('\u2022 '+trunc(ctx,item,colW-18), P+4+8, ny+8+14+14+i*16);
-        });
+        drawNoteItems(nd.plus, P+4+8, ny+8+14+14, c.greenT);
       }
       // Negative col
       if(nd.minus.length){
         const nx2=P+4+colW+8;
-        const colH=8+14+nd.minus.length*16+8;
-        ctx.fillStyle=c.redBg; rr(nx2,ny,colW,colH,5); ctx.fill();
+        ctx.fillStyle=c.redBg; rr(nx2,ny,colW,gridColH,5); ctx.fill();
         ctx.font='700 10px sans-serif'; ctx.fillStyle=c.redT;
         ctx.fillText('\u2717 RISIKO', nx2+8, ny+8+10);
-        nd.minus.forEach((item,i)=>{
-          ctx.font='11px sans-serif'; ctx.fillStyle=c.redT;
-          ctx.fillText('\u2022 '+trunc(ctx,item,colW-18), nx2+8, ny+8+14+14+i*16);
-        });
+        drawNoteItems(nd.minus, nx2+8, ny+8+14+14, c.redT);
       }
-      const maxI=Math.max(nd.plus.length,nd.minus.length);
-      ny+=8+14+maxI*16+8;
+      ny+=gridColH;
     }
 
     if(nd.general){

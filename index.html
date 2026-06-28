@@ -2535,137 +2535,126 @@ renderCards();
 updateStats();
 
 // ============================================================
-// LIVE TICKER (GoAPI.id)
+// LIVE TICKER (GoAPI.io) — /prices endpoint (1 request semua emiten)
+// Cache localStorage 6 jam → hemat quota harian
 // ============================================================
-const GOAPI_KEY = '7ffe102e-e7b8-5899-a706-1fab523a';
-// Limit harian 30 request — load sekali saat halaman dibuka.
-// Tombol refresh manual tersedia tapi pakai sessionStorage biar
-// tidak double-fetch kalau user reload dalam sesi yang sama.
-const TICKER_SESSION_KEY = 'goapi_ticker_cache';
-let tickerCache = {};
+const GOAPI_KEY   = '7ffe102e-e7b8-5899-a706-1fab523a';
+const TICKER_LS_KEY  = 'goapi_ticker_v1';
+const TICKER_MAX_AGE = 6 * 60 * 60 * 1000; // 6 jam
 
 function fmtTickerPrice(n) {
   if (!n && n !== 0) return '—';
   return 'Rp ' + Math.round(n).toLocaleString('id-ID');
 }
 
-async function fetchStockPrice(symbol) {
+// Satu request untuk SEMUA simbol sekaligus (hemat quota)
+async function fetchAllPrices(symbols) {
+  const symbolStr = symbols.join(',');
   try {
     const res = await fetch(
-      'https://api.goapi.io/v1/stock/idx/price?symbol=' + encodeURIComponent(symbol) +
+      'https://api.goapi.io/v1/stock/idx/prices?symbol=' + encodeURIComponent(symbolStr) +
       '&api_key=' + GOAPI_KEY
     );
     if (!res.ok) {
-      console.warn('[Ticker] HTTP', res.status, 'untuk', symbol);
+      console.warn('[Ticker] HTTP', res.status, res.statusText);
       return null;
     }
     const json = await res.json();
-    console.log('[Ticker] response', symbol, JSON.stringify(json).slice(0, 200));
-
-    // GoAPI /price endpoint: { data: { symbol, close, change, percent_change, ... } }
-    const d = json?.data;
-    if (!d) return null;
-    return {
-      symbol: symbol,
-      price: d.close ?? d.last_price ?? d.price ?? null,
-      change: d.change ?? null,
-      pct: d.percent_change ?? d.change_percent ?? null,
-    };
+    console.log('[Ticker] response:', JSON.stringify(json).slice(0, 300));
+    // Response: { data: [ { symbol, close, change, change_pct, ... }, ... ] }
+    return json?.data ?? null;
   } catch(e) {
-    console.error('[Ticker] fetch error', symbol, e);
+    console.error('[Ticker] fetch error:', e);
     return null;
   }
 }
 
 function renderTickerBar(items) {
-  const track = document.getElementById('ticker-track');
+  const track   = document.getElementById('ticker-track');
   const loading = document.getElementById('ticker-loading');
   if (!track || !loading) return;
 
-  const validItems = items.filter(i => i && i.price != null);
-  loading.style.display = 'none';
-
-  if (validItems.length === 0) {
-    track.style.display = 'none';
+  const valid = items.filter(i => i && i.price != null);
+  if (valid.length === 0) {
     loading.style.display = 'flex';
     loading.innerHTML = '<span style="color:var(--text3);font-size:11px;font-style:italic">Belum ada data harga tersedia</span>';
+    track.style.display = 'none';
     return;
   }
 
-  const makeItems = () => validItems.map(item => {
-    const pct = item.pct;
+  const makeItems = () => valid.map(item => {
+    const pct    = item.pct;
     const chgCls = pct > 0 ? 'up' : pct < 0 ? 'dn' : 'flat';
-    const arrow = pct > 0 ? '▲' : pct < 0 ? '▼' : '—';
+    const arrow  = pct > 0 ? '▲' : pct < 0 ? '▼' : '—';
     const pctStr = pct != null ? (pct > 0 ? '+' : '') + pct.toFixed(2) + '%' : '';
     return '<div class="ticker-item">'
-      + '<span class="ticker-sym">' + item.symbol + '</span>'
+      + '<span class="ticker-sym">'   + item.symbol + '</span>'
       + '<span class="ticker-price">' + fmtTickerPrice(item.price) + '</span>'
       + (pctStr ? '<span class="ticker-chg ' + chgCls + '">' + arrow + ' ' + pctStr + '</span>' : '')
       + '</div>';
   }).join('');
 
-  // Duplicate for seamless loop
   track.innerHTML = makeItems() + makeItems();
   track.style.display = 'inline-flex';
-
-  // Adjust animation speed based on item count
-  const speed = Math.max(20, validItems.length * 6);
-  track.style.animationDuration = speed + 's';
-}
-
-function startTickerLoop() {
-  // Cek apakah sesi ini sudah pernah fetch (hemat quota)
-  try {
-    const saved = sessionStorage.getItem(TICKER_SESSION_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Validasi: emiten yang tersimpan sama dengan yang aktif sekarang
-      const currentSyms = (state.emitens||[]).map(e=>e.ticker).sort().join(',');
-      if (parsed._syms === currentSyms && Object.keys(parsed).length > 1) {
-        tickerCache = parsed;
-        const items = (state.emitens||[]).map(e => parsed[e.ticker]?.data ?? null);
-        renderTickerBar(items);
-        return;
-      }
-    }
-  } catch(e) {}
-  initTicker(false);
+  track.style.animationDuration = Math.max(20, valid.length * 6) + 's';
+  loading.style.display = 'none';
 }
 
 async function initTicker(forceRefresh) {
+  const loading = document.getElementById('ticker-loading');
+  const track   = document.getElementById('ticker-track');
+
   if (!state.emitens || state.emitens.length === 0) {
-    const loading = document.getElementById('ticker-loading');
-    const track = document.getElementById('ticker-track');
-    if (loading) { loading.style.display = 'flex'; loading.innerHTML = '<span style="color:var(--text3);font-size:11px;font-style:italic">Tambah emiten untuk melihat harga live</span>'; }
-    if (track) track.style.display = 'none';
+    if (loading) { loading.style.display='flex'; loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Tambah emiten untuk melihat harga live</span>'; }
+    if (track) track.style.display='none';
     return;
   }
 
-  if (forceRefresh) tickerCache = {};
+  const symbols = state.emitens.map(e => e.ticker.toUpperCase());
+  const now     = Date.now();
 
-  const now = Date.now();
-  const symbols = state.emitens.map(e => e.ticker);
-
-  const loading = document.getElementById('ticker-loading');
-  const track = document.getElementById('ticker-track');
-  if (loading) { loading.style.display = 'flex'; loading.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" class="spin-icon"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg><span style="font-size:11px;color:var(--text3)">Memuat harga...</span>'; }
-  if (track) track.style.display = 'none';
-
-  const results = [];
-  for (const sym of symbols) {
-    const data = await fetchStockPrice(sym);
-    if (data) tickerCache[sym] = { data, ts: now };
-    results.push(data);
+  // Coba ambil dari localStorage dulu (cache 6 jam)
+  if (!forceRefresh) {
+    try {
+      const saved = JSON.parse(localStorage.getItem(TICKER_LS_KEY) || 'null');
+      if (saved && (now - saved.ts) < TICKER_MAX_AGE) {
+        const sameSyms = symbols.length === (saved.syms||[]).length &&
+                         symbols.every(s => (saved.syms||[]).includes(s));
+        if (sameSyms && saved.items && saved.items.length) {
+          renderTickerBar(saved.items);
+          return;
+        }
+      }
+    } catch(e) {}
   }
 
-  // Simpan ke sessionStorage agar reload tidak buang quota
+  // Tampilkan loading
+  if (loading) { loading.style.display='flex'; loading.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" class="spin-icon"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg><span style="font-size:11px;color:var(--text3)">Memuat harga…</span>'; }
+  if (track) track.style.display='none';
+
+  const raw = await fetchAllPrices(symbols);
+  if (!raw) {
+    if (loading) { loading.style.display='flex'; loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Gagal memuat harga — cek koneksi</span>'; }
+    return;
+  }
+
+  // Normalisasi field names dari GoAPI response
+  const items = raw.map(d => ({
+    symbol: d.symbol,
+    price:  d.close ?? d.last_price ?? null,
+    change: d.change ?? null,
+    pct:    d.change_pct ?? d.percent_change ?? null,
+  }));
+
+  // Simpan ke localStorage (bertahan 6 jam meski tab ditutup-buka)
   try {
-    const toSave = { ...tickerCache, _syms: symbols.sort().join(',') };
-    sessionStorage.setItem(TICKER_SESSION_KEY, JSON.stringify(toSave));
+    localStorage.setItem(TICKER_LS_KEY, JSON.stringify({ ts: now, syms: symbols, items }));
   } catch(e) {}
 
-  renderTickerBar(results);
+  renderTickerBar(items);
 }
+
+function startTickerLoop() { initTicker(false); }
 
 // Start after a short delay so the page renders first
 setTimeout(startTickerLoop, 800);

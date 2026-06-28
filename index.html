@@ -275,12 +275,43 @@
   }
   .logo-wrap:hover .logo-tooltip{display:block;opacity:1;transform:translateY(0)}
 
-  /* ── CYCLICAL WARNING BANNER ── */
+  /* ── LIVE PRICE TICKER BAR ── */
+  .price-ticker-bar{
+    background:var(--surface);border-bottom:1px solid var(--border);
+    height:34px;overflow:hidden;display:flex;align-items:center;
+    position:sticky;top:56px;z-index:90
+  }
+  .price-ticker-track{
+    display:flex;align-items:center;gap:0;
+    white-space:nowrap;
+    animation:tickerScroll 40s linear infinite;
+    will-change:transform;
+  }
+  .price-ticker-bar:hover .price-ticker-track{ animation-play-state:paused }
+  @keyframes tickerScroll{
+    0%  { transform:translateX(0) }
+    100%{ transform:translateX(-50%) }
+  }
+  .ticker-item{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:0 20px;font-family:sans-serif;font-size:12px;
+    border-right:1px solid var(--border);
+    cursor:default;
+  }
+  .ticker-item .t-sym{font-weight:700;color:var(--text);font-size:11px;letter-spacing:.3px}
+  .ticker-item .t-price{color:var(--text2);font-size:12px}
+  .ticker-item .t-chg{font-size:11px;font-weight:600;padding:1px 5px;border-radius:4px}
+  .ticker-item .t-chg.up{background:var(--green-bg);color:var(--green-t)}
+  .ticker-item .t-chg.dn{background:var(--red-bg);color:var(--red-t)}
+  .ticker-item .t-chg.flat{background:var(--bg2);color:var(--text3)}
+  .ticker-loading{font-family:sans-serif;font-size:11px;color:var(--text3);padding:0 20px}
+
+  /* ── CYCLICAL WARNING BANNER (moved to bottom) ── */
   .cyclical-warning{
-    background:var(--accent-bg);border-bottom:1px solid var(--accent);
+    background:var(--accent-bg);border-top:1px solid var(--accent);
     padding:7px 24px;display:flex;align-items:center;gap:10px;
     font-family:sans-serif;font-size:12px;color:var(--accent-t);
-    position:sticky;top:56px;z-index:90
+    position:sticky;bottom:0;z-index:90
   }
   .cyclical-warning svg{flex-shrink:0;color:var(--accent)}
   .cyclical-warning span{flex:1;line-height:1.4}
@@ -328,6 +359,15 @@
   <button class="icon-btn" onclick="toggleTheme()" title="Toggle dark mode">
     <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
   </button>
+</div>
+
+<!-- Live Price Ticker Bar -->
+<div class="price-ticker-bar" id="price-ticker-bar">
+  <div class="ticker-loading" id="ticker-loading">
+    <svg class="spin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="margin-right:5px"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>
+    Memuat harga live…
+  </div>
+  <div class="price-ticker-track" id="ticker-track" style="display:none"></div>
 </div>
 
 <div class="cyclical-warning" id="cyclical-warning">
@@ -1929,6 +1969,98 @@ const sortSel=document.getElementById('inv-sort');
 if(sortSel) sortSel.value=state.invSort||'newest';
 renderCards();
 updateStats();
+
+// ============================================================
+// LIVE PRICE TICKER
+// ============================================================
+let tickerData = {};   // { 'BBCA': {price, change, pct, name}, ... }
+let tickerTimer = null;
+
+// Kumpulkan semua ticker unik dari state (active + archive)
+function getAllTickers(){
+  const set = new Set();
+  (state.emitens||[]).forEach(e=>{ if(e.ticker) set.add(e.ticker.toUpperCase()); });
+  (state.inventory||[]).forEach(i=>{ if(i.ticker) set.add(i.ticker.toUpperCase()); });
+  return [...set];
+}
+
+async function fetchTickerPrice(ticker){
+  const sym = ticker + '.JK';
+  try{
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=2d`;
+    const res = await fetch(url, {headers:{'Accept':'application/json'}});
+    if(!res.ok) return null;
+    const d = await res.json();
+    const meta = d?.chart?.result?.[0]?.meta;
+    if(!meta) return null;
+    const price   = meta.regularMarketPrice ?? null;
+    const prevCls = meta.chartPreviousClose ?? meta.previousClose ?? null;
+    const change  = (price!=null&&prevCls!=null) ? +(price-prevCls).toFixed(0) : null;
+    const pct     = (price!=null&&prevCls!=null) ? +((price-prevCls)/prevCls*100).toFixed(2) : null;
+    return { price, change, pct };
+  } catch(e){ return null; }
+}
+
+function buildTickerHTML(tickers, data){
+  if(!tickers.length) return '';
+  const items = tickers.map(tk=>{
+    const d = data[tk];
+    if(!d || d.price==null) return `<span class="ticker-item"><span class="t-sym">${tk}</span><span class="t-price" style="color:var(--text3)">—</span></span>`;
+    const sign = d.change>=0 ? '+' : '';
+    const cls  = d.change>0 ? 'up' : d.change<0 ? 'dn' : 'flat';
+    const chgStr = `${sign}${d.change} (${sign}${d.pct}%)`;
+    return `<span class="ticker-item">
+      <span class="t-sym">${tk}</span>
+      <span class="t-price">Rp ${Math.round(d.price).toLocaleString('id-ID')}</span>
+      <span class="t-chg ${cls}">${chgStr}</span>
+    </span>`;
+  }).join('');
+  // Duplicate for seamless loop
+  return items + items;
+}
+
+async function refreshTicker(){
+  const tickers = getAllTickers();
+  const track   = document.getElementById('ticker-track');
+  const loading = document.getElementById('ticker-loading');
+
+  if(!tickers.length){
+    loading.innerHTML = '<span style="color:var(--text3);font-size:11px;padding:0 16px">Belum ada emiten — tambah emiten untuk melihat harga live</span>';
+    loading.style.display='';
+    track.style.display='none';
+    return;
+  }
+
+  // Fetch semua secara paralel
+  const results = await Promise.all(tickers.map(async tk=>{
+    const r = await fetchTickerPrice(tk);
+    return [tk, r];
+  }));
+  results.forEach(([tk,r])=>{ if(r) tickerData[tk]=r; });
+
+  // Render
+  const html = buildTickerHTML(tickers, tickerData);
+  if(html){
+    track.innerHTML = html;
+    // Sesuaikan kecepatan scroll dengan jumlah item (40s base, +5s per item)
+    const dur = Math.max(20, 30 + tickers.length * 5);
+    track.style.animationDuration = dur + 's';
+    loading.style.display='none';
+    track.style.display='';
+  } else {
+    loading.innerHTML='<span style="color:var(--text3);font-size:11px;padding:0 16px">Gagal memuat harga — cek koneksi internet</span>';
+    loading.style.display='';
+    track.style.display='none';
+  }
+}
+
+// Hook ke save agar ticker otomatis refresh ketika ada perubahan emiten
+const _origSave = save;
+window.save = function(){ _origSave(); refreshTicker(); };
+
+// Kick off
+refreshTicker();
+tickerTimer = setInterval(refreshTicker, 60000); // refresh tiap 60 detik
 </script>
 
 <!-- MOS Tooltip Popup -->

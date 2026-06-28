@@ -188,8 +188,6 @@
   .computed-lbl{color:var(--text2)}.computed-val{font-weight:700;font-family:Georgia,serif;font-size:16px}
   .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
 
-  .fetch-bar{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);flex-wrap:wrap;margin:10px 0 2px}
-  .fetch-note{font-family:sans-serif;font-size:11px;color:var(--text3);flex:1;min-width:120px}
 
   .hit-confirm-box{background:var(--green-bg);border:1px solid var(--green);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;font-family:sans-serif;font-size:13px;color:var(--green-t)}
 
@@ -253,14 +251,69 @@
   .notes-add-row-btn:hover{color:var(--accent)!important;border-color:var(--accent)!important;background:var(--accent-bg)!important}
 
   @media(max-width:640px){
-    .topbar{padding:0 14px;gap:10px}.main{padding:14px}
+    /* Topbar */
+    .topbar{padding:0 12px;gap:8px;height:50px}
+    .logo{font-size:14px}
+    .search-input{width:100px}.search-input:focus{width:130px}
+
+    /* Layout */
+    .main{padding:10px}
     .stats-bar{grid-template-columns:repeat(2,1fr)}
-    .search-input{width:140px}.search-input:focus{width:160px}
-    .logo{font-size:15px}.form-grid{grid-template-columns:1fr}
+    .form-grid{grid-template-columns:1fr}
     .drag-handle{display:none}
+
+    /* Card grid — 1 kolom di mobile */
+    .emiten-grid{grid-template-columns:1fr}
+
+    /* Card ukuran lebih compact */
+    .ticker{font-size:18px}
+    .price-val{font-size:19px}
+    .emiten-card{padding:13px}
+
+    /* Notes columns stack */
+    .notes-cols{grid-template-columns:1fr}
+
+    /* Actions bar */
+    .actions-bar{flex-wrap:wrap;gap:8px}
+    .actions-bar .btn-primary{width:100%;justify-content:center}
+
+    /* Archive table — scroll horizontal */
+    .inv-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .inv-table{font-size:12px}
+    .inv-table th,.inv-table td{padding:8px 10px}
+
+    /* Toolbar archive */
+    .inv-toolbar{flex-wrap:wrap;gap:8px}
+    .inv-toolbar .section-title{width:100%}
+
+    /* Expand row */
+    .inv-expand-inner{flex-direction:column;gap:8px}
+    .inv-expand-inner .expand-kv{min-width:unset;width:100%}
+
+    /* Modal */
+    .modal{padding:16px;width:95%}
+
+    /* Ticker bar */
+    .ticker-live-label{display:none}
+
+    /* Warning bottom */
+    .cyclical-warning{font-size:11px;padding:6px 14px}
+
+    /* AI panel full width */
+    .split-layout{grid-template-columns:1fr}
+    .split-right{position:static;max-height:none}
+
+    /* Card popup */
+    .card-popup{max-width:100%;border-radius:10px}
+
+    /* Export/import buttons compact */
+    .io-btn-group{flex-direction:column}
   }
 
-  /* ── LOGO TOOLTIP ── */
+  @media(max-width:900px){
+    .split-layout{grid-template-columns:1fr}
+    .split-right{position:static;max-height:500px}
+  }
   .logo-wrap{position:relative;display:inline-block;cursor:default}
   .logo-wrap .logo-tooltip{
     display:none;position:absolute;top:calc(100% + 8px);left:0;
@@ -450,6 +503,13 @@
   <button class="icon-btn" onclick="toggleTheme()" title="Toggle dark mode">
     <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
   </button>
+  <button class="icon-btn" onclick="exportData()" title="Export data ke file JSON">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  </button>
+  <label class="icon-btn" title="Import data dari file JSON" style="cursor:pointer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+  </label>
 </div>
 
 <div class="ticker-bar" id="ticker-bar">
@@ -464,9 +524,10 @@
     </span>
     <div class="ticker-track" id="ticker-track" style="display:none"></div>
   </div>
-  <button class="ticker-refresh-btn" onclick="initTicker(true)" title="Refresh harga (menggunakan 1 request per emiten dari limit harian)">
+  <button class="ticker-refresh-btn" onclick="initTicker(true)" title="Refresh harga manual">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
   </button>
+  <span id="ticker-quota" style="font-family:sans-serif;font-size:10px;padding:0 8px;white-space:nowrap">0/30</span>
 </div>
 
 <div class="cyclical-warning" id="cyclical-warning">
@@ -608,13 +669,6 @@
       <div class="form-field"><label>Kuartal</label><input type="text" id="f-quarter" placeholder="Q1 2026" maxlength="10"></div>
       <div class="form-field"><label>Tanggal prediksi</label><input type="date" id="f-tanggal"></div>
     </div>
-    <div class="fetch-bar">
-      <button type="button" class="btn" id="f-fetch-btn" onclick="fetchStockData('f-')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
-        Auto-fill
-      </button>
-      <span class="fetch-note">Mengisi Harga, BVPS, EPS, Saham, NI, PE &amp; PBV dari IDX (.JK) &#x2014; PE &amp; PBV bukan mean 3 tahun, perlu disesuaikan</span>
-    </div>
     <div class="form-divider" style="margin-top:12px">Harga &amp; rasio</div>
     <div class="form-grid" style="margin-top:12px">
       <div class="form-field"><label>Harga sekarang (Rp)</label><input type="number" id="f-price" placeholder="89" oninput="computePreview()"></div>
@@ -665,13 +719,6 @@
     <div class="form-grid">
       <div class="form-field"><label>Kuartal</label><input type="text" id="mq-quarter" placeholder="Q2 2026" maxlength="10"></div>
       <div class="form-field"><label>Tanggal entry</label><input type="date" id="mq-tanggal"></div>
-    </div>
-    <div class="fetch-bar">
-      <button type="button" class="btn" id="mq-fetch-btn" onclick="fetchStockData('mq-')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
-        Auto-fill Yahoo Finance
-      </button>
-      <span class="fetch-note">Ticker dari emiten aktif &#x2014; PE &amp; PBV bukan mean 3 tahun, perlu disesuaikan</span>
     </div>
     <div class="form-divider" style="margin-top:12px">Harga &amp; rasio</div>
     <div class="form-grid" style="margin-top:12px">
@@ -855,8 +902,48 @@ function load(){
 }
 
 // ============================================================
-// THEME
+// EXPORT / IMPORT
 // ============================================================
+function exportData(){
+  const payload = JSON.stringify(state, null, 2);
+  const blob    = new Blob([payload], {type:'application/json'});
+  const url     = URL.createObjectURL(blob);
+  const a       = document.createElement('a');
+  const date    = new Date().toISOString().slice(0,10);
+  a.href        = url;
+  a.download    = `stocktracker-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Data berhasil diekspor!');
+}
+
+function importData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  event.target.value = ''; // reset input supaya bisa import ulang file yang sama
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const parsed = JSON.parse(e.target.result);
+      // Validasi minimal — harus ada setidaknya salah satu key utama
+      if(!parsed.emitens && !parsed.inventory){
+        showToast('File tidak valid — bukan file backup StockTracker.'); return;
+      }
+      if(!confirm('Import akan mengganti SEMUA data yang ada sekarang. Lanjutkan?')) return;
+      state = {cardOrder:[], invSort:'newest', ...parsed};
+      save();
+      renderCards();
+      renderInventory();
+      updateStats();
+      showToast('Data berhasil diimport!');
+    } catch(err){
+      showToast('Gagal membaca file — pastikan file JSON valid.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+
 function toggleTheme(){
   const h=document.documentElement, dark=h.getAttribute('data-theme')==='dark';
   h.setAttribute('data-theme',dark?'light':'dark');
@@ -1594,84 +1681,6 @@ function saveInvEdit(){
 // ============================================================
 // YAHOO FINANCE AUTO-FETCH
 // ============================================================
-async function fetchStockData(prefix){
-  let ticker='';
-  if(prefix==='f-'){
-    ticker=(document.getElementById('f-ticker').value||'').trim().toUpperCase();
-    if(!ticker){ showToast('Isi kode emiten terlebih dahulu.'); return; }
-  } else {
-    const emitenId=document.getElementById('mq-emiten-id').value;
-    const em=state.emitens.find(e=>e.id===emitenId);
-    if(!em){ showToast('Emiten tidak ditemukan.'); return; }
-    ticker=em.ticker.toUpperCase();
-  }
-  const btn=document.getElementById(prefix+'fetch-btn'); if(!btn) return;
-  const origHTML=btn.innerHTML;
-  btn.disabled=true;
-  btn.innerHTML='<span class="spin-icon">\u21BB</span> Memuat '+ticker+'.JK...';
-
-  const symbol=ticker+'.JK';
-  const modules='price,defaultKeyStatistics,summaryDetail';
-  const apiUrl='https://query2.finance.yahoo.com/v10/finance/quoteSummary/'+symbol+'?modules='+modules;
-
-  try{
-    let data=null, usedProxy=false;
-    try{
-      const r=await fetch(apiUrl,{headers:{'Accept':'application/json'}});
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      data=await r.json();
-    }catch(e1){
-      usedProxy=true;
-      const proxies=[
-        'https://corsproxy.io/?'+encodeURIComponent(apiUrl),
-        'https://api.allorigins.win/raw?url='+encodeURIComponent(apiUrl),
-        'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(apiUrl)
-      ];
-      let r2=null, lastErr=e1;
-      for(const p of proxies){
-        try{
-          const resp=await fetch(p);
-          if(resp.ok){ r2=resp; break; }
-        }catch(pe){ lastErr=pe; }
-      }
-      if(!r2) throw new Error('Semua proxy gagal. Coba lagi nanti. ('+lastErr.message+')');
-      data=await r2.json();
-    }
-    const res=data?.quoteSummary?.result?.[0];
-    if(!res) throw new Error(symbol+' tidak ditemukan di Yahoo Finance.');
-
-    const price    =res.price?.regularMarketPrice?.raw??null;
-    const bvps     =res.defaultKeyStatistics?.bookValue?.raw??null;
-    const eps      =res.defaultKeyStatistics?.trailingEps?.raw??null;
-    const sharesRaw=res.defaultKeyStatistics?.sharesOutstanding?.raw??null;
-    const pe       =res.summaryDetail?.trailingPE?.raw??null;
-    const pbv      =res.summaryDetail?.priceToBook?.raw??null;
-    const shares   =sharesRaw?sharesRaw/1e9:null;
-    const ni       =(eps!==null&&shares)?Math.abs(eps*shares*1e9/1e12):null;
-
-    const filled=[];
-    const setF=(f,val,round=false)=>{
-      const el=document.getElementById(prefix+f);
-      if(el&&val!==null&&!isNaN(val)){
-        el.value=round?Math.round(val):parseFloat(val.toFixed(4));
-        const labels={price:'Harga',bvps:'BVPS',eps:'EPS',shares:'Saham',ni:'NI',pe:'PE',pbv:'PBV'};
-        filled.push(labels[f]||f);
-      }
-    };
-    setF('price',price,true); setF('bvps',bvps); setF('eps',eps);
-    setF('shares',shares); setF('ni',ni); setF('pe',pe); setF('pbv',pbv);
-
-    if(prefix==='f-') computePreview(); else computeQuarterPreview();
-    if(filled.length) showToast('\u2713 '+symbol+(usedProxy?' (proxy)':'')+': '+filled.join(', ')+' terisi.');
-    else showToast(symbol+' ditemukan tapi tidak ada data yang bisa diisi.');
-
-  }catch(err){
-    showToast('Gagal: '+err.message); console.warn('YF error:',err);
-  }finally{
-    btn.disabled=false; btn.innerHTML=origHTML;
-  }
-}
-
 // ============================================================
 // EXPORT CSV / PDF
 // ============================================================
@@ -2539,8 +2548,36 @@ updateStats();
 // Cache localStorage 6 jam → hemat quota harian
 // ============================================================
 const GOAPI_KEY   = '7ffe102e-e7b8-5899-a706-1fab523a';
-const TICKER_LS_KEY  = 'goapi_ticker_v1';
-const TICKER_MAX_AGE = 6 * 60 * 60 * 1000; // 6 jam
+const TICKER_LS_KEY    = 'goapi_ticker_v1';
+const TICKER_QUOTA_KEY = 'goapi_quota_v1';
+const TICKER_MAX_AGE   = 6 * 60 * 60 * 1000;  // cache 6 jam
+const TICKER_MAX_DAY   = 30;                    // max refresh per hari
+const TICKER_AUTO_MS   = (24 * 60 * 60 * 1000) / TICKER_MAX_DAY; // ~48 menit
+
+// ── Quota helpers ───────────────────────────────────────────
+function getQuota() {
+  try {
+    const q = JSON.parse(localStorage.getItem(TICKER_QUOTA_KEY) || 'null');
+    const today = new Date().toISOString().slice(0, 10);
+    if (!q || q.date !== today) return { date: today, count: 0 };
+    return q;
+  } catch(e) { return { date: new Date().toISOString().slice(0,10), count: 0 }; }
+}
+function bumpQuota() {
+  const q = getQuota(); q.count++;
+  try { localStorage.setItem(TICKER_QUOTA_KEY, JSON.stringify(q)); } catch(e) {}
+  updateQuotaBadge();
+}
+function updateQuotaBadge() {
+  const el = document.getElementById('ticker-quota');
+  if (!el) return;
+  const q = getQuota();
+  el.textContent = q.count + '/' + TICKER_MAX_DAY;
+  el.style.color = q.count >= TICKER_MAX_DAY ? 'var(--red-t)' : 'var(--text3)';
+}
+function canRefresh() {
+  return getQuota().count < TICKER_MAX_DAY;
+}
 
 function fmtTickerPrice(n) {
   if (!n && n !== 0) return '—';
@@ -2613,7 +2650,7 @@ async function initTicker(forceRefresh) {
   const symbols = state.emitens.map(e => e.ticker.toUpperCase());
   const now     = Date.now();
 
-  // Coba ambil dari localStorage dulu (cache 6 jam)
+  // Coba ambil dari localStorage cache dulu
   if (!forceRefresh) {
     try {
       const saved = JSON.parse(localStorage.getItem(TICKER_LS_KEY) || 'null');
@@ -2622,10 +2659,18 @@ async function initTicker(forceRefresh) {
                          symbols.every(s => (saved.syms||[]).includes(s));
         if (sameSyms && saved.items && saved.items.length) {
           renderTickerBar(saved.items);
+          updateQuotaBadge();
           return;
         }
       }
     } catch(e) {}
+  }
+
+  // Cek quota harian
+  if (!canRefresh()) {
+    if (loading) { loading.style.display='flex'; loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Limit harian tercapai ('+TICKER_MAX_DAY+'/'+TICKER_MAX_DAY+'). Reset besok.</span>'; }
+    if (track) track.style.display='none';
+    return;
   }
 
   // Tampilkan loading
@@ -2633,28 +2678,40 @@ async function initTicker(forceRefresh) {
   if (track) track.style.display='none';
 
   const raw = await fetchAllPrices(symbols);
+  bumpQuota(); // hitung sebagai 1 request (batch)
+
   if (!raw) {
     if (loading) { loading.style.display='flex'; loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Gagal memuat harga — cek koneksi</span>'; }
     return;
   }
 
-  // Normalisasi field names dari GoAPI response
   const items = raw.map(d => ({
     symbol: d.symbol,
     price:  d.close ?? d.last_price ?? null,
     change: d.change ?? null,
     pct:    d.change_pct ?? d.percent_change ?? null,
-  }));
+  })).sort((a, b) => a.symbol.localeCompare(b.symbol));
 
-  // Simpan ke localStorage (bertahan 6 jam meski tab ditutup-buka)
   try {
     localStorage.setItem(TICKER_LS_KEY, JSON.stringify({ ts: now, syms: symbols, items }));
   } catch(e) {}
 
   renderTickerBar(items);
+  updateQuotaBadge();
 }
 
-function startTickerLoop() { initTicker(false); }
+let tickerAutoTimer = null;
+
+function startTickerLoop() {
+  updateQuotaBadge();
+  initTicker(false); // load dari cache kalau ada, fetch kalau tidak
+
+  // Auto-refresh setiap ~48 menit, berhenti kalau quota habis
+  if (tickerAutoTimer) clearInterval(tickerAutoTimer);
+  tickerAutoTimer = setInterval(() => {
+    if (canRefresh()) initTicker(true);
+  }, TICKER_AUTO_MS);
+}
 
 // Start after a short delay so the page renders first
 setTimeout(startTickerLoop, 800);

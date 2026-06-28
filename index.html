@@ -312,7 +312,33 @@
   /* ── SPLIT LAYOUT ── */
   .split-layout{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
   .split-left{min-width:0}
-  .split-right{position:sticky;top:76px;max-height:calc(100vh - 96px);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+  .split-right{position:sticky;top:112px;max-height:calc(100vh - 132px);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+  /* ── LIVE TICKER BAR ── */
+  .ticker-bar{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:56px;z-index:99;height:36px;display:flex;align-items:center;overflow:hidden;gap:0}
+  .ticker-live-badge{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:0 12px;border-right:1px solid var(--border);height:100%;background:var(--surface)}
+  .ticker-live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 var(--green);animation:tickerPulse 1.5s infinite}
+  @keyframes tickerPulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.5)}70%{box-shadow:0 0 0 5px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
+  .ticker-live-label{font-family:sans-serif;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--green-t)}
+  .ticker-scroll-outer{flex:1;overflow:hidden;position:relative;height:100%;display:flex;align-items:center}
+  .ticker-scroll-outer::before,.ticker-scroll-outer::after{content:'';position:absolute;top:0;bottom:0;width:24px;z-index:2;pointer-events:none}
+  .ticker-scroll-outer::before{left:0;background:linear-gradient(to right,var(--surface),transparent)}
+  .ticker-scroll-outer::after{right:0;background:linear-gradient(to left,var(--surface),transparent)}
+  .ticker-track{display:inline-flex;align-items:center;white-space:nowrap;gap:0;animation:tickerScroll 40s linear infinite;will-change:transform}
+  .ticker-track:hover{animation-play-state:paused}
+  @keyframes tickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .ticker-item{display:inline-flex;align-items:center;gap:5px;padding:0 16px;font-family:sans-serif;font-size:12px;border-right:1px solid var(--border);height:36px;cursor:default}
+  .ticker-item:hover{background:var(--bg2)}
+  .ticker-sym{font-weight:700;color:var(--text);font-size:11px;letter-spacing:.2px}
+  .ticker-price{color:var(--text2);font-size:11.5px}
+  .ticker-chg{font-size:10px;font-weight:600;padding:1px 5px;border-radius:4px}
+  .ticker-chg.up{background:var(--green-bg);color:var(--green-t)}
+  .ticker-chg.dn{background:var(--red-bg);color:var(--red-t)}
+  .ticker-chg.flat{background:var(--bg2);color:var(--text3)}
+  .ticker-loading{font-family:sans-serif;font-size:11px;color:var(--text3);padding:0 16px;display:flex;align-items:center;gap:6px}
+  .ticker-empty{font-family:sans-serif;font-size:11px;color:var(--text3);padding:0 16px;font-style:italic}
+  .ticker-refresh-btn{flex-shrink:0;width:28px;height:28px;border:none;background:none;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px;margin-right:4px;transition:color .15s,background .15s}
+  .ticker-refresh-btn:hover{color:var(--accent);background:var(--accent-bg)}
+
 
   /* ── AI API KEY BANNER ── */
   .ai-key-banner{padding:10px 14px;background:var(--accent-bg);border-bottom:1px solid var(--accent);flex-shrink:0;display:flex;flex-direction:column;gap:7px}
@@ -423,6 +449,23 @@
   </div>
   <button class="icon-btn" onclick="toggleTheme()" title="Toggle dark mode">
     <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+
+<div class="ticker-bar" id="ticker-bar">
+  <div class="ticker-live-badge">
+    <span class="ticker-live-dot"></span>
+    <span class="ticker-live-label">Live</span>
+  </div>
+  <div class="ticker-scroll-outer" id="ticker-scroll-outer">
+    <span class="ticker-loading" id="ticker-loading">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" class="spin-icon"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+      Memuat harga saham...
+    </span>
+    <div class="ticker-track" id="ticker-track" style="display:none"></div>
+  </div>
+  <button class="ticker-refresh-btn" onclick="initTicker(true)" title="Refresh harga">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
   </button>
 </div>
 
@@ -897,6 +940,16 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'),2600);
 }
 
+function openIdxLapkeu(ticker) {
+  const url = 'https://www.idx.co.id/id/perusahaan-tercatat/laporan-keuangan-dan-tahunan/?kodeEmiten=' + encodeURIComponent(ticker);
+  navigator.clipboard.writeText(ticker).then(() => {
+    showToast('📋 ' + ticker + ' disalin ke clipboard — tinggal paste di search bar IDX!');
+  }).catch(() => {
+    showToast('🔗 Membuka laporan keuangan IDX untuk ' + ticker + '...');
+  });
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
 // ============================================================
 // NOTES INPUT HELPERS
 // ============================================================
@@ -1163,11 +1216,12 @@ function openCardPopup(e, emitenId){
       // Tombol hapus — btn biasa (neutral), sama seperti download
       +'<button class="btn btn-icon" onclick="closeCardPopup();deleteEmiten(\''+emitenId+'\')" title="Hapus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>'
     +'</div>'
-    +'<a class="btn btn-idx-lapkeu" href="https://www.idx.co.id/id/perusahaan-tercatat/laporan-keuangan-dan-tahunan/?kodeEmiten='+em.ticker+'" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">'
+    +'<button class="btn btn-idx-lapkeu" onclick="event.stopPropagation();openIdxLapkeu(\''+em.ticker+'\')" >'
       +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>'
       +' Laporan Keuangan IDX &mdash; '+escHtml(em.ticker)
       +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" style="margin-left:auto;flex-shrink:0;opacity:.55"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
-    +'</a>';
+    +'</button>';
+
 
   const popup=document.getElementById('card-popup-inner');
   popup.className='card-popup'+(cardClass?' '+cardClass:'');
@@ -2479,6 +2533,123 @@ const sortSel=document.getElementById('inv-sort');
 if(sortSel) sortSel.value=state.invSort||'newest';
 renderCards();
 updateStats();
+
+// ============================================================
+// LIVE TICKER (GoAPI.id)
+// ============================================================
+const GOAPI_KEY = '7ffe102e-e7b8-5899-a706-1fab523a';
+const TICKER_REFRESH_MS = 5 * 60 * 1000; // 5 menit
+let tickerTimer = null;
+let tickerCache = {};
+
+function fmtTickerPrice(n) {
+  if (!n && n !== 0) return '—';
+  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+}
+
+async function fetchStockPrice(symbol) {
+  try {
+    const res = await fetch(
+      'https://api.goapi.id/v1/stock/idx/daily?symbol=' + encodeURIComponent(symbol) +
+      '&api_key=' + GOAPI_KEY
+    );
+    if (!res.ok) return null;
+    const json = await res.json();
+    const results = json?.data?.results;
+    if (!results || results.length === 0) return null;
+    const d = results[0];
+    return {
+      symbol: symbol,
+      price: d.close || d.last || null,
+      change: d.change ?? null,
+      pct: d.percent_change ?? null,
+    };
+  } catch(e) {
+    return null;
+  }
+}
+
+function renderTickerBar(items) {
+  const track = document.getElementById('ticker-track');
+  const loading = document.getElementById('ticker-loading');
+  if (!track || !loading) return;
+
+  const validItems = items.filter(i => i && i.price != null);
+  loading.style.display = 'none';
+
+  if (validItems.length === 0) {
+    track.style.display = 'none';
+    loading.style.display = 'flex';
+    loading.innerHTML = '<span style="color:var(--text3);font-size:11px;font-style:italic">Belum ada data harga tersedia</span>';
+    return;
+  }
+
+  const makeItems = () => validItems.map(item => {
+    const pct = item.pct;
+    const chgCls = pct > 0 ? 'up' : pct < 0 ? 'dn' : 'flat';
+    const arrow = pct > 0 ? '▲' : pct < 0 ? '▼' : '—';
+    const pctStr = pct != null ? (pct > 0 ? '+' : '') + pct.toFixed(2) + '%' : '';
+    return '<div class="ticker-item">'
+      + '<span class="ticker-sym">' + item.symbol + '</span>'
+      + '<span class="ticker-price">' + fmtTickerPrice(item.price) + '</span>'
+      + (pctStr ? '<span class="ticker-chg ' + chgCls + '">' + arrow + ' ' + pctStr + '</span>' : '')
+      + '</div>';
+  }).join('');
+
+  // Duplicate for seamless loop
+  track.innerHTML = makeItems() + makeItems();
+  track.style.display = 'inline-flex';
+
+  // Adjust animation speed based on item count
+  const speed = Math.max(20, validItems.length * 6);
+  track.style.animationDuration = speed + 's';
+}
+
+async function initTicker(forceRefresh) {
+  if (!state.emitens || state.emitens.length === 0) {
+    const loading = document.getElementById('ticker-loading');
+    const track = document.getElementById('ticker-track');
+    if (loading) { loading.style.display = 'flex'; loading.innerHTML = '<span style="color:var(--text3);font-size:11px;font-style:italic">Tambah emiten untuk melihat harga live</span>'; }
+    if (track) track.style.display = 'none';
+    return;
+  }
+
+  const now = Date.now();
+  const symbols = state.emitens.map(e => e.ticker);
+
+  // Show loading spinner
+  const loading = document.getElementById('ticker-loading');
+  const track = document.getElementById('ticker-track');
+  if (forceRefresh) {
+    if (loading) { loading.style.display = 'flex'; loading.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" class="spin-icon"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg><span style="font-size:11px;color:var(--text3)">Memperbarui harga...</span>'; }
+    if (track) track.style.display = 'none';
+    tickerCache = {};
+  }
+
+  // Fetch all prices (sequential to avoid rate limit)
+  const results = [];
+  for (const sym of symbols) {
+    const cached = tickerCache[sym];
+    if (!forceRefresh && cached && (now - cached.ts) < TICKER_REFRESH_MS) {
+      results.push(cached.data);
+    } else {
+      const data = await fetchStockPrice(sym);
+      if (data) tickerCache[sym] = { data, ts: now };
+      results.push(data);
+    }
+  }
+
+  renderTickerBar(results);
+}
+
+function startTickerLoop() {
+  initTicker(false);
+  if (tickerTimer) clearInterval(tickerTimer);
+  tickerTimer = setInterval(() => initTicker(true), TICKER_REFRESH_MS);
+}
+
+// Start after a short delay so the page renders first
+setTimeout(startTickerLoop, 800);
 </script>
 
 <!-- MOS Tooltip Popup -->

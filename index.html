@@ -307,6 +307,89 @@
 
   /* ── SHARE MODAL: z-index above card popup (300) ── */
   #share-modal{z-index:500}
+  /* ── SPLIT LAYOUT ── */
+  .split-layout{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
+  .split-left{min-width:0}
+  .split-right{position:sticky;top:76px;max-height:calc(100vh - 96px);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+
+  /* ── AI PANEL ── */
+  .ai-panel-header{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+  .ai-panel-title{font-family:Georgia,serif;font-size:14px;font-weight:700;color:var(--text)}
+  .ai-panel-sub{display:block;font-family:sans-serif;font-size:11px;color:var(--text3);margin-top:4px}
+
+  .ai-emiten-list{flex:1;overflow-y:auto;padding:8px}
+  .ai-emiten-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background .15s;border:1px solid transparent;gap:8px;margin-bottom:4px}
+  .ai-emiten-item:hover{background:var(--bg2);border-color:var(--border)}
+  .ai-emiten-item.active{background:var(--accent-bg);border-color:var(--accent)}
+  .ai-emiten-left{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .ai-emiten-ticker{font-family:Georgia,serif;font-size:15px;font-weight:700;color:var(--text)}
+  .ai-emiten-meta{font-family:sans-serif;font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ai-emiten-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .ai-gen-btn{font-family:sans-serif;font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent-t);cursor:pointer;font-weight:600;transition:background .15s,color .15s;white-space:nowrap}
+  .ai-gen-btn:hover{background:var(--accent);color:#fff}
+  .ai-gen-btn:disabled{opacity:.5;cursor:not-allowed}
+  .ai-gen-btn.loading{background:var(--bg2);border-color:var(--border);color:var(--text3)}
+
+  .ai-empty-hint{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:40px 16px;font-family:sans-serif;font-size:12px;color:var(--text3);text-align:center}
+
+  /* ── AI RESULT PANEL ── */
+  .ai-result-wrap{display:flex;flex-direction:column;flex:1;overflow:hidden}
+  .ai-result-header{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+  .ai-back-btn{display:flex;align-items:center;gap:4px;font-family:sans-serif;font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:background .15s}
+  .ai-back-btn:hover{background:var(--border)}
+  .ai-result-ticker{font-family:Georgia,serif;font-size:14px;font-weight:700;color:var(--text);flex:1;text-align:center}
+  .ai-result-body{flex:1;overflow-y:auto;padding:14px 16px}
+
+  /* ── AI LOADING DOTS ── */
+  .ai-loading{display:flex;flex-direction:column;align-items:center;gap:12px;padding:32px 0;font-family:sans-serif;font-size:12px;color:var(--text3)}
+  .ai-loading-dots{display:flex;gap:6px}
+  .ai-loading-dots span{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:aiDotPulse 1.2s infinite ease-in-out}
+  .ai-loading-dots span:nth-child(2){animation-delay:.2s}
+  .ai-loading-dots span:nth-child(3){animation-delay:.4s}
+  @keyframes aiDotPulse{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+  /* ── AI CONTENT TYPOGRAPHY ── */
+  .ai-section{margin-bottom:16px}
+  .ai-section:last-child{margin-bottom:0}
+  .ai-section-title{font-family:Georgia,serif;font-size:12px;font-weight:700;color:var(--accent-t);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;display:flex;align-items:center;gap:5px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+  .ai-section-title svg{flex-shrink:0}
+  .ai-prose{font-family:sans-serif;font-size:12.5px;line-height:1.65;color:var(--text2)}
+  .ai-prose p{margin-bottom:8px}
+  .ai-prose p:last-child{margin-bottom:0}
+  .ai-prose strong{color:var(--text);font-weight:600}
+  .ai-metric-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-family:sans-serif;font-size:12px}
+  .ai-metric-row:last-child{border-bottom:none}
+  .ai-metric-label{color:var(--text3)}
+  .ai-metric-val{font-weight:600;color:var(--text)}
+  .ai-metric-val.green{color:var(--green-t)}
+  .ai-metric-val.red{color:var(--red-t)}
+  .ai-metric-val.accent{color:var(--accent-t)}
+  .ai-scenario{border-radius:8px;padding:10px 12px;margin-bottom:8px;font-family:sans-serif;font-size:12px;line-height:1.6}
+  .ai-scenario.bull{background:var(--green-bg);border-left:3px solid var(--green)}
+  .ai-scenario.bear{background:var(--red-bg);border-left:3px solid var(--red)}
+  .ai-scenario-label{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+  .ai-scenario.bull .ai-scenario-label{color:var(--green-t)}
+  .ai-scenario.bear .ai-scenario-label{color:var(--red-t)}
+  .ai-scenario p{color:var(--text2);margin:0}
+  .ai-verdict{border-radius:8px;padding:12px 14px;margin-bottom:8px;font-family:sans-serif;font-size:12.5px;line-height:1.6;border:1px solid}
+  .ai-verdict.bull{background:var(--green-bg);border-color:var(--green);color:var(--green-t)}
+  .ai-verdict.bear{background:var(--red-bg);border-color:var(--red);color:var(--red-t)}
+  .ai-verdict.neutral{background:var(--accent-bg);border-color:var(--accent);color:var(--accent-t)}
+  .ai-verdict-label{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;display:block}
+  .ai-tag{display:inline-block;font-family:sans-serif;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;margin:2px 2px 2px 0}
+  .ai-tag.green{background:var(--green-bg);color:var(--green-t)}
+  .ai-tag.red{background:var(--red-bg);color:var(--red-t)}
+  .ai-tag.accent{background:var(--accent-bg);color:var(--accent-t)}
+
+  .ai-disclaimer{padding:8px 14px;font-family:sans-serif;font-size:10px;color:var(--text3);display:flex;align-items:flex-start;gap:6px;border-top:1px solid var(--border);line-height:1.4;flex-shrink:0}
+  .ai-disclaimer svg{flex-shrink:0;margin-top:1px}
+  .ai-cached-badge{font-family:sans-serif;font-size:10px;padding:2px 7px;border-radius:10px;background:var(--bg2);color:var(--text3);border:1px solid var(--border);margin-left:auto}
+
+  @media(max-width:900px){
+    .split-layout{grid-template-columns:1fr}
+    .split-right{position:static;max-height:500px}
+  }
+
 </style>
 </head>
 <body>
@@ -349,7 +432,50 @@
         Tambah Emiten
       </button>
     </div>
-    <div class="emiten-grid" id="emiten-grid"></div>
+    <div class="split-layout">
+      <div class="split-left">
+        <div class="emiten-grid" id="emiten-grid"></div>
+      </div>
+      <div class="split-right" id="ai-panel">
+        <div class="ai-panel-header">
+          <div style="display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="color:var(--accent)"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <span class="ai-panel-title">AI Summary</span>
+          </div>
+          <span class="ai-panel-sub">Pilih emiten untuk dianalisis oleh Claude AI</span>
+        </div>
+        <div class="ai-emiten-list" id="ai-emiten-list">
+          <div class="ai-empty-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28" style="color:var(--text3)"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <span>Belum ada emiten aktif</span>
+          </div>
+        </div>
+        <div class="ai-result-wrap" id="ai-result-wrap" style="display:none">
+          <div class="ai-result-header">
+            <button class="ai-back-btn" onclick="aiBack()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="15 18 9 12 15 6"/></svg>
+              Kembali
+            </button>
+            <span class="ai-result-ticker" id="ai-result-ticker"></span>
+            <button class="btn" style="font-size:11px;padding:4px 10px" onclick="aiRefresh()" id="ai-refresh-btn" title="Generate ulang">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+              Refresh
+            </button>
+          </div>
+          <div class="ai-result-body" id="ai-result-body">
+            <div class="ai-loading" id="ai-loading">
+              <div class="ai-loading-dots"><span></span><span></span><span></span></div>
+              <span>Menganalisis data emiten...</span>
+            </div>
+            <div id="ai-content" style="display:none"></div>
+          </div>
+          <div class="ai-disclaimer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Bukan rekomendasi investasi. Gunakan sebagai referensi tambahan saja.
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div id="tab-inventory" style="display:none">
@@ -1962,6 +2088,297 @@ function drawActiveCard(canvas, em) {
     }
   }
 }
+
+
+// ============================================================
+// AI PANEL
+// ============================================================
+let aiCurrentEmitenId = null;
+let aiCache = {}; // { emitenId: { html, timestamp } }
+const AI_CACHE_MS = 10 * 60 * 1000; // 10 menit
+
+function renderAiList() {
+  const list = document.getElementById('ai-emiten-list');
+  if (!list) return;
+  if (!state.emitens.length) {
+    list.innerHTML = '<div class="ai-empty-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28" style="color:var(--text3)"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Belum ada emiten aktif</span></div>';
+    return;
+  }
+  const order = getCardOrder();
+  const sorted = order.map(id => state.emitens.find(e => e.id === id)).filter(Boolean);
+  list.innerHTML = sorted.map(em => {
+    const last = em.entries[em.entries.length - 1];
+    const { avg } = calcFV(last.bvps, last.pbv, last.ni, last.pe, last.shares, last.eps);
+    const teb = em.tebakan || 'bullish';
+    const isCached = aiCache[em.id] && (Date.now() - aiCache[em.id].timestamp < AI_CACHE_MS);
+    const mosPct = (avg && last.price) ? ((avg - last.price) / last.price * 100) : null;
+    const mosStr = mosPct !== null ? (mosPct >= 0 ? '+' : '') + mosPct.toFixed(1) + '% MoS' : '';
+    return `<div class="ai-emiten-item" id="ai-item-${em.id}">
+      <div class="ai-emiten-left">
+        <span class="ai-emiten-ticker">${escHtml(em.ticker)}</span>
+        <span class="ai-emiten-meta">${escHtml(last.quarter)} · ${teb === 'bullish' ? '▲ Bullish' : '▼ Bearish'}${mosStr ? ' · ' + mosStr : ''}</span>
+      </div>
+      <div class="ai-emiten-right">
+        ${isCached ? '<span class="ai-cached-badge">cached</span>' : ''}
+        <button class="ai-gen-btn" onclick="aiAnalyze('${em.id}',event)" id="aibtn-${em.id}">
+          ${isCached ? 'Lihat' : '✦ Analisis'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function aiBack() {
+  document.getElementById('ai-result-wrap').style.display = 'none';
+  document.getElementById('ai-emiten-list').style.display = '';
+  aiCurrentEmitenId = null;
+  // reset active state
+  document.querySelectorAll('.ai-emiten-item').forEach(el => el.classList.remove('active'));
+}
+
+function aiRefresh() {
+  if (!aiCurrentEmitenId) return;
+  delete aiCache[aiCurrentEmitenId];
+  renderAiList();
+  aiAnalyze(aiCurrentEmitenId);
+}
+
+async function aiAnalyze(emitenId, e) {
+  if (e) e.stopPropagation();
+  const em = state.emitens.find(x => x.id === emitenId);
+  if (!em) return;
+
+  aiCurrentEmitenId = emitenId;
+
+  // Switch view
+  document.getElementById('ai-emiten-list').style.display = 'none';
+  const resultWrap = document.getElementById('ai-result-wrap');
+  resultWrap.style.display = 'flex';
+  resultWrap.style.flexDirection = 'column';
+  resultWrap.style.flex = '1';
+  resultWrap.style.overflow = 'hidden';
+  document.getElementById('ai-result-ticker').textContent = em.ticker;
+
+  // Mark active
+  document.querySelectorAll('.ai-emiten-item').forEach(el => el.classList.remove('active'));
+  const itemEl = document.getElementById('ai-item-' + emitenId);
+  if (itemEl) itemEl.classList.add('active');
+
+  // Check cache
+  if (aiCache[emitenId] && (Date.now() - aiCache[emitenId].timestamp < AI_CACHE_MS)) {
+    showAiContent(aiCache[emitenId].html);
+    return;
+  }
+
+  // Show loading
+  document.getElementById('ai-loading').style.display = 'flex';
+  document.getElementById('ai-content').style.display = 'none';
+  document.getElementById('ai-refresh-btn').disabled = true;
+
+  // Build prompt
+  const last = em.entries[em.entries.length - 1];
+  const { fv1, fv2, fv3, avg } = calcFV(last.bvps, last.pbv, last.ni, last.pe, last.shares, last.eps);
+  const mosPct = (avg && last.price) ? ((avg - last.price) / last.price * 100) : null;
+  const nd = last.notes ? parseNotes(last.notes) : null;
+  const historyText = em.entries.length > 1
+    ? em.entries.slice(0, -1).map(e => {
+        const {avg: ha} = calcFV(e.bvps, e.pbv, e.ni, e.pe, e.shares, e.eps);
+        return `  - ${e.quarter}: Harga Rp ${Math.round(e.price||0).toLocaleString('id-ID')}, FV Avg ${ha ? 'Rp ' + Math.round(ha).toLocaleString('id-ID') : 'N/A'}`;
+      }).join('\n')
+    : '  (hanya 1 entry)';
+
+  const prompt = `Kamu adalah analis saham IDX berpengalaman. Analisis emiten berikut secara mendalam dengan bahasa campuran Indonesia dan istilah teknikal Inggris.
+
+DATA EMITEN:
+- Ticker: ${em.ticker}
+- Tebakan: ${(em.tebakan||'bullish').toUpperCase()}
+- Kuartal terkini: ${last.quarter}
+- Harga sekarang: Rp ${last.price ? Math.round(last.price).toLocaleString('id-ID') : 'N/A'}
+- BVPS: ${last.bvps || 'N/A'}
+- Mean PBV 3 tahun: ${last.pbv || 'N/A'}x
+- EPS: ${last.eps || 'N/A'}
+- Mean PE 3 tahun: ${last.pe || 'N/A'}x
+- Net Income: ${last.ni || 'N/A'} T
+- Jumlah Saham: ${last.shares || 'N/A'} M
+
+HASIL VALUASI:
+- FV1 (BVPS × PBV): ${fv1 ? 'Rp ' + Math.round(fv1).toLocaleString('id-ID') : 'N/A'}
+- FV2 (NI × PE / Saham): ${fv2 ? 'Rp ' + Math.round(fv2).toLocaleString('id-ID') : 'N/A'}
+- FV3 (PE × EPS): ${fv3 ? 'Rp ' + Math.round(fv3).toLocaleString('id-ID') : 'N/A'}
+- Fair Value Rata-rata: ${avg ? 'Rp ' + Math.round(avg).toLocaleString('id-ID') : 'N/A'}
+- Margin of Safety: ${mosPct !== null ? (mosPct >= 0 ? '+' : '') + mosPct.toFixed(1) + '%' : 'N/A'}
+
+CATATAN ANALIS:
+- Positif: ${nd && nd.plus.length ? nd.plus.join('; ') : 'tidak ada'}
+- Risiko: ${nd && nd.minus.length ? nd.minus.join('; ') : 'tidak ada'}
+- Catatan umum: ${nd && nd.general ? nd.general : 'tidak ada'}
+
+RIWAYAT ENTRY SEBELUMNYA:
+${historyText}
+
+Berikan analisis dalam format JSON yang HANYA berisi objek berikut (tanpa markdown, tanpa backtick, tanpa teks lain):
+{
+  "verdict": {
+    "label": "BULLISH"|"BEARISH"|"NETRAL",
+    "summary": "1-2 kalimat kesimpulan utama"
+  },
+  "valuation": {
+    "interpretation": "Penjelasan 2-3 kalimat tentang apa arti angka FV1/FV2/FV3 dan mengapa bisa beda-beda. Jelaskan mana yang paling relevan untuk emiten ini.",
+    "mos_interpretation": "Penjelasan 1-2 kalimat tentang Margin of Safety saat ini, apakah harga sudah menarik atau belum."
+  },
+  "fundamentals": {
+    "analysis": "2-3 kalimat analisis kondisi fundamental: profitabilitas (EPS, NI), valuasi relatif (PE, PBV vs mean), dan kekuatan/kelemahan balance sheet."
+  },
+  "price_action": {
+    "bullish_scenario": "Skenario bullish: kondisi apa yang perlu terpenuhi dan target price action-nya (sebutkan level harga spesifik berdasarkan FV).",
+    "bearish_scenario": "Skenario bearish: risiko downside dan level support/breakdown yang perlu diwaspadai.",
+    "key_levels": "Level harga kunci yang perlu diperhatikan: support, resistance, dan target berdasarkan FV."
+  },
+  "risks": "2-3 risiko utama yang perlu diperhatikan investor, termasuk faktor eksternal dan internal.",
+  "watchlist": ["3-4 hal spesifik yang perlu dipantau ke depan (lapkeu, price level, catalyst, dll)"]
+}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1200,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || 'API error ' + resp.status);
+    }
+
+    const data = await resp.json();
+    const raw = data.content.map(b => b.text || '').join('').trim();
+
+    // Parse JSON — strip possible markdown fences
+    let parsed;
+    try {
+      const clean = raw.replace(/^```[\w]*\n?/,'').replace(/\n?```$/,'').trim();
+      parsed = JSON.parse(clean);
+    } catch {
+      throw new Error('Format respons AI tidak valid. Coba refresh.');
+    }
+
+    const html = renderAiHtml(parsed, em, { fv1, fv2, fv3, avg, mosPct });
+    aiCache[emitenId] = { html, timestamp: Date.now() };
+    renderAiList(); // update cached badge
+    showAiContent(html);
+
+  } catch (err) {
+    showAiError(err.message);
+  } finally {
+    document.getElementById('ai-refresh-btn').disabled = false;
+  }
+}
+
+function showAiContent(html) {
+  document.getElementById('ai-loading').style.display = 'none';
+  const content = document.getElementById('ai-content');
+  content.innerHTML = html;
+  content.style.display = 'block';
+}
+
+function showAiError(msg) {
+  document.getElementById('ai-loading').style.display = 'none';
+  const content = document.getElementById('ai-content');
+  content.style.display = 'block';
+  content.innerHTML = `<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:8px;padding:12px 14px;font-family:sans-serif;font-size:12px;color:var(--red-t)">
+    <strong>Gagal menganalisis:</strong> ${escHtml(msg)}
+    <br><br>Pastikan kamu sudah login ke Claude.ai agar API tersedia.
+  </div>`;
+}
+
+function renderAiHtml(d, em, fv) {
+  const verdictClass = d.verdict.label === 'BULLISH' ? 'bull' : d.verdict.label === 'BEARISH' ? 'bear' : 'neutral';
+  const fmtRp = n => n ? 'Rp ' + Math.round(n).toLocaleString('id-ID') : '—';
+  const mosCls = fv.mosPct >= 20 ? 'green' : fv.mosPct >= 0 ? 'accent' : 'red';
+
+  return `
+  <div class="ai-verdict ${verdictClass}">
+    <span class="ai-verdict-label">${d.verdict.label === 'BULLISH' ? '▲ ' : d.verdict.label === 'BEARISH' ? '▼ ' : '◆ '}${d.verdict.label}</span>
+    ${escHtml(d.verdict.summary)}
+  </div>
+
+  <div class="ai-section">
+    <div class="ai-section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Ringkasan Valuasi
+    </div>
+    <div style="margin-bottom:10px">
+      <div class="ai-metric-row"><span class="ai-metric-label">FV1 (BVPS × PBV)</span><span class="ai-metric-val">${fmtRp(fv.fv1)}</span></div>
+      <div class="ai-metric-row"><span class="ai-metric-label">FV2 (NI × PE / Saham)</span><span class="ai-metric-val">${fmtRp(fv.fv2)}</span></div>
+      <div class="ai-metric-row"><span class="ai-metric-label">FV3 (PE × EPS)</span><span class="ai-metric-val">${fmtRp(fv.fv3)}</span></div>
+      <div class="ai-metric-row" style="border-top:1.5px solid var(--border);margin-top:4px;padding-top:8px"><span class="ai-metric-label" style="font-weight:600">Fair Value Avg</span><span class="ai-metric-val accent">${fmtRp(fv.avg)}</span></div>
+      ${fv.mosPct !== null ? `<div class="ai-metric-row"><span class="ai-metric-label">Margin of Safety</span><span class="ai-metric-val ${mosCls}">${fv.mosPct >= 0 ? '+' : ''}${fv.mosPct.toFixed(1)}%</span></div>` : ''}
+    </div>
+    <div class="ai-prose"><p>${escHtml(d.valuation.interpretation)}</p><p>${escHtml(d.valuation.mos_interpretation)}</p></div>
+  </div>
+
+  <div class="ai-section">
+    <div class="ai-section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+      Analisis Fundamental
+    </div>
+    <div class="ai-prose"><p>${escHtml(d.fundamentals.analysis)}</p></div>
+  </div>
+
+  <div class="ai-section">
+    <div class="ai-section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Skenario Price Action
+    </div>
+    <div class="ai-scenario bull">
+      <div class="ai-scenario-label">▲ Bullish Scenario</div>
+      <p>${escHtml(d.price_action.bullish_scenario)}</p>
+    </div>
+    <div class="ai-scenario bear">
+      <div class="ai-scenario-label">▼ Bearish Scenario</div>
+      <p>${escHtml(d.price_action.bearish_scenario)}</p>
+    </div>
+    <div style="background:var(--bg2);border-radius:6px;padding:9px 11px;font-family:sans-serif;font-size:12px;color:var(--text2);margin-top:6px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);margin-bottom:5px">Key Levels</div>
+      ${escHtml(d.price_action.key_levels)}
+    </div>
+  </div>
+
+  <div class="ai-section">
+    <div class="ai-section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+      Risiko Utama
+    </div>
+    <div class="ai-prose"><p>${escHtml(d.risks)}</p></div>
+  </div>
+
+  <div class="ai-section">
+    <div class="ai-section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Yang Perlu Dipantau
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">
+      ${(d.watchlist||[]).map((w,i)=>`<span class="ai-tag ${i%3===0?'accent':i%3===1?'green':'red'}">${escHtml(w)}</span>`).join('')}
+    </div>
+  </div>
+  `;
+}
+
+// Patch renderCards dan updateStats untuk juga update AI list
+const _origRenderCards = renderCards;
+renderCards = function() {
+  _origRenderCards();
+  renderAiList();
+};
+const _origUpdateStats = updateStats;
+updateStats = function() {
+  _origUpdateStats();
+  renderAiList();
+};
 
 // ============================================================
 // INIT

@@ -414,7 +414,7 @@
 <div class="topbar">
   <div class="logo-wrap">
     <div class="logo">Stock<span>Tracker</span></div>
-    <div class="logo-tooltip">Designed and developed by BosGeng</div>
+    <div class="logo-tooltip">Designed by BosGeng</div>
   </div>
   <div class="tab-group">
     <button class="tab-btn active" onclick="switchTab('active')">Active <span class="tab-badge" id="badge-active">0</span></button>
@@ -458,7 +458,7 @@
 
 <div class="cyclical-warning" id="cyclical-warning">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-  <span><strong>Catatan akurasi model:</strong> Pendekatan valuasi berbasis fundamental (PBV, PE, EPS) ini mungkin akan kurang akurat untuk <strong>sektor siklikal</strong> (komoditas, properti, otomotif).</span>
+  <span><strong>Catatan akurasi model:</strong> Pendekatan valuasi berbasis fundamental (PBV, PE, EPS) mungkin kurang akurat untuk <strong>sektor siklikal</strong> (komoditas, properti, otomotif).</span>
   <button class="cyclical-dismiss" onclick="document.getElementById('cyclical-warning').style.display='none'">&#x2715;</button>
 </div>
 
@@ -650,7 +650,7 @@
         <button type="button" class="btn notes-add-row-btn" onclick="addNotesRow('f','minus')">＋ Tambah poin</button>
       </div>
       <div class="form-field">
-        <label>Catatan Umum (opsional)</label>
+        <label>Catatan umum (opsional)</label>
         <textarea id="f-notes-general" placeholder="Catatan bebas..." style="min-height:52px"></textarea>
       </div>
     </div>
@@ -795,13 +795,29 @@
 <!-- Modal: Edit Archive -->
 <div class="modal-backdrop" id="modal-inv-edit">
   <div class="modal modal-sm">
-    <h2>✎ Edit Kuartal &amp; Tanggal</h2>
-    <div class="modal-sub">Hanya kuartal dan tanggal yang dapat diubah.</div>
+    <h2>✎ Edit Data Archive</h2>
+    <div class="modal-sub">Edit kuartal, tanggal, dan sektor.</div>
     <input type="hidden" id="mie-inv-id">
     <div class="form-grid">
       <div class="form-field" style="grid-column:1/-1"><label>Kuartal</label><input type="text" id="mie-quarter" maxlength="10"></div>
       <div class="form-field"><label>Tanggal awal</label><input type="date" id="mie-tgl-awal"></div>
       <div class="form-field"><label>Tanggal ditutup</label><input type="date" id="mie-tgl-akhir"></div>
+      <div class="form-field" style="grid-column:1/-1"><label>Sektor IDX</label>
+        <select id="mie-sector">
+          <option value="">— Pilih sektor —</option>
+          <option value="Energi">Energi</option>
+          <option value="Material Dasar">Material Dasar</option>
+          <option value="Industri">Industri</option>
+          <option value="Konsumer Non-Siklikal">Konsumer Non-Siklikal</option>
+          <option value="Konsumer Siklikal">Konsumer Siklikal</option>
+          <option value="Kesehatan">Kesehatan</option>
+          <option value="Keuangan">Keuangan</option>
+          <option value="Properti">Properti &amp; Real Estate</option>
+          <option value="Teknologi">Teknologi</option>
+          <option value="Infrastruktur">Infrastruktur</option>
+          <option value="Transportasi">Transportasi &amp; Logistik</option>
+        </select>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn" onclick="closeInvEditModal()">Batal</button>
@@ -1693,9 +1709,9 @@ function restoreFromInventory(invId){
   save();renderInventory();updateStats();switchTab('active');showToast(inv.ticker+' dipulihkan.');
 }
 function deleteInventory(id){if(!confirm('Hapus item dari inventori?'))return;state.inventory=state.inventory.filter(i=>i.id!==id);save();renderInventory();updateStats();showToast('Item dihapus.');}
-function openInvEditModal(invId){const inv=state.inventory.find(i=>i.id===invId);if(!inv)return;document.getElementById('mie-inv-id').value=invId;document.getElementById('mie-quarter').value=inv.quarter||'';document.getElementById('mie-tgl-awal').value=inv.tanggalAwal||'';document.getElementById('mie-tgl-akhir').value=inv.tanggalAkhir||'';document.getElementById('modal-inv-edit').classList.add('open');document.body.style.overflow='hidden';}
+function openInvEditModal(invId){const inv=state.inventory.find(i=>i.id===invId);if(!inv)return;document.getElementById('mie-inv-id').value=invId;document.getElementById('mie-quarter').value=inv.quarter||'';document.getElementById('mie-tgl-awal').value=inv.tanggalAwal||'';document.getElementById('mie-tgl-akhir').value=inv.tanggalAkhir||'';document.getElementById('mie-sector').value=inv.sector||'';document.getElementById('modal-inv-edit').classList.add('open');document.body.style.overflow='hidden';}
 function closeInvEditModal(){document.getElementById('modal-inv-edit').classList.remove('open');document.body.style.overflow='';}
-function saveInvEdit(){const invId=document.getElementById('mie-inv-id').value;const inv=state.inventory.find(i=>i.id===invId);if(!inv)return;inv.quarter=document.getElementById('mie-quarter').value.trim()||inv.quarter;inv.tanggalAwal=document.getElementById('mie-tgl-awal').value||inv.tanggalAwal;inv.tanggalAkhir=document.getElementById('mie-tgl-akhir').value||inv.tanggalAkhir;save();renderInventory();updateStats();closeInvEditModal();showToast('Perubahan disimpan.');}
+function saveInvEdit(){const invId=document.getElementById('mie-inv-id').value;const inv=state.inventory.find(i=>i.id===invId);if(!inv)return;inv.quarter=document.getElementById('mie-quarter').value.trim()||inv.quarter;inv.tanggalAwal=document.getElementById('mie-tgl-awal').value||inv.tanggalAwal;inv.tanggalAkhir=document.getElementById('mie-tgl-akhir').value||inv.tanggalAkhir;inv.sector=document.getElementById('mie-sector').value||inv.sector||'';save();renderInventory();updateStats();closeInvEditModal();showToast('Perubahan disimpan.');}
 
 // ============================================================
 // EXPORT CSV / PDF

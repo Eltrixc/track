@@ -2550,18 +2550,18 @@ function fmtTickerPrice(n) {
 // Satu request untuk SEMUA simbol sekaligus (hemat quota)
 async function fetchAllPrices(symbols) {
   const symbolStr = symbols.join(',');
+  const url = 'https://api.goapi.io/stock/idx/prices?symbols=' + encodeURIComponent(symbolStr);
+  console.log('[Ticker] Fetching URL:', url);
   try {
-    const res = await fetch(
-      'https://api.goapi.io/v1/stock/idx/prices?symbol=' + encodeURIComponent(symbolStr) +
-      '&api_key=' + GOAPI_KEY
-    );
+    const res = await fetch(url, {
+      headers: { 'x-api-key': GOAPI_KEY }
+    });
     if (!res.ok) {
       console.warn('[Ticker] HTTP', res.status, res.statusText);
       return null;
     }
     const json = await res.json();
     console.log('[Ticker] response:', JSON.stringify(json).slice(0, 300));
-    // Response: { data: [ { symbol, close, change, change_pct, ... }, ... ] }
     return json?.data ?? null;
   } catch(e) {
     console.error('[Ticker] fetch error:', e);

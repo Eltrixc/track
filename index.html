@@ -459,19 +459,19 @@
         <div class="ai-key-banner" id="ai-key-banner">
           <div class="ai-key-banner-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            Gemini API Key
+            Groq API Key
           </div>
           <div id="ai-key-status-row" class="ai-key-status missing">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span id="ai-key-status-text">API key belum disimpan</span>
+            <span id="ai-key-status-text">Groq API key belum disimpan</span>
           </div>
           <div class="ai-key-row" id="ai-key-input-row">
-            <input type="password" class="ai-key-input" id="ai-key-input" placeholder="AIzaSy..." autocomplete="off" onkeydown="if(event.key==='Enter')saveApiKey()">
+            <input type="password" class="ai-key-input" id="ai-key-input" placeholder="gsk_..." autocomplete="off" onkeydown="if(event.key==='Enter')saveApiKey()">
             <button class="btn btn-primary" style="font-size:11px;padding:5px 12px;white-space:nowrap" onclick="saveApiKey()">Simpan</button>
           </div>
           <div style="font-family:sans-serif;font-size:10px;color:var(--text3);line-height:1.5">
-            Key disimpan di <strong>localStorage</strong> browser ini saja. Gratis tanpa kartu kredit.<br>
-            Dapatkan key di <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a>.
+            Key disimpan di <strong>localStorage</strong> browser ini saja. Gratis, tanpa kartu kredit.<br>
+            Dapatkan key di <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent)">console.groq.com/keys</a>.
           </div>
         </div>
         <div class="ai-emiten-list" id="ai-emiten-list">
@@ -2268,23 +2268,26 @@ Berikan analisis dalam format JSON yang HANYA berisi objek berikut (tanpa markdo
   "watchlist": ["3-4 hal spesifik yang perlu dipantau ke depan (lapkeu, price level, catalyst, dll)"]
 }`;
 
+  let parsed;
   try {
-    const apiKey = localStorage.getItem('nw_gemini_key') || '';
+    const apiKey = localStorage.getItem('nw_groq_key') || '';
     if (!apiKey) {
-      throw new Error('API key belum disimpan. Masukkan Gemini API key di panel AI.');
+      throw new Error('Groq API key belum disimpan. Masukkan Groq API key di panel AI.');
     }
 
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 1400, temperature: 0.4 }
-        })
-      }
-    );
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 1400,
+        temperature: 0.4,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
 
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
@@ -2293,11 +2296,10 @@ Berikan analisis dalam format JSON yang HANYA berisi objek berikut (tanpa markdo
     }
 
     const data = await resp.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    if (!raw) throw new Error('Respons kosong dari Gemini. Coba refresh.');
+    const raw = data.choices?.[0]?.message?.content || '';
+    if (!raw) throw new Error('Respons kosong dari Groq. Coba refresh.');
 
     // Parse JSON — strip possible markdown fences
-    let parsed;
     try {
       const clean = raw.replace(/^```[\w]*\n?/,'').replace(/\n?```$/,'').trim();
       parsed = JSON.parse(clean);
@@ -2331,13 +2333,13 @@ function showAiError(msg) {
   const isKeyError = msg.includes('API key') || msg.includes('401') || msg.includes('x-api-key') || msg.includes('authentication');
   content.innerHTML = `<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:8px;padding:12px 14px;font-family:sans-serif;font-size:12px;color:var(--red-t);line-height:1.6">
     <strong>Gagal menganalisis:</strong> ${escHtml(msg)}
-    ${isKeyError ? '<br><br>Pastikan API key sudah benar dan memiliki kredit yang cukup di <a href="https://console.anthropic.com" target="_blank" style="color:var(--red-t);text-decoration:underline">console.anthropic.com</a>.' : ''}
+    ${isKeyError ? '<br><br>Pastikan API key sudah benar dan memiliki kredit yang cukup di <a href="https://console.groq.com" target="_blank" style="color:var(--red-t);text-decoration:underline">console.groq.com</a>.' : ''}
   </div>`;
 }
 
 // ── API Key management ──────────────────────────────────────────────────────
 function initApiKeyBanner() {
-  const key = localStorage.getItem('nw_gemini_key') || '';
+  const key = localStorage.getItem('nw_groq_key') || '';
   const banner   = document.getElementById('ai-key-banner');
   const statusEl = document.getElementById('ai-key-status-row');
   const inputRow = document.getElementById('ai-key-input-row');
@@ -2347,13 +2349,13 @@ function initApiKeyBanner() {
   if (key) {
     statusEl.className = 'ai-key-status ok';
     statusEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg>
-      <span>Gemini API key tersimpan &nbsp;·&nbsp; <button onclick="clearApiKey()" style="background:none;border:none;color:var(--red-t);font-size:10px;cursor:pointer;padding:0;font-family:sans-serif">Hapus</button></span>`;
+      <span>Groq API key tersimpan &nbsp;·&nbsp; <button onclick="clearApiKey()" style="background:none;border:none;color:var(--red-t);font-size:10px;cursor:pointer;padding:0;font-family:sans-serif">Hapus</button></span>`;
     inputRow.style.display = 'none';
     setTimeout(() => { if (banner) banner.style.display = 'none'; }, 2000);
   } else {
     statusEl.className = 'ai-key-status missing';
     statusEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span>Gemini API key belum disimpan</span>`;
+      <span>Groq Groq API key belum disimpan</span>`;
     inputRow.style.display = 'flex';
     if (input) input.value = '';
   }
@@ -2362,13 +2364,13 @@ function saveApiKey() {
   const input = document.getElementById('ai-key-input');
   const val = (input?.value || '').trim();
   if (!val) { showToast('Masukkan API key terlebih dahulu.'); return; }
-  if (!val.startsWith('AIza') && !val.startsWith('AQ.')) { showToast('Format key tidak valid. Pastikan key dari aistudio.google.com/apikey'); return; }
-  localStorage.setItem('nw_gemini_key', val);
-  showToast('Gemini API key berhasil disimpan.');
+  if (!val.startsWith('gsk_')) { showToast('Format key tidak valid. Groq key diawali gsk_…'); return; }
+  localStorage.setItem('nw_groq_key', val);
+  showToast('Groq API key berhasil disimpan.');
   initApiKeyBanner();
 }
 function clearApiKey() {
-  localStorage.removeItem('nw_gemini_key');
+  localStorage.removeItem('nw_groq_key');
   const banner = document.getElementById('ai-key-banner');
   if (banner) banner.style.display = '';
   initApiKeyBanner();
@@ -2475,14 +2477,14 @@ updateStats();
 
 <!-- MOS Tooltip Popup -->
 <div class="mos-tooltip" id="mos-tooltip">
-  <strong>📐 Margin of Safety (MOS)</strong>
+  <strong>📐 Margin of Safety (MoS)</strong>
   <div style="margin-top:6px">Selisih antara <em>Fair Value rata-rata</em> dan <em>harga beli</em>, dinyatakan dalam persen:</div>
   <div style="margin:7px 0;padding:6px 8px;background:var(--bg2);border-radius:5px;font-size:10.5px;text-align:center;font-family:Georgia,serif">
-    MOS = (FV Avg − Harga Awal) / Harga Awal × 100%
+    MoS = (FV Avg − Harga Awal) / Harga Awal × 100%
   </div>
   <div style="color:var(--green-t)">✔ <strong>Positif</strong> → kamu beli di bawah FV (ada "bantal" keamanan)</div>
   <div style="margin-top:4px;color:var(--red-t)">✘ <strong>Negatif</strong> → kamu beli di atas FV (premium, risiko lebih tinggi)</div>
-  <div style="margin-top:6px;color:var(--text3);font-size:10px">Konsep oleh Benjamin Graham & Warren Buffett. MOS ≥20% umumnya dianggap layak.</div>
+  <div style="margin-top:6px;color:var(--text3);font-size:10px">Konsep oleh Benjamin Graham & Warren Buffett. MoS ≥20% umumnya dianggap layak.</div>
 </div>
 
 <script>

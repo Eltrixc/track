@@ -304,14 +304,14 @@
   .ticker-item .t-chg.up{background:var(--green-bg);color:var(--green-t)}
   .ticker-item .t-chg.dn{background:var(--red-bg);color:var(--red-t)}
   .ticker-item .t-chg.flat{background:var(--bg2);color:var(--text3)}
-  .ticker-loading{font-family:sans-serif;font-size:11px;color:var(--text3);padding:0 20px}
+  .ticker-loading{font-family:sans-serif;font-size:11px;color:var(--text3);padding:0 20px;display:flex;align-items:center;gap:4px}
 
   /* ── CYCLICAL WARNING BANNER (moved to bottom) ── */
   .cyclical-warning{
     background:var(--accent-bg);border-top:1px solid var(--accent);
     padding:7px 24px;display:flex;align-items:center;gap:10px;
     font-family:sans-serif;font-size:12px;color:var(--accent-t);
-    position:sticky;bottom:0;z-index:90
+    position:fixed;bottom:0;left:0;right:0;z-index:95
   }
   .cyclical-warning svg{flex-shrink:0;color:var(--accent)}
   .cyclical-warning span{flex:1;line-height:1.4}
@@ -1995,23 +1995,48 @@ async function fetchAllPrices(tickers){
     if(!res.ok) return {};
     const d = await res.json();
 
-    const result = {};
-    // Kalau satu ticker, Twelve Data return object langsung (bukan array)
-    const entries = tickers.length === 1
-      ? { [tickers[0]+':IDX']: d }
-      : d;
+    // Jika API return error global (e.g. quota habis)
+    if(d.status === 'error' || d.code) {
+      console.warn('[Ticker] Twelve Data error:', d.message || d);
+      return {};
+    }
 
-    for(const [sym, q] of Object.entries(entries)){
-      if(q.status === 'error' || !q.close) continue;
-      const ticker = sym.split(':')[0];
-      const price  = parseFloat(q.close);
-      const prev   = parseFloat(q.previous_close);
-      const change = +(price - prev).toFixed(0);
-      const pct    = +((price - prev) / prev * 100).toFixed(2);
-      result[ticker] = { price, change, pct };
+    const result = {};
+
+    // Kalau satu ticker, Twelve Data return object langsung (bukan wrapped per-symbol)
+    if(tickers.length === 1){
+      const q = d;
+      if(q.status !== 'error' && q.close){
+        const price  = parseFloat(q.close);
+        const prev   = parseFloat(q.previous_close);
+        if(!isNaN(price) && !isNaN(prev)){
+          result[tickers[0]] = {
+            price,
+            change: +(price - prev).toFixed(0),
+            pct:    +((price - prev) / prev * 100).toFixed(2)
+          };
+        }
+      }
+    } else {
+      // Multi-ticker: response adalah object dengan key = "BBCA:IDX" dll
+      for(const [sym, q] of Object.entries(d)){
+        if(!q || q.status === 'error' || !q.close) continue;
+        const ticker = sym.split(':')[0];
+        const price  = parseFloat(q.close);
+        const prev   = parseFloat(q.previous_close);
+        if(isNaN(price) || isNaN(prev)) continue;
+        result[ticker] = {
+          price,
+          change: +(price - prev).toFixed(0),
+          pct:    +((price - prev) / prev * 100).toFixed(2)
+        };
+      }
     }
     return result;
-  } catch(e){ return {}; }
+  } catch(e){
+    console.error('[Ticker] fetch error:', e);
+    return {};
+  }
 }
 
 function buildTickerHTML(tickers, data){
@@ -2035,25 +2060,34 @@ async function refreshTicker(){
   const loading = document.getElementById('ticker-loading');
 
   if(!tickers.length){
-    loading.innerHTML = '<span style="color:var(--text3);font-size:11px;padding:0 16px">Belum ada emiten — tambah emiten untuk melihat harga live</span>';
+    loading.innerHTML = '<span style="padding:0 16px">Belum ada emiten — tambah emiten untuk melihat harga live</span>';
     loading.style.display = '';
     track.style.display = 'none';
     return;
   }
 
+  // Tunjukkan loading hanya kalau cache masih kosong
+  const hasCache = tickers.some(t => tickerData[t]);
+  if(!hasCache){
+    loading.style.display = '';
+    track.style.display   = 'none';
+  }
+
   const fresh = await fetchAllPrices(tickers);
-  // Merge ke cache (biar ticker yang gagal fetch tetap tampil data lama)
   Object.assign(tickerData, fresh);
 
   const html = buildTickerHTML(tickers, tickerData);
-  if(html){
+  const anyData = tickers.some(t => tickerData[t]?.price != null);
+
+  if(anyData){
     track.innerHTML = html;
     const dur = Math.max(20, 25 + tickers.length * 6);
     track.style.animationDuration = dur + 's';
     loading.style.display = 'none';
     track.style.display   = '';
   } else {
-    loading.innerHTML = '<span style="color:var(--text3);font-size:11px;padding:0 16px">Gagal memuat harga — cek koneksi internet</span>';
+    // Semua gagal — tunjukkan pesan error spesifik
+    loading.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="margin-right:5px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Harga live tidak tersedia — cek quota API atau koneksi internet</span>`;
     loading.style.display = '';
     track.style.display   = 'none';
   }
@@ -2070,10 +2104,10 @@ tickerTimer = setInterval(refreshTicker, 60000); // refresh tiap 60 detik
 
 <!-- MOS Tooltip Popup -->
 <div class="mos-tooltip" id="mos-tooltip">
-  <strong>📐 Margin of Safety (MOS)</strong>
+  <strong>📐 Margin of Safety (MoS)</strong>
   <div style="margin-top:6px">Selisih antara <em>Fair Value rata-rata</em> dan <em>harga beli</em>, dinyatakan dalam persen:</div>
   <div style="margin:7px 0;padding:6px 8px;background:var(--bg2);border-radius:5px;font-size:10.5px;text-align:center;font-family:Georgia,serif">
-    MOS = (FV Avg − Harga Awal) / Harga Awal × 100%
+    MoS = (FV Avg − Harga Awal) / Harga Awal × 100%
   </div>
   <div style="color:var(--green-t)">✔ <strong>Positif</strong> → kamu beli di bawah FV (ada "bantal" keamanan)</div>
   <div style="margin-top:4px;color:var(--red-t)">✘ <strong>Negatif</strong> → kamu beli di atas FV (premium, risiko lebih tinggi)</div>

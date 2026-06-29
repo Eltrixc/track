@@ -2743,7 +2743,7 @@ setTimeout(startTickerLoop,800);
     </div>
     <div id="ollama-header-title">
       <strong>Oracle AI</strong>
-      <span id="ollama-model-label">agentrouter · sonnet-4-5</span>
+      <span id="ollama-model-label">agentrouter · claude-3.5-sonnet</span>
     </div>
     <div id="ollama-header-actions">
       <button class="ollama-icon-btn" title="Hapus riwayat" onclick="ollamaClearHistory()">
@@ -2769,11 +2769,12 @@ setTimeout(startTickerLoop,800);
     <div class="ollama-field">
       <label>Model</label>
       <select id="ollama-model-input" style="font-family:sans-serif;font-size:12px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);outline:none;cursor:pointer;transition:border-color .15s">
-        <option value="glm-5.2">glm 5.2</option>
-        <option value="gpt-5.5">gpt 5.5</option>
-        <option value="claude-opus-4-6">claude-opus-4-6</option>
-        <option value="claude-opus-4-7">claude-opus-4-7</option>
-        <option value="claude-opus-4-8">claude-opus-4-8</option>
+        <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (cerdas, recommended)</option>
+        <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku (cepat, hemat)</option>
+        <option value="gpt-4o">GPT-4o (OpenAI, powerful)</option>
+        <option value="gpt-4o-mini">GPT-4o Mini (OpenAI, cepat)</option>
+        <option value="deepseek-chat">DeepSeek Chat (reasoning)</option>
+        <option value="glm-4-plus">GLM-4-Plus (gratis, Zhipu AI)</option>
       </select>
     </div>
     <button id="ollama-settings-save" onclick="ollamaSaveSettings()">Simpan</button>
@@ -2819,11 +2820,18 @@ setTimeout(startTickerLoop,800);
   let ollamaSettingsOpen = false;
 
   function getKey()   { return localStorage.getItem(LS_KEY)   || ''; }
-  function getModel() { return localStorage.getItem(LS_MODEL) || 'glm-5.2'; }
+  function getModel() { return localStorage.getItem(LS_MODEL) || 'claude-3-5-sonnet-20241022'; }
 
   function updateModelLabel() {
     const model = getModel();
-    const shortModel = model.replace('glm-5.2','').replace('gpt-5.5','').replace('claude-opus-4-6','').replace('claude-opus-4-7','').replace('claude-opus-4-8','');
+    const shortModel = model
+      .replace('claude-3-5-sonnet-20241022','claude-3.5-sonnet')
+      .replace('claude-3-5-haiku-20241022','claude-3.5-haiku')
+      .replace('claude-sonnet-4-5-20250929','claude-sonnet-4.5')
+      .replace('claude-haiku-4-5-20251001','claude-haiku-4.5')
+      .replace('gpt-4o-mini','gpt-4o-mini')
+      .replace('deepseek-chat','deepseek')
+      .replace('glm-4-plus','glm-4-plus');
     document.getElementById('ollama-model-label').textContent = 'agentrouter · ' + shortModel;
     document.getElementById('ollama-url-input').value   = getKey();
     document.getElementById('ollama-model-input').value = model;
@@ -2970,9 +2978,14 @@ setTimeout(startTickerLoop,800);
       });
 
       if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        const errMsg  = errBody?.error?.message || ('HTTP ' + res.status);
-        if (res.status === 401) throw new Error('API key tidak valid. Cek di Settings ⚙️');
+        let errMsg = 'HTTP ' + res.status;
+        try {
+          const errBody = await res.json();
+          errMsg = errBody?.error?.message || errBody?.message || JSON.stringify(errBody) || errMsg;
+        } catch (_) {}
+        if (res.status === 401) throw new Error('401 Unauthorized — ' + errMsg + ' (cek API key di Settings ⚙️)');
+        if (res.status === 403) throw new Error('403 Forbidden — ' + errMsg);
+        if (res.status === 404) throw new Error('404 Model tidak ditemukan — ' + errMsg);
         throw new Error(errMsg);
       }
 
@@ -3037,7 +3050,7 @@ setTimeout(startTickerLoop,800);
     if(!canvas)return;
     const ctx=canvas.getContext('2d');
     let W,H,petals=[];
-    const MAX_PETALS=50;
+    const MAX_PETALS=20;
     const COLORS=['rgba(255,183,197,',  'rgba(255,161,182,', 'rgba(255,200,210,', 'rgba(250,170,188,'];
 
     function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}

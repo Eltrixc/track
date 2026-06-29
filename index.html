@@ -1966,5 +1966,642 @@ renderCards();
 updateStats();
 setTimeout(startTickerLoop,800);
 </script>
+
+<!-- ============================================================
+     GROQ AI CHATBOT WIDGET (Llama via Groq Cloud)
+     ============================================================ -->
+<style>
+  /* --- FAB Button --- */
+  #ollama-fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.1);
+    z-index: 9990;
+    transition: transform .2s, box-shadow .2s, background .15s;
+    flex-shrink: 0;
+  }
+  #ollama-fab:hover { transform: scale(1.07); box-shadow: 0 6px 22px rgba(0,0,0,.22); }
+  #ollama-fab:active { transform: scale(.96); }
+  #ollama-fab svg { width: 26px; height: 26px; }
+
+  /* --- Chat Panel --- */
+  #ollama-panel {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    width: 360px;
+    height: 520px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.08);
+    z-index: 9989;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: sans-serif;
+    animation: ollamaPopIn .2s cubic-bezier(.34,1.3,.64,1);
+  }
+  #ollama-panel.open { display: flex; }
+  @keyframes ollamaPopIn {
+    from { opacity: 0; transform: scale(.93) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  /* --- Panel Header --- */
+  #ollama-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  #ollama-header-icon {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  #ollama-header-icon svg { width: 17px; height: 17px; }
+  #ollama-header-title {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  #ollama-header-title strong {
+    font-family: Georgia, serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  #ollama-model-label {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: .3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #ollama-header-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .ollama-icon-btn {
+    width: 28px; height: 28px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg2);
+    color: var(--text3);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, color .15s;
+  }
+  .ollama-icon-btn:hover { background: var(--border); color: var(--text); }
+  .ollama-icon-btn svg { width: 13px; height: 13px; }
+
+  /* --- Settings Panel --- */
+  #ollama-settings {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    flex-shrink: 0;
+  }
+  #ollama-settings.open { display: flex; }
+  .ollama-settings-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--text3);
+    margin-bottom: 2px;
+  }
+  .ollama-field { display: flex; flex-direction: column; gap: 4px; }
+  .ollama-field label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  .ollama-field input {
+    font-family: sans-serif;
+    font-size: 12px;
+    padding: 6px 9px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .ollama-field input:focus { border-color: var(--accent); }
+  #ollama-settings-save {
+    font-family: sans-serif;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 7px;
+    border: 1px solid var(--accent);
+    background: var(--accent-bg);
+    color: var(--accent-t);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background .15s, color .15s;
+    align-self: flex-end;
+  }
+  #ollama-settings-save:hover { background: var(--accent); color: #fff; }
+
+  /* --- Messages Area --- */
+  #ollama-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scroll-behavior: smooth;
+  }
+  #ollama-messages::-webkit-scrollbar { width: 4px; }
+  #ollama-messages::-webkit-scrollbar-track { background: transparent; }
+  #ollama-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .ollama-msg {
+    display: flex;
+    gap: 7px;
+    align-items: flex-end;
+    animation: ollamaMsgIn .18s ease;
+  }
+  @keyframes ollamaMsgIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .ollama-msg.user { flex-direction: row-reverse; }
+  .ollama-bubble {
+    max-width: 78%;
+    padding: 8px 11px;
+    border-radius: 12px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--text);
+    word-break: break-word;
+  }
+  .ollama-msg.user .ollama-bubble {
+    background: var(--accent);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .ollama-msg.bot .ollama-bubble {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+  .ollama-avatar {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+  .ollama-msg.bot .ollama-avatar {
+    background: var(--accent-bg);
+    border: 1px solid var(--accent);
+  }
+  .ollama-msg.bot .ollama-avatar svg { width: 13px; height: 13px; }
+  .ollama-msg.user .ollama-avatar { background: var(--bg2); border: 1px solid var(--border); }
+
+  /* Typing indicator */
+  .ollama-typing {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 11px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    border-bottom-left-radius: 4px;
+    width: fit-content;
+  }
+  .ollama-typing span {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: ollamaTyping 1.2s infinite ease-in-out;
+  }
+  .ollama-typing span:nth-child(2) { animation-delay: .2s; }
+  .ollama-typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes ollamaTyping {
+    0%,80%,100% { transform: scale(.6); opacity: .4; }
+    40%          { transform: scale(1); opacity: 1; }
+  }
+
+  /* Empty state */
+  #ollama-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 100%;
+    color: var(--text3);
+    font-size: 12px;
+    text-align: center;
+    padding: 0 24px;
+    pointer-events: none;
+  }
+  #ollama-empty svg { width: 32px; height: 32px; opacity: .4; }
+  #ollama-empty p { color: var(--text3); margin: 0; line-height: 1.5; }
+
+  /* Error bubble */
+  .ollama-error {
+    background: var(--red-bg) !important;
+    border-color: var(--red) !important;
+    color: var(--red-t) !important;
+  }
+
+  /* --- Input Area --- */
+  #ollama-input-area {
+    display: flex;
+    align-items: flex-end;
+    gap: 7px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  #ollama-input {
+    flex: 1;
+    font-family: sans-serif;
+    font-size: 13px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--bg2);
+    color: var(--text);
+    resize: none;
+    outline: none;
+    line-height: 1.45;
+    max-height: 100px;
+    overflow-y: auto;
+    transition: border-color .15s;
+  }
+  #ollama-input:focus { border-color: var(--accent); }
+  #ollama-input::placeholder { color: var(--text3); }
+  #ollama-send {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: opacity .15s, transform .15s;
+  }
+  #ollama-send:hover { opacity: .88; }
+  #ollama-send:active { transform: scale(.93); }
+  #ollama-send:disabled { opacity: .4; cursor: not-allowed; }
+  #ollama-send svg { width: 16px; height: 16px; }
+
+  /* --- Disclaimer --- */
+  #ollama-disclaimer {
+    padding: 5px 12px 7px;
+    font-size: 10px;
+    color: var(--text3);
+    text-align: center;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  @media(max-width: 400px) {
+    #ollama-panel { width: calc(100vw - 20px); right: 10px; bottom: 80px; }
+    #ollama-fab   { bottom: 16px; right: 16px; }
+  }
+</style>
+
+<!-- FAB Button -->
+<button id="ollama-fab" title="Chat dengan AI (Groq · Llama)" onclick="ollamaToggle()">
+  <!-- Llama SVG icon -->
+  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Body -->
+    <ellipse cx="32" cy="42" rx="14" ry="16" fill="#fff" opacity=".95"/>
+    <!-- Neck -->
+    <rect x="26" y="22" width="12" height="18" rx="6" fill="#fff" opacity=".95"/>
+    <!-- Head -->
+    <ellipse cx="32" cy="18" rx="9" ry="10" fill="#fff" opacity=".95"/>
+    <!-- Ears -->
+    <ellipse cx="24" cy="10" rx="3.5" ry="6" transform="rotate(-15 24 10)" fill="#fff" opacity=".9"/>
+    <ellipse cx="40" cy="10" rx="3.5" ry="6" transform="rotate(15 40 10)" fill="#fff" opacity=".9"/>
+    <!-- Eyes -->
+    <circle cx="28.5" cy="17" r="1.8" fill="#d97706"/>
+    <circle cx="35.5" cy="17" r="1.8" fill="#d97706"/>
+    <!-- Nose -->
+    <ellipse cx="32" cy="21.5" rx="2.5" ry="1.5" fill="#d97706" opacity=".6"/>
+    <!-- Legs -->
+    <rect x="20" y="54" width="6" height="8" rx="3" fill="#fff" opacity=".85"/>
+    <rect x="28" y="56" width="6" height="6" rx="3" fill="#fff" opacity=".85"/>
+    <rect x="36" y="54" width="6" height="8" rx="3" fill="#fff" opacity=".85"/>
+  </svg>
+</button>
+
+<!-- Chat Panel -->
+<div id="ollama-panel">
+
+  <!-- Header -->
+  <div id="ollama-header">
+    <div id="ollama-header-icon">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="32" cy="42" rx="14" ry="16" fill="var(--accent)"/>
+        <rect x="26" y="22" width="12" height="18" rx="6" fill="var(--accent)"/>
+        <ellipse cx="32" cy="18" rx="9" ry="10" fill="var(--accent)"/>
+        <ellipse cx="24" cy="10" rx="3.5" ry="6" transform="rotate(-15 24 10)" fill="var(--accent)"/>
+        <ellipse cx="40" cy="10" rx="3.5" ry="6" transform="rotate(15 40 10)" fill="var(--accent)"/>
+        <circle cx="28.5" cy="17" r="1.8" fill="var(--surface)"/>
+        <circle cx="35.5" cy="17" r="1.8" fill="var(--surface)"/>
+      </svg>
+    </div>
+    <div id="ollama-header-title">
+      <strong>Llama AI Assistant</strong>
+      <span id="ollama-model-label">groq · llama-3.3-70b</span>
+    </div>
+    <div id="ollama-header-actions">
+      <button class="ollama-icon-btn" title="Hapus riwayat" onclick="ollamaClearHistory()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6m4-6v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+      <button class="ollama-icon-btn" title="Pengaturan" onclick="ollamaToggleSettings()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button class="ollama-icon-btn" title="Tutup" onclick="ollamaToggle()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div id="ollama-settings">
+    <div class="ollama-settings-title">⚙ Pengaturan Groq</div>
+    <div class="ollama-field">
+      <label>Groq API Key</label>
+      <input type="password" id="ollama-url-input" placeholder="gsk_••••••••••••••••••••••" />
+      <span style="font-size:10px;color:var(--text3);margin-top:2px">Daftar gratis di <a href="https://console.groq.com" target="_blank" style="color:var(--accent)">console.groq.com</a></span>
+    </div>
+    <div class="ollama-field">
+      <label>Model</label>
+      <select id="ollama-model-input" style="font-family:sans-serif;font-size:12px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);outline:none;cursor:pointer;transition:border-color .15s">
+        <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (terbaik)</option>
+        <option value="llama3-8b-8192">llama3-8b-8192 (lebih cepat)</option>
+        <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (paling cepat)</option>
+        <option value="mixtral-8x7b-32768">mixtral-8x7b-32768</option>
+        <option value="gemma2-9b-it">gemma2-9b-it</option>
+      </select>
+    </div>
+    <button id="ollama-settings-save" onclick="ollamaSaveSettings()">Simpan</button>
+  </div>
+
+  <!-- Messages -->
+  <div id="ollama-messages">
+    <div id="ollama-empty">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="32" cy="42" rx="14" ry="16" fill="currentColor"/>
+        <rect x="26" y="22" width="12" height="18" rx="6" fill="currentColor"/>
+        <ellipse cx="32" cy="18" rx="9" ry="10" fill="currentColor"/>
+        <ellipse cx="24" cy="10" rx="3.5" ry="6" transform="rotate(-15 24 10)" fill="currentColor"/>
+        <ellipse cx="40" cy="10" rx="3.5" ry="6" transform="rotate(15 40 10)" fill="currentColor"/>
+      </svg>
+      <p><strong style="color:var(--text2)">Tanya Llama AI</strong><br>Tanyakan apa saja tentang saham,<br>analisis emiten, atau investasi.</p>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div id="ollama-input-area">
+    <textarea id="ollama-input" rows="1" placeholder="Tanya sesuatu…" onkeydown="ollamaHandleKey(event)" oninput="ollamaAutoResize(this)"></textarea>
+    <button id="ollama-send" onclick="ollamaSend()" title="Kirim">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+
+  <!-- Disclaimer -->
+  <div id="ollama-disclaimer">Powered by Groq Cloud · Llama · bukan saran keuangan</div>
+</div>
+
+<script>
+(function(){
+  // ── State ──
+  const LS_KEY   = 'groq_api_key_v1';
+  const LS_MODEL = 'groq_model_v1';
+  const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
+  let ollamaHistory   = [];
+  let ollamaStreaming  = false;
+  let ollamaPanelOpen = false;
+  let ollamaSettingsOpen = false;
+
+  function getKey()   { return localStorage.getItem(LS_KEY)   || ''; }
+  function getModel() { return localStorage.getItem(LS_MODEL) || 'llama-3.3-70b-versatile'; }
+
+  function updateModelLabel() {
+    const model = getModel();
+    const shortModel = model.replace('llama-','').replace('-versatile','').replace('-instant','');
+    document.getElementById('ollama-model-label').textContent = 'groq · ' + shortModel;
+    document.getElementById('ollama-url-input').value   = getKey();
+    document.getElementById('ollama-model-input').value = model;
+    // If no API key set, auto-open settings
+    if (!getKey() && ollamaPanelOpen) {
+      ollamaSettingsOpen = true;
+      document.getElementById('ollama-settings').classList.add('open');
+    }
+  }
+  updateModelLabel();
+
+  // ── Toggle panel ──
+  window.ollamaToggle = function() {
+    ollamaPanelOpen = !ollamaPanelOpen;
+    const panel = document.getElementById('ollama-panel');
+    if (ollamaPanelOpen) {
+      panel.classList.add('open');
+      updateModelLabel();
+      setTimeout(() => {
+        if (!getKey()) {
+          document.getElementById('ollama-url-input').focus();
+        } else {
+          document.getElementById('ollama-input').focus();
+        }
+      }, 120);
+    } else {
+      panel.classList.remove('open');
+    }
+  };
+
+  // ── Toggle settings ──
+  window.ollamaToggleSettings = function() {
+    ollamaSettingsOpen = !ollamaSettingsOpen;
+    document.getElementById('ollama-settings').classList.toggle('open', ollamaSettingsOpen);
+    if (ollamaSettingsOpen) {
+      document.getElementById('ollama-url-input').value   = getKey();
+      document.getElementById('ollama-model-input').value = getModel();
+    }
+  };
+
+  // ── Save settings ──
+  window.ollamaSaveSettings = function() {
+    const key   = document.getElementById('ollama-url-input').value.trim();
+    const model = document.getElementById('ollama-model-input').value.trim();
+    if (key)   localStorage.setItem(LS_KEY,   key);
+    if (model) localStorage.setItem(LS_MODEL, model);
+    updateModelLabel();
+    ollamaSettingsOpen = false;
+    document.getElementById('ollama-settings').classList.remove('open');
+    document.getElementById('ollama-input').focus();
+  };
+
+  // ── Clear history ──
+  window.ollamaClearHistory = function() {
+    ollamaHistory = [];
+    const msgs = document.getElementById('ollama-messages');
+    msgs.innerHTML = '';
+    const empty = document.createElement('div');
+    empty.id = 'ollama-empty';
+    empty.innerHTML = '<p><strong style="color:var(--text2)">Riwayat dihapus</strong><br>Mulai percakapan baru.</p>';
+    msgs.appendChild(empty);
+  };
+
+  // ── Auto-resize textarea ──
+  window.ollamaAutoResize = function(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+  };
+
+  // ── Handle Enter key ──
+  window.ollamaHandleKey = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ollamaSend(); }
+  };
+
+  // ── Render a message bubble ──
+  function appendBubble(role, text, streaming) {
+    const empty = document.getElementById('ollama-empty');
+    if (empty) empty.style.display = 'none';
+
+    const msgs = document.getElementById('ollama-messages');
+    const wrap = document.createElement('div');
+    wrap.className = 'ollama-msg ' + role;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'ollama-avatar';
+    if (role === 'bot') {
+      avatar.innerHTML = `<svg viewBox="0 0 64 64" fill="none"><ellipse cx="32" cy="42" rx="14" ry="16" fill="var(--accent)"/><rect x="26" y="22" width="12" height="18" rx="6" fill="var(--accent)"/><ellipse cx="32" cy="18" rx="9" ry="10" fill="var(--accent)"/><ellipse cx="24" cy="10" rx="3.5" ry="6" transform="rotate(-15 24 10)" fill="var(--accent)"/><ellipse cx="40" cy="10" rx="3.5" ry="6" transform="rotate(15 40 10)" fill="var(--accent)"/></svg>`;
+    } else {
+      avatar.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'ollama-bubble';
+    if (streaming) bubble.innerHTML = '<div class="ollama-typing"><span></span><span></span><span></span></div>';
+    else bubble.textContent = text;
+
+    wrap.appendChild(role === 'bot' ? avatar : bubble);
+    wrap.appendChild(role === 'bot' ? bubble : avatar);
+    msgs.appendChild(wrap);
+    msgs.scrollTop = msgs.scrollHeight;
+    return bubble;
+  }
+
+  // ── Send message ──
+  window.ollamaSend = async function() {
+    if (ollamaStreaming) return;
+    const input = document.getElementById('ollama-input');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    // Check API key
+    if (!getKey()) {
+      ollamaSettingsOpen = true;
+      document.getElementById('ollama-settings').classList.add('open');
+      document.getElementById('ollama-url-input').focus();
+      return;
+    }
+
+    input.value = '';
+    input.style.height = 'auto';
+    document.getElementById('ollama-send').disabled = true;
+
+    appendBubble('user', text);
+    ollamaHistory.push({ role: 'user', content: text });
+
+    const botBubble = appendBubble('bot', '', true);
+    ollamaStreaming  = true;
+
+    try {
+      const res = await fetch(GROQ_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + getKey()
+        },
+        body: JSON.stringify({
+          model:    getModel(),
+          messages: ollamaHistory,
+          stream:   true,
+          max_tokens: 1024
+        })
+      });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        const errMsg  = errBody?.error?.message || ('HTTP ' + res.status);
+        if (res.status === 401) throw new Error('API key tidak valid. Cek di Settings ⚙️');
+        throw new Error(errMsg);
+      }
+
+      const reader  = res.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText  = '';
+      botBubble.innerHTML = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const raw = decoder.decode(value, { stream: true });
+        const lines = raw.split('\n');
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed === 'data: [DONE]') continue;
+          if (!trimmed.startsWith('data: ')) continue;
+          try {
+            const json  = JSON.parse(trimmed.slice(6));
+            const token = json?.choices?.[0]?.delta?.content || '';
+            fullText += token;
+            botBubble.textContent = fullText;
+            document.getElementById('ollama-messages').scrollTop = 99999;
+          } catch (_) {}
+        }
+      }
+
+      ollamaHistory.push({ role: 'assistant', content: fullText });
+
+    } catch (err) {
+      botBubble.textContent = '⚠ ' + err.message;
+      botBubble.classList.add('ollama-error');
+    } finally {
+      ollamaStreaming = false;
+      document.getElementById('ollama-send').disabled = false;
+      document.getElementById('ollama-input').focus();
+    }
+  };
+})();
+</script>
 </body>
 </html>

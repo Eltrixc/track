@@ -1,0 +1,2831 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockTracker by BosGeng</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<!-- Markdown renderer -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<!-- KaTeX for math equations -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+  :root {
+    --bg:#fafaf9;--bg2:#f5f4f1;--surface:#ffffff;--border:#e7e5e0;--border2:#d6d3cc;
+    --text:#1c1917;--text2:#57534e;--text3:#a8a29e;
+    --accent:#d97706;--accent-bg:#fef3c7;--accent-t:#92400e;
+    --green:#16a34a;--green-bg:#f0fdf4;--green-t:#14532d;
+    --red:#dc2626;--red-bg:#fef2f2;--red-t:#7f1d1d;
+    --warn:#b45309;--warn-bg:#fffbeb;--warn-border:#fcd34d;--warn-t:#78350f;
+    --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  }
+  [data-theme="dark"] {
+    --bg:#1c1917;--bg2:#292524;--surface:#2c2826;--border:#3d3835;--border2:#57534e;
+    --text:#fafaf9;--text2:#d6d3cc;--text3:#78716c;
+    --accent:#f59e0b;--accent-bg:#451a03;--accent-t:#fde68a;
+    --green:#22c55e;--green-bg:#052e16;--green-t:#bbf7d0;
+    --red:#ef4444;--red-bg:#450a0a;--red-t:#fecaca;
+    --warn:#fbbf24;--warn-bg:#1c1205;--warn-border:#92400e;--warn-t:#fde68a;
+    --shadow:0 1px 3px rgba(0,0,0,.3);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s}
+
+  .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+  .logo{font-family:Georgia,serif;font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.3px;white-space:nowrap}
+  .logo span{color:var(--accent)}
+  .tab-group{display:flex;gap:4px;background:var(--bg2);border-radius:var(--radius);padding:3px}
+  .tab-btn{font-family:Georgia,serif;font-size:13px;padding:5px 14px;border:none;border-radius:6px;background:transparent;color:var(--text2);cursor:pointer;transition:background .15s,color .15s}
+  .tab-btn.active{background:var(--surface);color:var(--text);font-weight:600;box-shadow:var(--shadow)}
+  .tab-badge{display:inline-block;background:var(--accent-bg);color:var(--accent-t);font-size:10px;font-family:sans-serif;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle}
+  .spacer{flex:1}
+  .search-wrap{position:relative;display:flex;align-items:center}
+  .search-icon{position:absolute;left:10px;color:var(--text3);pointer-events:none}
+  .search-input{font-family:sans-serif;font-size:13px;padding:6px 10px 6px 32px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg2);color:var(--text);width:180px;outline:none;transition:border-color .15s,width .2s}
+  .search-input:focus{border-color:var(--accent);width:220px}
+  .search-input::placeholder{color:var(--text3)}
+  .icon-btn{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:background .15s;flex-shrink:0}
+  .icon-btn:hover{background:var(--border)}
+
+  .main{padding:24px;max-width:1200px;margin:0 auto}
+
+  .stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;text-align:center}
+  .stat-num{font-size:26px;font-weight:700;font-family:Georgia,serif;color:var(--text)}
+  .stat-num.green{color:var(--green)}.stat-num.red{color:var(--red)}.stat-num.accent{color:var(--accent)}
+  .stat-lbl{font-size:11px;font-family:sans-serif;color:var(--text3);margin-top:2px;letter-spacing:.5px;text-transform:uppercase}
+
+  .actions-bar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+  .section-title{font-size:15px;font-weight:600;color:var(--text);font-family:Georgia,serif}
+
+  .btn{font-family:sans-serif;font-size:13px;padding:7px 16px;border-radius:var(--radius);cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text2);transition:background .15s,color .15s,border-color .15s;display:inline-flex;align-items:center;gap:6px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn:hover:not(:disabled){background:var(--bg2)}
+  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+  .btn-primary:hover:not(:disabled){opacity:.9;background:var(--accent)}
+  .btn-hit{background:var(--green-bg);color:var(--green-t);border-color:var(--green);font-weight:600}
+  .btn-hit:hover:not(:disabled){background:var(--green);color:#fff}
+  .btn-miss{background:var(--red-bg);color:var(--red-t);border-color:var(--red);font-weight:600}
+  .btn-miss:hover:not(:disabled){background:var(--red);color:#fff}
+  .btn-edit{background:var(--accent-bg);color:var(--accent-t);border-color:var(--accent)}
+  .btn-edit:hover:not(:disabled){background:var(--accent);color:#fff}
+  .btn-restore{background:var(--bg2);color:var(--text2);border-color:var(--border2)}
+  .btn-restore:hover:not(:disabled){background:var(--accent-bg);color:var(--accent-t);border-color:var(--accent)}
+  .btn-idx-lapkeu{display:flex;align-items:center;gap:7px;width:100%;justify-content:flex-start;font-family:sans-serif;font-size:12px;padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;text-decoration:none;transition:background .15s,border-color .15s,color .15s;margin-top:8px;font-weight:500}
+  .btn-idx-lapkeu:hover{background:var(--accent-bg);border-color:var(--accent);color:var(--accent-t)}
+
+  /* SECTOR FILTER BAR */
+  .filter-bar{display:flex;align-items:center;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+  .filter-chip{font-family:sans-serif;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap}
+  .filter-chip:hover{border-color:var(--accent);color:var(--accent-t)}
+  .filter-chip.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent-t);font-weight:600}
+  .filter-chip.warn-chip.active{background:var(--warn-bg);border-color:var(--warn-border);color:var(--warn-t)}
+
+  .emiten-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+
+  .emiten-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow);transition:border-color .2s,opacity .15s,box-shadow .15s;cursor:pointer}
+  .emiten-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.1),var(--shadow);transform:translateY(-1px)}
+  .emiten-card.overvalue{border-left-color:var(--red)}
+  .emiten-card.undervalue{border-left-color:var(--green)}
+  .emiten-card.holding-warn{border-left-color:var(--warn)!important}
+  .emiten-card.dragging{opacity:.3;box-shadow:none;border-style:dashed}
+  .emiten-card.drag-over{border-color:var(--accent)!important;box-shadow:0 0 0 2px var(--accent),var(--shadow);background:var(--accent-bg)}
+
+  /* HOLDING WARNING BANNER */
+  .holding-warn-banner{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:6px;padding:8px 10px;display:flex;align-items:flex-start;gap:7px;font-family:sans-serif;font-size:11px;color:var(--warn-t);line-height:1.5}
+  .holding-warn-banner svg{flex-shrink:0;margin-top:1px;color:var(--warn)}
+
+  .card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+  .card-header-left{display:flex;flex-direction:column;gap:4px}
+  .ticker{font-family:Georgia,serif;font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.3px}
+  .tebakan-inline{font-family:sans-serif;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;display:inline-flex;align-items:center;gap:4px;width:fit-content}
+  .tebakan-inline.bullish{background:var(--green-bg);color:var(--green-t)}
+  .tebakan-inline.bearish{background:var(--red-bg);color:var(--red-t)}
+  .card-header-right{display:flex;align-items:flex-start;gap:6px}
+  .badge{font-family:sans-serif;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;letter-spacing:.3px;white-space:nowrap}
+  .badge.green{background:var(--green-bg);color:var(--green-t)}
+  .badge.red{background:var(--red-bg);color:var(--red-t)}
+  .badge.pending{background:var(--bg2);color:var(--text3)}
+  .drag-handle{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;color:var(--text3);cursor:grab;transition:color .15s,background .15s;flex-shrink:0;margin-top:1px}
+  .drag-handle:hover{color:var(--text2);background:var(--bg2)}
+  .drag-handle:active{cursor:grabbing}
+
+  /* SECTOR BADGE ON CARD */
+  .sector-badge{font-family:sans-serif;font-size:10px;padding:2px 8px;border-radius:10px;background:var(--bg2);border:1px solid var(--border2);color:var(--text3);font-weight:500;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+
+  .meta-row{display:flex;align-items:center;gap:8px;font-family:sans-serif;font-size:11px;color:var(--text3);flex-wrap:wrap}
+  .meta-dot{width:3px;height:3px;border-radius:50%;background:var(--text3);flex-shrink:0}
+
+  .fv-section{display:flex;flex-direction:column;gap:4px}
+  .price-main{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+  .price-label{font-family:sans-serif;font-size:11px;color:var(--text3);min-width:62px}
+  .price-val{font-family:Georgia,serif;font-size:22px;font-weight:700;color:var(--text)}
+  .fv-row{display:flex;align-items:center;justify-content:space-between;font-family:sans-serif;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)}
+  .fv-row:last-child{border-bottom:none}
+  .fv-label{color:var(--text3)}.fv-vals{display:flex;align-items:center;gap:8px}
+  .fv-num{font-weight:600;color:var(--text)}
+  .disc-pill{font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600}
+  .disc-pill.pos{background:var(--green-bg);color:var(--green-t)}
+  .disc-pill.neg{background:var(--red-bg);color:var(--red-t)}
+
+  .progress-wrap{display:flex;flex-direction:column;gap:4px}
+  .progress-label{font-family:sans-serif;font-size:10px;color:var(--text3);display:flex;justify-content:space-between}
+  .progress-bar{height:4px;background:var(--bg2);border-radius:2px;overflow:hidden}
+  .progress-fill{height:100%;border-radius:2px;transition:width .4s}
+
+  .notes-box{font-family:sans-serif;font-size:12px;color:var(--text2);background:var(--bg2);border-radius:6px;padding:8px 10px;line-height:1.5;min-height:32px;word-break:break-word}
+  .notes-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+  .notes-col{border-radius:5px;padding:7px 9px}
+  .notes-col.pos{background:var(--green-bg)}
+  .notes-col.neg{background:var(--red-bg)}
+  .notes-col-label{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+  .notes-col.pos .notes-col-label{color:var(--green-t)}
+  .notes-col.neg .notes-col-label{color:var(--red-t)}
+  .notes-item{padding:2px 0;font-size:11px;line-height:1.45;display:flex;gap:5px}
+  .notes-item::before{content:'\2022';flex-shrink:0;margin-top:1px}
+  .notes-col.pos .notes-item{color:var(--green-t)}
+  .notes-col.neg .notes-item{color:var(--red-t)}
+  .notes-general{font-size:12px;color:var(--text2);line-height:1.5;white-space:pre-wrap}
+
+  .history-toggle{font-family:sans-serif;font-size:11px;color:var(--text3);cursor:pointer;display:flex;align-items:center;gap:4px;user-select:none}
+  .history-toggle:hover{color:var(--accent)}
+  .history-list{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+  .history-entry{background:var(--bg2);border-radius:6px;padding:8px 10px;font-family:sans-serif;font-size:11px;color:var(--text2);border-left:2px solid var(--border2)}
+  .he-top{display:flex;justify-content:space-between;margin-bottom:4px}
+  .he-quarter{font-weight:600;color:var(--text)}.he-price{color:var(--text3)}
+  .he-fvs{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+  .he-fv-chip{background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:4px;font-size:10px;color:var(--text2)}
+
+  .card-footer{display:flex;gap:5px;border-top:1px solid var(--border);padding-top:10px;margin-top:2px;flex-wrap:nowrap;align-items:center}
+  .card-footer .btn{flex:1;justify-content:center;font-size:11px;padding:6px 4px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card-footer .btn-icon{flex:0 0 auto;padding:6px 8px}
+  .card-popup-hint{font-family:sans-serif;font-size:10px;color:var(--text3);text-align:center;margin-top:2px}
+
+  .add-card{background:var(--surface);border:1.5px dashed var(--border2);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:200px;cursor:pointer;color:var(--text3);font-family:sans-serif;font-size:13px;transition:border-color .15s,color .15s}
+  .add-card:hover{border-color:var(--accent);color:var(--accent)}
+  .add-card svg{width:28px;height:28px;stroke:currentColor;fill:none}
+
+  .empty-state{text-align:center;padding:60px 24px;color:var(--text3);font-family:sans-serif}
+  .empty-state p{font-size:15px;margin-bottom:16px;color:var(--text2)}
+
+  .inv-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  .inv-toolbar .section-title{flex:1}
+  .inv-table-wrap{overflow-x:auto}
+  .inv-table{width:100%;border-collapse:collapse;font-family:sans-serif;font-size:13px}
+  .inv-table th{text-align:left;padding:10px 12px;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg2);white-space:nowrap}
+  .inv-table td{white-space:nowrap}
+  .inv-table .col-tebakan,.inv-table .col-hasil{white-space:nowrap;width:1px}
+  .inv-table td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+  .inv-table tr:last-child td{border-bottom:none}
+  .inv-table tr:hover td{background:var(--bg2)}
+  .inv-ticker{font-family:Georgia,serif;font-size:15px;font-weight:700}
+  .inv-quarter{font-size:11px;color:var(--text3);margin-top:2px}
+  .inv-badge{font-size:11px;padding:2px 9px;border-radius:20px;font-weight:600}
+  .inv-badge.hit{background:var(--green-bg);color:var(--green-t)}
+  .inv-badge.miss{background:var(--red-bg);color:var(--red-t)}
+  .inv-badge.bullish{background:var(--green-bg);color:var(--green-t)}
+  .inv-badge.bearish{background:var(--red-bg);color:var(--red-t)}
+  .inv-price-main{font-size:13px;font-weight:600;color:var(--text)}
+  .inv-date-sub{font-size:10px;color:var(--text3);margin-top:2px}
+  .inv-miss-chip{font-family:sans-serif;font-size:10px;padding:2px 7px;border-radius:6px;background:var(--red-bg);color:var(--red-t);border:1px solid var(--red);white-space:nowrap}
+  .inv-duration{font-family:sans-serif;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap}
+  .inv-empty{text-align:center;padding:40px;color:var(--text3);font-family:sans-serif;font-size:13px}
+
+  .sort-select{font-family:sans-serif;font-size:12px;padding:5px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg2);color:var(--text);outline:none;cursor:pointer;transition:border-color .15s}
+  .sort-select:focus{border-color:var(--accent)}
+
+  /* ── STATS TAB ── */
+  .stats-tab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px}
+  .stats-section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px}
+  .stats-section-title{font-family:Georgia,serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .stats-section-title svg{color:var(--accent)}
+  .stats-kv{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-family:sans-serif;font-size:12px}
+  .stats-kv:last-child{border-bottom:none}
+  .stats-k{color:var(--text3)}.stats-v{font-weight:700;color:var(--text)}
+  .stats-v.green{color:var(--green-t)}.stats-v.red{color:var(--red-t)}.stats-v.accent{color:var(--accent)}
+  .stats-bar-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-family:sans-serif;font-size:12px}
+  .stats-bar-label{min-width:90px;color:var(--text2);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stats-bar-track{flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden}
+  .stats-bar-fill{height:100%;border-radius:3px}
+  .stats-bar-val{min-width:32px;text-align:right;color:var(--text3);font-size:11px}
+  .stats-big{font-family:Georgia,serif;font-size:28px;font-weight:700;margin-bottom:2px}
+  .stats-sub{font-family:sans-serif;font-size:11px;color:var(--text3)}
+  .stats-empty{text-align:center;padding:32px 0;font-family:sans-serif;font-size:12px;color:var(--text3)}
+  .fv-acc-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-family:sans-serif;font-size:12px}
+  .fv-acc-row:last-child{border-bottom:none}
+  .fv-acc-label{min-width:60px;color:var(--text3)}
+  .fv-acc-bar{flex:1;height:8px;background:var(--bg2);border-radius:4px;overflow:hidden;position:relative}
+  .fv-acc-fill{height:100%;border-radius:4px;transition:width .4s}
+  .fv-acc-val{min-width:60px;text-align:right;font-weight:600;color:var(--text)}
+  .return-best{color:var(--green-t)}.return-worst{color:var(--red-t)}
+
+  .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:16px}
+  .modal-backdrop.open{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;width:90%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+  .modal.modal-sm{max-width:420px}
+  .modal h2{font-family:Georgia,serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
+  .modal-sub{font-family:sans-serif;font-size:13px;color:var(--text3);margin-bottom:20px}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .form-grid.full{grid-template-columns:1fr}
+  .form-field{display:flex;flex-direction:column;gap:5px}
+  .form-field label{font-family:sans-serif;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px}
+  .form-field input,.form-field textarea,.form-field select{font-family:sans-serif;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);outline:none;transition:border-color .15s}
+  .form-field input:focus,.form-field textarea:focus,.form-field select:focus{border-color:var(--accent)}
+  .form-field textarea{resize:vertical;min-height:70px;line-height:1.5}
+  .form-divider{font-family:sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);border-top:1px solid var(--border);padding-top:14px;margin-top:4px}
+  .computed-row{background:var(--bg2);border-radius:var(--radius);padding:10px 12px;display:flex;justify-content:space-between;align-items:center;font-family:sans-serif;font-size:13px}
+  .computed-lbl{color:var(--text2)}.computed-val{font-weight:700;font-family:Georgia,serif;font-size:16px}
+  .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+
+  .hit-confirm-box{background:var(--green-bg);border:1px solid var(--green);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;font-family:sans-serif;font-size:13px;color:var(--green-t)}
+
+  .miss-options{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .miss-option{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color .15s,background .15s}
+  .miss-option:hover{border-color:var(--red);background:var(--red-bg)}
+  .miss-option input[type="radio"]{margin-top:2px;accent-color:var(--red);flex-shrink:0;width:15px;height:15px;cursor:pointer}
+  .miss-option-text{display:flex;flex-direction:column;gap:2px}
+  .miss-option-label{font-family:sans-serif;font-size:13px;font-weight:600;color:var(--text)}
+  .miss-option-desc{font-family:sans-serif;font-size:11px;color:var(--text3);line-height:1.4}
+  .miss-option:has(input:checked){border-color:var(--red);background:var(--red-bg)}
+
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:var(--bg);font-family:sans-serif;font-size:13px;padding:10px 16px;border-radius:var(--radius);z-index:999;opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none;max-width:320px}
+  .toast.show{opacity:1;transform:translateY(0)}
+
+  .card-popup-backdrop{display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.25);backdrop-filter:blur(3px)}
+  .card-popup-backdrop.open{display:flex}
+  .card-popup{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:0 12px 12px 0;padding:20px;width:100%;max-width:480px;max-height:82vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.22);display:flex;flex-direction:column;gap:12px;position:relative;animation:popupIn .18s cubic-bezier(.34,1.3,.64,1)}
+  .card-popup.overvalue{border-left-color:var(--red)}
+  .card-popup.undervalue{border-left-color:var(--green)}
+  .card-popup.holding-warn-popup{border-left-color:var(--warn)}
+  .card-popup-close{position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s}
+  .card-popup-close:hover{background:var(--border);color:var(--text)}
+
+  .expand-section-label{font-family:sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:4px}
+  .expand-kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;font-family:sans-serif;font-size:12px}
+  .expand-kv{display:flex;flex-direction:column;gap:1px}
+  .expand-k{font-size:10px;color:var(--text3)}
+  .expand-v{font-weight:600;color:var(--text)}
+
+  @keyframes popupIn{from{opacity:0;transform:scale(.95) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+  .inv-table tbody tr.inv-row{cursor:pointer;transition:background .12s}
+  .inv-table tbody tr.inv-row:hover td{background:var(--accent-bg)}
+  .inv-table tbody tr.inv-expand-row td{padding:0;background:var(--bg2)}
+  .inv-expand-inner{padding:14px 16px;display:flex;flex-wrap:wrap;gap:10px 24px;font-family:sans-serif;font-size:12px;animation:expandIn .18s ease}
+  .inv-expand-inner .expand-kv{border-left:2px solid var(--border2);padding-left:10px;min-width:140px}
+  .inv-row.inv-row-open td{background:var(--accent-bg)!important}
+
+  @keyframes expandIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .spin-icon{animation:spin .7s linear infinite;display:inline-block}
+
+  .notes-section-wrap{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+  .notes-section-label{font-family:sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:flex;align-items:center;gap:4px}
+  .notes-section-label.pos{color:var(--green-t)}.notes-section-label.neg{color:var(--red-t)}
+  .notes-rows-list{display:flex;flex-direction:column;gap:4px;margin-bottom:5px}
+  .notes-input-row{display:flex;align-items:center;gap:5px}
+  .notes-input-item{font-family:sans-serif;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;flex:1;transition:border-color .15s}
+  .notes-input-item:focus{border-color:var(--accent)}
+  .notes-remove-btn{width:22px;height:22px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0;padding:0}
+  .notes-remove-btn:hover{background:var(--red-bg);color:var(--red-t)}
+  .notes-add-row-btn{font-size:11px!important;padding:4px 10px!important;color:var(--text3)!important;border-style:dashed!important}
+  .notes-add-row-btn:hover{color:var(--accent)!important;border-color:var(--accent)!important;background:var(--accent-bg)!important}
+
+  .logo-wrap{position:relative;display:inline-block;cursor:default}
+  .logo-wrap .logo-tooltip{display:none;position:absolute;top:calc(100% + 8px);left:0;background:var(--text);color:var(--bg);font-family:sans-serif;font-size:11px;font-weight:400;padding:5px 10px;border-radius:6px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.18);z-index:999;opacity:0;transform:translateY(-4px);transition:opacity .18s,transform .18s;pointer-events:none;letter-spacing:0}
+  .logo-wrap .logo-tooltip::before{content:'';position:absolute;bottom:100%;left:14px;border:5px solid transparent;border-bottom-color:var(--text)}
+  .logo-wrap:hover .logo-tooltip{display:block;opacity:1;transform:translateY(0)}
+
+  .cyclical-warning{background:var(--accent-bg);border-top:1px solid var(--accent);padding:7px 24px;display:flex;align-items:center;gap:10px;font-family:sans-serif;font-size:12px;color:var(--accent-t);position:fixed;bottom:0;left:0;right:0;z-index:95}
+  .cyclical-warning svg{flex-shrink:0;color:var(--accent)}
+  .cyclical-warning span{flex:1;line-height:1.4}
+  .cyclical-dismiss{background:none;border:none;cursor:pointer;color:var(--accent-t);opacity:.6;font-size:16px;padding:0 2px;line-height:1;flex-shrink:0;transition:opacity .15s}
+  .cyclical-dismiss:hover{opacity:1}
+
+  .mos-info-btn{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);color:var(--text3);font-size:9px;font-weight:700;cursor:pointer;flex-shrink:0;transition:background .15s,color .15s,border-color .15s;font-family:sans-serif;vertical-align:middle;margin-left:4px;position:relative}
+  .mos-info-btn:hover{background:var(--accent-bg);color:var(--accent-t);border-color:var(--accent)}
+  .mos-tooltip{display:none;position:fixed;z-index:9999;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;width:230px;font-family:sans-serif;font-size:11px;color:var(--text2);line-height:1.55;box-shadow:0 6px 20px rgba(0,0,0,.15)}
+  .mos-tooltip.visible{display:block}
+  .mos-tooltip strong{color:var(--text);font-size:11.5px}
+
+  #share-modal{z-index:500}
+  .split-layout{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
+  .split-left{min-width:0}
+  .split-right{position:sticky;top:112px;max-height:calc(100vh - 132px);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+
+  .ticker-bar{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:56px;z-index:99;height:36px;display:flex;align-items:center;overflow:hidden;gap:0}
+  .ticker-live-badge{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:0 12px;border-right:1px solid var(--border);height:100%;background:var(--surface)}
+  .ticker-live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 var(--green);animation:tickerPulse 1.5s infinite}
+  @keyframes tickerPulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.5)}70%{box-shadow:0 0 0 5px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
+  .ticker-live-label{font-family:sans-serif;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--green-t)}
+  .ticker-scroll-outer{flex:1;overflow:hidden;position:relative;height:100%;display:flex;align-items:center}
+  .ticker-scroll-outer::before,.ticker-scroll-outer::after{content:'';position:absolute;top:0;bottom:0;width:24px;z-index:2;pointer-events:none}
+  .ticker-scroll-outer::before{left:0;background:linear-gradient(to right,var(--surface),transparent)}
+  .ticker-scroll-outer::after{right:0;background:linear-gradient(to left,var(--surface),transparent)}
+  .ticker-track{display:inline-flex;align-items:center;white-space:nowrap;gap:0;animation:tickerScroll 40s linear infinite;will-change:transform}
+  .ticker-track:hover{animation-play-state:paused}
+  @keyframes tickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .ticker-item{display:inline-flex;align-items:center;gap:5px;padding:0 16px;font-family:sans-serif;font-size:12px;border-right:1px solid var(--border);height:36px;cursor:pointer}
+  .ticker-item:hover{background:var(--accent-bg)}
+  .emiten-card.card-highlight{box-shadow:0 0 0 2.5px var(--accent),0 6px 24px rgba(0,0,0,.13)!important;transform:translateY(-2px);border-left-color:var(--accent)!important;transition:box-shadow .2s,transform .2s}
+  .ticker-sym{font-weight:700;color:var(--text);font-size:11px;letter-spacing:.2px}
+  .ticker-price{color:var(--text2);font-size:11.5px}
+  .ticker-chg{font-size:10px;font-weight:600;padding:1px 5px;border-radius:4px}
+  .ticker-chg.up{background:var(--green-bg);color:var(--green-t)}
+  .ticker-chg.dn{background:var(--red-bg);color:var(--red-t)}
+  .ticker-chg.flat{background:var(--bg2);color:var(--text3)}
+  .ticker-loading{font-family:sans-serif;font-size:11px;color:var(--text3);padding:0 16px;display:flex;align-items:center;gap:6px}
+  .ticker-refresh-btn{flex-shrink:0;width:28px;height:28px;border:none;background:none;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px;margin-right:4px;transition:color .15s,background .15s}
+  .ticker-refresh-btn:hover{color:var(--accent);background:var(--accent-bg)}
+
+  .ai-key-banner{padding:10px 14px;background:var(--accent-bg);border-bottom:1px solid var(--accent);flex-shrink:0;display:flex;flex-direction:column;gap:7px}
+  .ai-key-banner-title{font-family:sans-serif;font-size:11px;font-weight:700;color:var(--accent-t);display:flex;align-items:center;gap:5px}
+  .ai-key-row{display:flex;gap:6px;align-items:center}
+  .ai-key-input{flex:1;font-family:sans-serif;font-size:11px;padding:5px 8px;border:1px solid var(--border2);border-radius:6px;background:var(--surface);color:var(--text);outline:none;min-width:0;letter-spacing:.5px}
+  .ai-key-input:focus{border-color:var(--accent)}
+  .ai-key-input::placeholder{letter-spacing:0;color:var(--text3)}
+  .ai-key-status{display:flex;align-items:center;gap:5px;font-family:sans-serif;font-size:11px;padding:4px 0}
+  .ai-key-status.ok{color:var(--green-t)}.ai-key-status.missing{color:var(--text3)}
+
+  .ai-panel-header{padding:14px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+  .ai-panel-title{font-family:Georgia,serif;font-size:14px;font-weight:700;color:var(--text)}
+  .ai-panel-sub{display:block;font-family:sans-serif;font-size:11px;color:var(--text3);margin-top:4px}
+  .ai-emiten-list{flex:1;overflow-y:auto;padding:8px}
+  .ai-emiten-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background .15s;border:1px solid transparent;gap:8px;margin-bottom:4px}
+  .ai-emiten-item:hover{background:var(--bg2);border-color:var(--border)}
+  .ai-emiten-item.active{background:var(--accent-bg);border-color:var(--accent)}
+  .ai-emiten-left{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .ai-emiten-ticker{font-family:Georgia,serif;font-size:15px;font-weight:700;color:var(--text)}
+  .ai-emiten-meta{font-family:sans-serif;font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ai-emiten-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .ai-gen-btn{font-family:sans-serif;font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--accent);background:var(--accent-bg);color:var(--accent-t);cursor:pointer;font-weight:600;transition:background .15s,color .15s;white-space:nowrap}
+  .ai-gen-btn:hover{background:var(--accent);color:#fff}
+  .ai-gen-btn:disabled{opacity:.5;cursor:not-allowed}
+  .ai-gen-btn.loading{background:var(--bg2);border-color:var(--border);color:var(--text3)}
+  .ai-empty-hint{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:40px 16px;font-family:sans-serif;font-size:12px;color:var(--text3);text-align:center}
+  .ai-result-wrap{display:flex;flex-direction:column;flex:1;overflow:hidden}
+  .ai-result-header{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+  .ai-back-btn{display:flex;align-items:center;gap:4px;font-family:sans-serif;font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:background .15s}
+  .ai-back-btn:hover{background:var(--border)}
+  .ai-result-ticker{font-family:Georgia,serif;font-size:14px;font-weight:700;color:var(--text);flex:1;text-align:center}
+  .ai-result-body{flex:1;overflow-y:auto;padding:14px 16px}
+  .ai-loading{display:flex;flex-direction:column;align-items:center;gap:12px;padding:32px 0;font-family:sans-serif;font-size:12px;color:var(--text3)}
+  .ai-loading-dots{display:flex;gap:6px}
+  .ai-loading-dots span{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:aiDotPulse 1.2s infinite ease-in-out}
+  .ai-loading-dots span:nth-child(2){animation-delay:.2s}
+  .ai-loading-dots span:nth-child(3){animation-delay:.4s}
+  @keyframes aiDotPulse{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+  .ai-section{margin-bottom:16px}.ai-section:last-child{margin-bottom:0}
+  .ai-section-title{font-family:Georgia,serif;font-size:12px;font-weight:700;color:var(--accent-t);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;display:flex;align-items:center;gap:5px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+  .ai-prose{font-family:sans-serif;font-size:12.5px;line-height:1.65;color:var(--text2)}
+  .ai-prose p{margin-bottom:8px}.ai-prose p:last-child{margin-bottom:0}
+  .ai-prose strong{color:var(--text);font-weight:600}
+  .ai-metric-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-family:sans-serif;font-size:12px}
+  .ai-metric-row:last-child{border-bottom:none}
+  .ai-metric-label{color:var(--text3)}.ai-metric-val{font-weight:600;color:var(--text)}
+  .ai-metric-val.green{color:var(--green-t)}.ai-metric-val.red{color:var(--red-t)}.ai-metric-val.accent{color:var(--accent-t)}
+  .ai-scenario{border-radius:8px;padding:10px 12px;margin-bottom:8px;font-family:sans-serif;font-size:12px;line-height:1.6}
+  .ai-scenario.bull{background:var(--green-bg);border-left:3px solid var(--green)}
+  .ai-scenario.bear{background:var(--red-bg);border-left:3px solid var(--red)}
+  .ai-scenario-label{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+  .ai-scenario.bull .ai-scenario-label{color:var(--green-t)}.ai-scenario.bear .ai-scenario-label{color:var(--red-t)}
+  .ai-scenario p{color:var(--text2);margin:0}
+  .ai-verdict{border-radius:8px;padding:12px 14px;margin-bottom:8px;font-family:sans-serif;font-size:12.5px;line-height:1.6;border:1px solid}
+  .ai-verdict.bull{background:var(--green-bg);border-color:var(--green);color:var(--green-t)}
+  .ai-verdict.bear{background:var(--red-bg);border-color:var(--red);color:var(--red-t)}
+  .ai-verdict.neutral{background:var(--accent-bg);border-color:var(--accent);color:var(--accent-t)}
+  .ai-verdict-label{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;display:block}
+  .ai-tag{display:inline-block;font-family:sans-serif;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;margin:2px 2px 2px 0}
+  .ai-tag.green{background:var(--green-bg);color:var(--green-t)}.ai-tag.red{background:var(--red-bg);color:var(--red-t)}.ai-tag.accent{background:var(--accent-bg);color:var(--accent-t)}
+  .ai-disclaimer{padding:8px 14px;font-family:sans-serif;font-size:10px;color:var(--text3);display:flex;align-items:flex-start;gap:6px;border-top:1px solid var(--border);line-height:1.4;flex-shrink:0}
+  .ai-cached-badge{font-family:sans-serif;font-size:10px;padding:2px 7px;border-radius:10px;background:var(--bg2);color:var(--text3);border:1px solid var(--border);margin-left:auto}
+  .ai-disclaimer svg{flex-shrink:0;margin-top:1px}
+
+  @media(max-width:900px){.split-layout{grid-template-columns:1fr}.split-right{position:static;max-height:500px}}
+  @media(max-width:640px){
+    .topbar{padding:0 12px;gap:8px;height:50px}.logo{font-size:14px}
+    .main{padding:10px}.stats-bar{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}.drag-handle{display:none}
+    .emiten-grid{grid-template-columns:1fr}.ticker{font-size:18px}.price-val{font-size:19px}.emiten-card{padding:13px}
+    .notes-cols{grid-template-columns:1fr}.actions-bar{flex-wrap:wrap}.actions-bar .btn-primary{width:100%;justify-content:center}
+    .inv-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}.inv-table{font-size:12px}.inv-table th,.inv-table td{padding:8px 10px}
+    .inv-toolbar{flex-wrap:wrap;gap:8px}.inv-toolbar .section-title{width:100%}
+    .inv-expand-inner{flex-direction:column;gap:8px}.inv-expand-inner .expand-kv{min-width:unset;width:100%}
+    .modal{padding:16px;width:95%}.ticker-live-label{display:none}.cyclical-warning{font-size:11px;padding:6px 14px}
+    .split-layout{grid-template-columns:1fr}.split-right{position:static;max-height:none}.card-popup{max-width:100%;border-radius:10px}
+  }
+
+  /* ============================================================
+     ANIMATIONS
+     ============================================================ */
+  @keyframes fadeSlideDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeSlideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes cardDrop{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+  @keyframes pricePulseGreen{0%,100%{text-shadow:none}40%{text-shadow:0 0 10px rgba(22,163,74,.7),0 0 20px rgba(22,163,74,.3)}}
+  @keyframes pricePulseRed{0%,100%{text-shadow:none}40%{text-shadow:0 0 10px rgba(220,38,38,.7),0 0 20px rgba(220,38,38,.3)}}
+
+  .anim-fade-down{animation:fadeSlideDown .5s cubic-bezier(.22,1,.36,1) both}
+  .anim-fade-up{opacity:0;animation:fadeSlideUp .5s cubic-bezier(.22,1,.36,1) forwards}
+  .anim-card-drop{opacity:0;animation:cardDrop .45s cubic-bezier(.22,1,.36,1) forwards}
+  .price-pulse-up{animation:pricePulseGreen .8s ease}
+  .price-pulse-down{animation:pricePulseRed .8s ease}
+
+  .winrate-track{fill:none;stroke:var(--border2);stroke-width:6}
+  .winrate-fill{fill:none;stroke:var(--green);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 1.4s cubic-bezier(.22,1,.36,1);transform:rotate(-90deg);transform-origin:50% 50%}
+  .winrate-fill.red{stroke:var(--red)}
+  .winrate-label{font-family:Georgia,serif;font-size:26px;font-weight:700;fill:var(--text)}
+  .winrate-sublabel{font-family:sans-serif;font-size:10px;fill:var(--text3);letter-spacing:.5px;text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<div class="topbar anim-fade-down">
+  <div class="logo-wrap">
+    <div class="logo">Stock<span>Tracker</span></div>
+    <div class="logo-tooltip">Designed by BosGeng</div>
+  </div>
+  <div class="tab-group">
+    <button class="tab-btn active" onclick="switchTab('active')">Active <span class="tab-badge" id="badge-active">0</span></button>
+    <button class="tab-btn" onclick="switchTab('inventory')">Archive <span class="tab-badge" id="badge-inv">0</span></button>
+    <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="search-wrap">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-input" id="search-input" type="text" placeholder="Cari emiten..." oninput="filterCards()">
+  </div>
+  <button class="icon-btn" onclick="toggleTheme()" title="Toggle dark mode">
+    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+  <button class="icon-btn" onclick="exportData()" title="Export JSON">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  </button>
+  <label class="icon-btn" title="Import JSON" style="cursor:pointer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+  </label>
+</div>
+
+<div class="ticker-bar" id="ticker-bar">
+  <div class="ticker-live-badge">
+    <span class="ticker-live-dot"></span>
+    <span class="ticker-live-label">Live</span>
+  </div>
+  <div class="ticker-scroll-outer" id="ticker-scroll-outer">
+    <span class="ticker-loading" id="ticker-loading">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" class="spin-icon"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+      Memuat harga saham...
+    </span>
+    <div class="ticker-track" id="ticker-track" style="display:none"></div>
+  </div>
+  <button class="ticker-refresh-btn" onclick="initTicker(true)" title="Refresh">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+  </button>
+  <span id="ticker-quota" style="font-family:sans-serif;font-size:10px;padding:0 8px;white-space:nowrap">0/30</span>
+</div>
+
+<div class="cyclical-warning" id="cyclical-warning">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  <span><strong>Catatan akurasi model:</strong> Pendekatan valuasi berbasis fundamental (PBV, PE, EPS) mungkin kurang akurat untuk <strong>sektor siklikal</strong> (komoditas, properti, otomotif).</span>
+  <button class="cyclical-dismiss" onclick="document.getElementById('cyclical-warning').style.display='none'">&#x2715;</button>
+</div>
+
+<div class="main">
+  <!-- TAB: ACTIVE -->
+  <div id="tab-active">
+    <div class="actions-bar">
+      <div>
+        <div class="section-title">Prediksi Aktif</div>
+        <div id="drag-hint" style="font-family:sans-serif;font-size:11px;color:var(--text3);margin-top:3px;display:none">&#x283F; Drag kartu untuk mengubah urutan</div>
+      </div>
+      <button class="btn btn-primary" onclick="openAddModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M12 5v14M5 12h14"/></svg>
+        Tambah Emiten
+      </button>
+    </div>
+    <!-- SECTOR FILTER BAR -->
+    <div class="filter-bar" id="sector-filter-bar"></div>
+    <div class="split-layout">
+      <div class="split-left">
+        <div class="emiten-grid" id="emiten-grid"></div>
+      </div>
+      <div class="split-right" id="ai-panel">
+        <div class="ai-panel-header">
+          <div style="display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="color:var(--accent)"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <span class="ai-panel-title">AI Summary</span>
+          </div>
+          <span class="ai-panel-sub">Pilih emiten untuk dianalisis Groq AI</span>
+        </div>
+        <div class="ai-key-banner" id="ai-key-banner">
+          <div class="ai-key-banner-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Groq API Key
+          </div>
+          <div id="ai-key-status-row" class="ai-key-status missing">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span id="ai-key-status-text">Groq API key belum disimpan</span>
+          </div>
+          <div class="ai-key-row" id="ai-key-input-row">
+            <input type="password" class="ai-key-input" id="ai-key-input" placeholder="gsk_..." autocomplete="off" onkeydown="if(event.key==='Enter')saveApiKey()">
+            <button class="btn btn-primary" style="font-size:11px;padding:5px 12px;white-space:nowrap" onclick="saveApiKey()">Simpan</button>
+          </div>
+          <div style="font-family:sans-serif;font-size:10px;color:var(--text3);line-height:1.5">
+            Key di <strong>localStorage</strong>. Gratis di <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent)">console.groq.com/keys</a>.
+          </div>
+        </div>
+        <div class="ai-emiten-list" id="ai-emiten-list">
+          <div class="ai-empty-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28" style="color:var(--text3)"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <span>Belum ada emiten aktif</span>
+          </div>
+        </div>
+        <div class="ai-result-wrap" id="ai-result-wrap" style="display:none">
+          <div class="ai-result-header">
+            <button class="ai-back-btn" onclick="aiBack()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="15 18 9 12 15 6"/></svg>
+              Kembali
+            </button>
+            <span class="ai-result-ticker" id="ai-result-ticker"></span>
+            <button class="btn" style="font-size:11px;padding:4px 10px" onclick="aiRefresh()" id="ai-refresh-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+              Refresh
+            </button>
+          </div>
+          <div class="ai-result-body" id="ai-result-body">
+            <div class="ai-loading" id="ai-loading">
+              <div class="ai-loading-dots"><span></span><span></span><span></span></div>
+              <span>Menganalisis data emiten...</span>
+            </div>
+            <div id="ai-content" style="display:none"></div>
+          </div>
+          <div class="ai-disclaimer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Bukan rekomendasi investasi.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: ARCHIVE -->
+  <div id="tab-inventory" style="display:none">
+    <div class="stats-bar">
+      <div class="stat-card" id="sc-active"><div class="stat-num accent" id="s-active">0</div><div class="stat-lbl">Active</div></div>
+      <div class="stat-card" id="sc-hit"><div class="stat-num green" id="s-hit">0</div><div class="stat-lbl">Hit</div></div>
+      <div class="stat-card" id="sc-miss"><div class="stat-num red" id="s-miss">0</div><div class="stat-lbl">Miss</div></div>
+      <div class="stat-card" id="sc-winrate"><div class="stat-num" id="s-winrate">—</div><div class="stat-lbl">Win rate</div></div>
+    </div>
+    <div class="inv-toolbar">
+      <div class="section-title">Riwayat Prediksi</div>
+      <label style="font-family:sans-serif;font-size:12px;color:var(--text3)">Urutan:</label>
+      <select id="inv-sort" class="sort-select" onchange="setInvSort(this.value)">
+        <option value="newest">Terbaru ditutup</option>
+        <option value="oldest">Terlama ditutup</option>
+        <option value="az">Emiten A–Z</option>
+        <option value="za">Emiten Z–A</option>
+        <option value="dur_asc">Durasi terpendek</option>
+        <option value="dur_desc">Durasi terlama</option>
+        <option value="tgl_awal_asc">Tgl Awal terlama</option>
+        <option value="tgl_awal_desc">Tgl Awal terbaru</option>
+        <option value="tgl_akhir_asc">Tgl Akhir terlama</option>
+        <option value="tgl_akhir_desc">Tgl Akhir terbaru</option>
+      </select>
+      <button class="btn" onclick="exportCSV()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        CSV
+      </button>
+      <button class="btn" onclick="exportPDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        PDF
+      </button>
+    </div>
+    <div class="inv-table-wrap">
+      <table class="inv-table">
+        <thead><tr>
+          <th>Emiten</th><th>Sektor</th><th class="col-tebakan">Tebakan</th><th>Harga Awal</th><th>Harga Akhir</th>
+          <th>FV1</th><th>FV2</th><th>FV3</th>
+          <th class="col-hasil">Hasil</th><th>Durasi</th><th>Ind. Miss</th><th></th>
+        </tr></thead>
+        <tbody id="inv-body"><tr><td colspan="12" class="inv-empty">Belum ada prediksi yang ditutup.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: STATS -->
+  <div id="tab-stats" style="display:none">
+    <div class="actions-bar" style="margin-bottom:20px">
+      <div class="section-title">Statistik Prediksi</div>
+    </div>
+    <div id="stats-content"></div>
+  </div>
+</div>
+
+<!-- Modal: Add/Edit -->
+<div class="modal-backdrop" id="modal-add">
+  <div class="modal">
+    <h2 id="modal-title">Tambah emiten baru</h2>
+    <div class="modal-sub" id="modal-sub">Isi data untuk emiten ini.</div>
+    <div class="form-grid">
+      <div class="form-field"><label>Kode emiten</label><input type="text" id="f-ticker" placeholder="RGAS" maxlength="10" style="text-transform:uppercase"></div>
+      <div class="form-field"><label>Tebakan</label><select id="f-tebakan"><option value="bullish">&#x1F53C; Bullish</option><option value="bearish">&#x1F53D; Bearish</option></select></div>
+      <div class="form-field"><label>Kuartal</label><input type="text" id="f-quarter" placeholder="Q1 2026" maxlength="10"></div>
+      <div class="form-field"><label>Tanggal prediksi</label><input type="date" id="f-tanggal"></div>
+      <div class="form-field" style="grid-column:1/-1"><label>Sektor IDX</label>
+        <select id="f-sector">
+          <option value="">— Pilih sektor —</option>
+          <option value="Energi">Energi</option>
+          <option value="Material Dasar">Material Dasar</option>
+          <option value="Industri">Industri</option>
+          <option value="Konsumer Non-Siklikal">Konsumer Non-Siklikal</option>
+          <option value="Konsumer Siklikal">Konsumer Siklikal</option>
+          <option value="Kesehatan">Kesehatan</option>
+          <option value="Keuangan">Keuangan</option>
+          <option value="Properti">Properti &amp; Real Estate</option>
+          <option value="Teknologi">Teknologi</option>
+          <option value="Infrastruktur">Infrastruktur</option>
+          <option value="Transportasi">Transportasi &amp; Logistik</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-divider" style="margin-top:12px">Harga &amp; rasio</div>
+    <div class="form-grid" style="margin-top:12px">
+      <div class="form-field"><label>Harga sekarang (Rp)</label><input type="number" id="f-price" placeholder="89" oninput="computePreview()"></div>
+      <div class="form-field"><label>BVPS (Rp)</label><input type="number" id="f-bvps" placeholder="71.12" oninput="computePreview()"></div>
+      <div class="form-field"><label>Mean PBV 3 tahun</label><input type="number" id="f-pbv" placeholder="1.99" step="0.01" oninput="computePreview()"></div>
+      <div class="form-field"><label>Net Income (T)</label><input type="number" id="f-ni" placeholder="0.016" step="0.001" oninput="computePreview()"></div>
+      <div class="form-field"><label>Mean PE 3 tahun</label><input type="number" id="f-pe" placeholder="33.96" step="0.01" oninput="computePreview()"></div>
+      <div class="form-field"><label>Jumlah saham (M)</label><input type="number" id="f-shares" placeholder="1.46" step="0.01" oninput="computePreview()"></div>
+      <div class="form-field"><label>EPS 1 tahun (Rp)</label><input type="number" id="f-eps" placeholder="10.92" step="0.01" oninput="computePreview()"></div>
+    </div>
+    <div class="form-divider" style="margin-top:16px">Hasil kalkulasi</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+      <div class="computed-row"><span class="computed-lbl">FV1 — BVPS × Mean PBV</span><span class="computed-val" id="prev-fv1">—</span></div>
+      <div class="computed-row"><span class="computed-lbl">FV2 — (NI × PE) ÷ Saham ÷ 1000</span><span class="computed-val" id="prev-fv2">—</span></div>
+      <div class="computed-row"><span class="computed-lbl">FV3 — PE × EPS</span><span class="computed-val" id="prev-fv3">—</span></div>
+      <div class="computed-row" style="border:1px solid var(--accent);background:var(--accent-bg)"><span class="computed-lbl" style="font-weight:600">Rata-rata FV</span><span class="computed-val" id="prev-avg" style="color:var(--accent)">—</span></div>
+    </div>
+    <div class="form-divider" style="margin-top:16px">Catatan</div>
+    <div class="notes-section-wrap">
+      <div>
+        <div class="notes-section-label pos">✓ Positif</div>
+        <div class="notes-rows-list" id="f-notes-plus"></div>
+        <button type="button" class="btn notes-add-row-btn" onclick="addNotesRow('f','plus')">＋ Tambah poin</button>
+      </div>
+      <div>
+        <div class="notes-section-label neg">✗ Risiko</div>
+        <div class="notes-rows-list" id="f-notes-minus"></div>
+        <button type="button" class="btn notes-add-row-btn" onclick="addNotesRow('f','minus')">＋ Tambah poin</button>
+      </div>
+      <div class="form-field">
+        <label>Catatan umum (opsional)</label>
+        <textarea id="f-notes-general" placeholder="Catatan bebas..." style="min-height:52px"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn btn-primary" id="modal-save-btn" onclick="saveEntry()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Quarter -->
+<div class="modal-backdrop" id="modal-quarter">
+  <div class="modal">
+    <h2 id="mq-title">Tambah entry kuartal baru</h2>
+    <div class="modal-sub" id="mq-sub">Update data setelah lapkeu terbaru rilis.</div>
+    <input type="hidden" id="mq-emiten-id">
+    <div class="form-grid">
+      <div class="form-field"><label>Kuartal</label><input type="text" id="mq-quarter" placeholder="Q2 2026" maxlength="10"></div>
+      <div class="form-field"><label>Tanggal entry</label><input type="date" id="mq-tanggal"></div>
+    </div>
+    <div class="form-divider" style="margin-top:12px">Harga &amp; rasio</div>
+    <div class="form-grid" style="margin-top:12px">
+      <div class="form-field"><label>Harga sekarang (Rp)</label><input type="number" id="mq-price" oninput="computeQuarterPreview()"></div>
+      <div class="form-field"><label>BVPS (Rp)</label><input type="number" id="mq-bvps" oninput="computeQuarterPreview()"></div>
+      <div class="form-field"><label>Mean PBV</label><input type="number" id="mq-pbv" step="0.01" oninput="computeQuarterPreview()"></div>
+      <div class="form-field"><label>Net Income (T)</label><input type="number" id="mq-ni" step="0.001" oninput="computeQuarterPreview()"></div>
+      <div class="form-field"><label>Mean PE</label><input type="number" id="mq-pe" step="0.01" oninput="computeQuarterPreview()"></div>
+      <div class="form-field"><label>Jumlah saham (M)</label><input type="number" id="mq-shares" step="0.01" oninput="computeQuarterPreview()"></div>
+      <div class="form-field"><label>EPS 1 tahun (Rp)</label><input type="number" id="mq-eps" step="0.01" oninput="computeQuarterPreview()"></div>
+    </div>
+    <div class="form-divider" style="margin-top:16px">Hasil kalkulasi</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+      <div class="computed-row"><span class="computed-lbl">FV1</span><span class="computed-val" id="mq-fv1">—</span></div>
+      <div class="computed-row"><span class="computed-lbl">FV2</span><span class="computed-val" id="mq-fv2">—</span></div>
+      <div class="computed-row"><span class="computed-lbl">FV3</span><span class="computed-val" id="mq-fv3">—</span></div>
+      <div class="computed-row" style="border:1px solid var(--accent);background:var(--accent-bg)"><span class="computed-lbl" style="font-weight:600">Rata-rata FV</span><span class="computed-val" id="mq-avg" style="color:var(--accent)">—</span></div>
+    </div>
+    <div class="form-divider" style="margin-top:16px">Catatan</div>
+    <div class="notes-section-wrap">
+      <div>
+        <div class="notes-section-label pos">✓ Positif</div>
+        <div class="notes-rows-list" id="mq-notes-plus"></div>
+        <button type="button" class="btn notes-add-row-btn" onclick="addNotesRow('mq','plus')">＋ Tambah poin</button>
+      </div>
+      <div>
+        <div class="notes-section-label neg">✗ Risiko</div>
+        <div class="notes-rows-list" id="mq-notes-minus"></div>
+        <button type="button" class="btn notes-add-row-btn" onclick="addNotesRow('mq','minus')">＋ Tambah poin</button>
+      </div>
+      <div class="form-field">
+        <label>Catatan umum (opsional)</label>
+        <textarea id="mq-notes-general" style="min-height:52px"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeQuarterModal()">Batal</button>
+      <button class="btn btn-primary" onclick="saveQuarterEntry()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Hit -->
+<div class="modal-backdrop" id="modal-close-hit">
+  <div class="modal modal-sm">
+    <h2 id="mch-title">✓ Konfirmasi Hit</h2>
+    <div class="modal-sub">Masukkan harga akhir dan tanggal ketika FV tercapai.</div>
+    <input type="hidden" id="mch-emiten-id">
+    <div class="hit-confirm-box">FV rata-rata: <strong id="mch-fv-info">—</strong></div>
+    <div class="form-grid">
+      <div class="form-field"><label>Harga akhir (Rp)</label><input type="number" id="mch-price"></div>
+      <div class="form-field"><label>Tanggal FV tercapai</label><input type="date" id="mch-date"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeHitModal()">Batal</button>
+      <button class="btn btn-hit" onclick="confirmHit()">✓ Konfirmasi Hit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Miss -->
+<div class="modal-backdrop" id="modal-close-miss">
+  <div class="modal">
+    <h2 id="mcm-title">✗ Konfirmasi Miss</h2>
+    <div class="modal-sub">Pilih indikator miss yang paling relevan.</div>
+    <input type="hidden" id="mcm-emiten-id">
+    <div class="form-divider" style="border-top:none;padding-top:0;margin-top:0">Indikator Miss</div>
+    <div class="miss-options">
+      <label class="miss-option"><input type="radio" name="miss-indicator" value="price_move_30" checked>
+        <div class="miss-option-text"><div class="miss-option-label" id="miss-label-price-move">Harga turun ≥30%</div><div class="miss-option-desc" id="miss-desc-price-move">Bullish: harga turun ≥30%. Bearish: harga naik ≥30%.</div></div>
+      </label>
+      <label class="miss-option"><input type="radio" name="miss-indicator" value="price_rp50">
+        <div class="miss-option-text"><div class="miss-option-label">Harga menyentuh Rp 50</div><div class="miss-option-desc">Area delisting.</div></div>
+      </label>
+      <label class="miss-option"><input type="radio" name="miss-indicator" value="missed_target">
+        <div class="miss-option-text"><div class="miss-option-label">Gagal menyentuh target &gt;1 tahun</div><div class="miss-option-desc">Meleset dari target dalam kurun &gt;1 tahun.</div></div>
+      </label>
+      <label class="miss-option"><input type="radio" name="miss-indicator" value="bankrupt">
+        <div class="miss-option-text"><div class="miss-option-label">Bangkrut / delisting</div></div>
+      </label>
+      <label class="miss-option"><input type="radio" name="miss-indicator" value="declining_perf">
+        <div class="miss-option-text"><div class="miss-option-label">Performa kuartalan turun terus</div><div class="miss-option-desc">NI, EPS, Revenue turun ≥4 kuartal berturut-turut.</div></div>
+      </label>
+    </div>
+    <div class="form-divider" style="margin-top:16px">Harga &amp; tanggal penutupan</div>
+    <div class="form-grid" style="margin-top:12px">
+      <div class="form-field"><label>Harga akhir (opsional)</label><input type="number" id="mcm-price"></div>
+      <div class="form-field"><label>Tanggal ditutup</label><input type="date" id="mcm-date"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeMissModal()">Batal</button>
+      <button class="btn btn-miss" onclick="confirmMiss()">✗ Konfirmasi Miss</button>
+    </div>
+  </div>
+</div>
+
+<!-- Card Popup -->
+<div class="card-popup-backdrop" id="card-popup-backdrop" onclick="handleCardPopupBackdropClick(event)">
+  <div class="card-popup" id="card-popup-inner">
+    <button class="card-popup-close" onclick="closeCardPopup()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div id="card-popup-content"></div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-backdrop" id="share-modal" onclick="if(event.target===this)closeShareModal()">
+  <div class="modal" style="max-width:640px">
+    <h2 style="margin-bottom:4px">Simpan Snapshot</h2>
+    <div class="modal-sub" style="margin-bottom:14px">Preview kartu — klik Simpan PNG untuk mengunduh.</div>
+    <canvas id="share-canvas" style="display:block;margin:0 auto;border-radius:0 10px 10px 0;box-shadow:0 4px 20px rgba(0,0,0,.15)"></canvas>
+    <div class="modal-actions" style="justify-content:center;margin-top:14px">
+      <button class="btn" onclick="closeShareModal()">Tutup</button>
+      <button class="btn btn-primary" onclick="downloadShareImage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Simpan PNG
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Edit Archive -->
+<div class="modal-backdrop" id="modal-inv-edit">
+  <div class="modal modal-sm">
+    <h2>✎ Edit Data Archive</h2>
+    <div class="modal-sub">Edit kuartal, tanggal, dan sektor.</div>
+    <input type="hidden" id="mie-inv-id">
+    <div class="form-grid">
+      <div class="form-field" style="grid-column:1/-1"><label>Kuartal</label><input type="text" id="mie-quarter" maxlength="10"></div>
+      <div class="form-field"><label>Tanggal awal</label><input type="date" id="mie-tgl-awal"></div>
+      <div class="form-field"><label>Tanggal ditutup</label><input type="date" id="mie-tgl-akhir"></div>
+      <div class="form-field" style="grid-column:1/-1"><label>Sektor IDX</label>
+        <select id="mie-sector">
+          <option value="">— Pilih sektor —</option>
+          <option value="Energi">Energi</option>
+          <option value="Material Dasar">Material Dasar</option>
+          <option value="Industri">Industri</option>
+          <option value="Konsumer Non-Siklikal">Konsumer Non-Siklikal</option>
+          <option value="Konsumer Siklikal">Konsumer Siklikal</option>
+          <option value="Kesehatan">Kesehatan</option>
+          <option value="Keuangan">Keuangan</option>
+          <option value="Properti">Properti &amp; Real Estate</option>
+          <option value="Teknologi">Teknologi</option>
+          <option value="Infrastruktur">Infrastruktur</option>
+          <option value="Transportasi">Transportasi &amp; Logistik</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeInvEditModal()">Batal</button>
+      <button class="btn btn-primary" onclick="saveInvEdit()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="mos-tooltip" id="mos-tooltip">
+  <strong>📐 Margin of Safety (MoS)</strong>
+  <div style="margin-top:6px">Selisih antara Fair Value dan harga beli:</div>
+  <div style="margin:7px 0;padding:6px 8px;background:var(--bg2);border-radius:5px;font-size:10.5px;text-align:center;font-family:Georgia,serif">MoS = (FV Avg − Harga) / Harga × 100%</div>
+  <div style="color:var(--green-t)">✔ Positif → beli di bawah FV (ada bantal keamanan)</div>
+  <div style="margin-top:4px;color:var(--red-t)">✘ Negatif → beli di atas FV (premium)</div>
+  <div style="margin-top:6px;color:var(--text3);font-size:10px">MoS ≥20% umumnya dianggap layak. — Benjamin Graham</div>
+</div>
+
+<script>
+// ============================================================
+// CONSTANTS
+// ============================================================
+const IDX_SECTORS = ['Energi','Material Dasar','Industri','Konsumer Non-Siklikal','Konsumer Siklikal','Kesehatan','Keuangan','Properti','Teknologi','Infrastruktur','Transportasi'];
+const HOLDING_WARN_MONTHS = 6;
+const HOLDING_PROGRESS_THRESHOLD = 5; // % closer to FV needed to NOT warn
+
+const MISS_LABELS = {
+  price_move_30:{bullish:'Harga ↓ ≥30%',bearish:'Harga ↑ ≥30%'},
+  price_rp50:'Harga ≤ Rp 50',
+  missed_target:'Missed Target',
+  bankrupt:'Bangkrut / Delisting',
+  declining_perf:'Performa ↓ ≥4 kuartal'
+};
+function getMissLabel(ind,teb){
+  if(!ind) return '—';
+  const l=MISS_LABELS[ind]; if(!l) return ind;
+  if(typeof l==='object') return teb==='bearish'?l.bearish:l.bullish;
+  return l;
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {emitens:[],inventory:[],cardOrder:[],invSort:'newest'};
+let currentTab='active';
+let editingEmitenId=null;
+let dragSrcId=null,dragOverId=null;
+let activeSectorFilter='all';
+let showOnlyWarn=false;
+
+// ============================================================
+// PERSISTENCE
+// ============================================================
+function save(){try{localStorage.setItem('nw_state',JSON.stringify(state));}catch(e){}}
+function load(){
+  try{
+    const d=localStorage.getItem('nw_state');
+    if(d){const p=JSON.parse(d);state={cardOrder:[],invSort:'newest',...p};}
+  }catch(e){}
+}
+
+// ============================================================
+// HOLDING PERIOD WARNING LOGIC
+// ============================================================
+function monthsDiff(dateStr1, dateStr2){
+  try{
+    const a=new Date(dateStr1+'T00:00:00'), b=new Date(dateStr2+'T00:00:00');
+    if(isNaN(a)||isNaN(b)) return 0;
+    return (b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth());
+  }catch(e){return 0;}
+}
+
+function checkHoldingWarn(em){
+  const first=em.entries[0];
+  if(!first||!first.tanggalAwal) return false;
+  const months=monthsDiff(first.tanggalAwal, todayISO());
+  if(months < HOLDING_WARN_MONTHS) return false;
+
+  // Check if price has made meaningful progress toward FV
+  const firstFV=calcFV(first.bvps,first.pbv,first.ni,first.pe,first.shares,first.eps);
+  const last=em.entries[em.entries.length-1];
+  const lastFV=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
+
+  if(!firstFV.avg||!lastFV.avg||!first.price||!last.price) return true;
+
+  const firstGap=Math.abs(firstFV.avg-first.price);
+  const lastGap=Math.abs(lastFV.avg-last.price);
+  if(firstGap===0) return false;
+  const progressPct=(firstGap-lastGap)/firstGap*100;
+  return progressPct < HOLDING_PROGRESS_THRESHOLD;
+}
+
+function getHoldingWarnMessage(em){
+  const first=em.entries[0];
+  const months=monthsDiff(first.tanggalAwal, todayISO());
+  return `Sudah ${months} bulan dipegang tanpa progres signifikan menuju FV. Pertimbangkan untuk re-evaluasi thesis.`;
+}
+
+// ============================================================
+// SECTOR FILTER BAR
+// ============================================================
+function renderSectorFilterBar(){
+  const bar=document.getElementById('sector-filter-bar');
+  if(!bar) return;
+  const sectors=[...new Set(state.emitens.map(e=>e.sector).filter(Boolean))].sort();
+  const warnCount=state.emitens.filter(e=>checkHoldingWarn(e)).length;
+
+  let html='<span class="filter-chip '+(activeSectorFilter==='all'&&!showOnlyWarn?'active':'')+'" onclick="setSectorFilter(\'all\')">Semua ('+state.emitens.length+')</span>';
+  if(warnCount>0){
+    html+='<span class="filter-chip warn-chip '+(showOnlyWarn?'active':'')+'" onclick="toggleWarnFilter()">⚠ Perlu Review ('+warnCount+')</span>';
+  }
+  sectors.forEach(s=>{
+    const cnt=state.emitens.filter(e=>e.sector===s).length;
+    html+='<span class="filter-chip '+(activeSectorFilter===s&&!showOnlyWarn?'active':'')+'" onclick="setSectorFilter(\''+s+'\')">'+escHtml(s)+' ('+cnt+')</span>';
+  });
+  bar.innerHTML=html;
+}
+
+function setSectorFilter(sector){
+  activeSectorFilter=sector;
+  showOnlyWarn=false;
+  renderSectorFilterBar();
+  renderCards();
+}
+
+function toggleWarnFilter(){
+  showOnlyWarn=!showOnlyWarn;
+  if(showOnlyWarn) activeSectorFilter='all';
+  renderSectorFilterBar();
+  renderCards();
+}
+
+// ============================================================
+// EXPORT / IMPORT
+// ============================================================
+function exportData(){
+  const b=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const u=URL.createObjectURL(b),a=document.createElement('a');
+  a.href=u;a.download='stocktracker-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(u);
+  showToast('Data berhasil diekspor!');
+}
+function importData(event){
+  const file=event.target.files[0];if(!file)return;event.target.value='';
+  const r=new FileReader();
+  r.onload=function(e){
+    try{
+      const p=JSON.parse(e.target.result);
+      if(!p.emitens&&!p.inventory){showToast('File tidak valid.');return;}
+      if(!confirm('Import akan mengganti SEMUA data. Lanjutkan?'))return;
+      state={cardOrder:[],invSort:'newest',...p};save();renderCards();renderInventory();updateStats();
+      showToast('Data berhasil diimport!');
+    }catch(err){showToast('Gagal membaca file.');}
+  };
+  r.readAsText(file);
+}
+
+function toggleTheme(){
+  const h=document.documentElement,dark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',dark?'light':'dark');
+  localStorage.setItem('nw_theme',dark?'light':'dark');
+  updateThemeIcon();
+}
+function updateThemeIcon(){
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.getElementById('theme-icon').innerHTML=dark
+    ?'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+    :'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function todayISO(){return new Date().toISOString().split('T')[0];}
+function fmt(n){return(!n&&n!==0)?'—':'Rp '+Math.round(n).toLocaleString('id-ID');}
+function fmtDate(s){if(!s)return null;try{return new Date(s+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});}catch(e){return s;}}
+function fmtDisc(price,fv){if(!price||!fv)return null;return((fv-price)/price*100).toFixed(1);}
+function calcFV(bvps,pbv,ni,pe,shares,eps){
+  const fv1=(bvps&&pbv)?bvps*pbv:null;
+  const fv2=(ni&&pe&&shares)?(ni*pe*1e6)/shares/1000:null;
+  const fv3=(pe&&eps)?pe*eps:null;
+  const vals=[fv1,fv2,fv3].filter(v=>v!==null);
+  const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+  return{fv1,fv2,fv3,avg};
+}
+function formatDuration(s1,s2){
+  if(!s1||!s2)return '—';
+  try{
+    const a=new Date(s1+'T00:00:00'),b=new Date(s2+'T00:00:00');
+    if(isNaN(a)||isNaN(b))return '—';
+    let yr=b.getFullYear()-a.getFullYear(),mo=b.getMonth()-a.getMonth(),dy=b.getDate()-a.getDate();
+    if(dy<0){mo--;dy+=new Date(b.getFullYear(),b.getMonth(),0).getDate();}
+    if(mo<0){yr--;mo+=12;}
+    const p=[];if(yr>0)p.push(yr+' thn');if(mo>0)p.push(mo+' bln');if(dy>0||p.length===0)p.push(dy+' hari');
+    return p.join(' ');
+  }catch(e){return '—';}
+}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');}
+function formatNotes(text){
+  if(!text)return '';
+  const lines=text.split('\n'),plus=[],minus=[],general=[];
+  lines.forEach(line=>{
+    const t=line.trim();if(!t)return;
+    if(t.startsWith('[+]'))plus.push(escHtml(t.slice(3).trim()));
+    else if(t.startsWith('[−]')||t.startsWith('[-]'))minus.push(escHtml(t.replace(/^\[-\]|\[−\]/,'').trim()));
+    else if(t.startsWith('+'))plus.push(escHtml(t.slice(1).trim()));
+    else if(t.startsWith('-'))minus.push(escHtml(t.slice(1).trim()));
+    else general.push(escHtml(t));
+  });
+  const hasCols=plus.length||minus.length;
+  let html='';
+  if(hasCols){
+    html+='<div class="notes-cols">';
+    html+='<div class="notes-col pos"><div class="notes-col-label">✓ Positif</div>'+(plus.length?plus.map(x=>'<div class="notes-item"><span>'+x+'</span></div>').join(''):'<div style="font-size:11px;color:var(--text3);font-style:italic">—</div>')+'</div>';
+    html+='<div class="notes-col neg"><div class="notes-col-label">✗ Risiko</div>'+(minus.length?minus.map(x=>'<div class="notes-item"><span>'+x+'</span></div>').join(''):'<div style="font-size:11px;color:var(--text3);font-style:italic">—</div>')+'</div>';
+    html+='</div>';
+  }
+  if(general.length)html+='<div class="notes-general">'+(hasCols?'<div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Catatan</div>':'')+general.join('<br>')+'</div>';
+  return html||escHtml(text);
+}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+function openIdxLapkeu(ticker){
+  const url='https://www.idx.co.id/id/perusahaan-tercatat/laporan-keuangan-dan-tahunan/?kodeEmiten='+encodeURIComponent(ticker);
+  navigator.clipboard.writeText(ticker).then(()=>showToast('📋 '+ticker+' disalin!')).catch(()=>{});
+  window.open(url,'_blank','noopener,noreferrer');
+}
+
+// ============================================================
+// NOTES HELPERS
+// ============================================================
+function parseNotes(str){
+  if(!str)return{plus:[],minus:[],general:''};
+  const plus=[],minus=[],general=[];
+  str.split('\n').forEach(line=>{
+    const t=line.trim();if(!t)return;
+    if(t.startsWith('[+]'))plus.push(t.slice(3).trim());
+    else if(t.startsWith('[−]')||t.startsWith('[-]'))minus.push(t.replace(/^\[-\]|\[−\]/,'').trim());
+    else if(t.startsWith('+'))plus.push(t.slice(1).trim());
+    else if(t.startsWith('-'))minus.push(t.slice(1).trim());
+    else general.push(t);
+  });
+  return{plus,minus,general:general.join('\n')};
+}
+function serializeNotes(plusLines,minusLines,generalText){
+  const parts=[];
+  plusLines.forEach(l=>{if(l.trim())parts.push('[+] '+l.trim());});
+  minusLines.forEach(l=>{if(l.trim())parts.push('[-] '+l.trim());});
+  if(generalText&&generalText.trim())parts.push(generalText.trim());
+  return parts.join('\n');
+}
+function addNotesRow(prefix,type,value){
+  const c=document.getElementById(prefix+'-notes-'+type);if(!c)return;
+  const row=document.createElement('div');row.className='notes-input-row';
+  const inp=document.createElement('input');inp.type='text';inp.className='notes-input-item';inp.placeholder='Tulis poin...';if(value)inp.value=value;
+  const btn=document.createElement('button');btn.type='button';btn.className='notes-remove-btn';btn.textContent='×';btn.onclick=()=>row.remove();
+  row.appendChild(inp);row.appendChild(btn);c.appendChild(row);
+}
+function clearNotesSections(prefix){
+  ['plus','minus'].forEach(t=>{const el=document.getElementById(prefix+'-notes-'+t);if(el)el.innerHTML='';});
+  const gen=document.getElementById(prefix+'-notes-general');if(gen)gen.value='';
+}
+function fillNotesSections(prefix,notesStr){
+  clearNotesSections(prefix);
+  const{plus,minus,general}=parseNotes(notesStr);
+  plus.forEach(l=>addNotesRow(prefix,'plus',l));
+  minus.forEach(l=>addNotesRow(prefix,'minus',l));
+  const gen=document.getElementById(prefix+'-notes-general');if(gen)gen.value=general;
+}
+function getSerializedNotes(prefix){
+  const plus=Array.from(document.querySelectorAll('#'+prefix+'-notes-plus .notes-input-item')).map(el=>el.value.trim()).filter(Boolean);
+  const minus=Array.from(document.querySelectorAll('#'+prefix+'-notes-minus .notes-input-item')).map(el=>el.value.trim()).filter(Boolean);
+  const gen=(document.getElementById(prefix+'-notes-general')?.value||'').trim();
+  return serializeNotes(plus,minus,gen);
+}
+
+// ============================================================
+// TABS & STATS
+// ============================================================
+function switchTab(tab){
+  currentTab=tab;
+  document.getElementById('tab-active').style.display    =tab==='active'?'':'none';
+  document.getElementById('tab-inventory').style.display =tab==='inventory'?'':'none';
+  document.getElementById('tab-stats').style.display     =tab==='stats'?'':'none';
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active',(i===0&&tab==='active')||(i===1&&tab==='inventory')||(i===2&&tab==='stats'));
+  });
+  if(tab==='inventory')renderInventory();
+  if(tab==='stats')renderStats();
+}
+function countUp(el,target,suffix,duration){
+  if(!el)return;
+  if(target===null||isNaN(target)){el.textContent='—';return;}
+  const start=Date.now();const from=0;
+  const tick=()=>{
+    const p=Math.min(1,(Date.now()-start)/duration);
+    const val=Math.round(from+(target-from)*p);
+    el.textContent=val+(suffix||'');
+    if(p<1)requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function updateWinrateRadial(pct){
+  let svg=document.getElementById('winrate-radial-svg');
+  const container=document.getElementById('s-winrate');
+  if(!container)return;
+  if(!svg){
+    const r=38,cx=50,cy=50,circ=2*Math.PI*r;
+    svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('id','winrate-radial-svg');
+    svg.setAttribute('width','100');svg.setAttribute('height','100');
+    svg.setAttribute('viewBox','0 0 100 100');
+    svg.classList.add('winrate-svg');
+    svg.innerHTML=`<circle class="winrate-track" cx="${cx}" cy="${cy}" r="${r}"/>
+      <circle class="winrate-fill${pct!==null&&pct<50?' red':''}" id="winrate-arc" cx="${cx}" cy="${cy}" r="${r}" stroke-dasharray="${circ}" stroke-dashoffset="${circ}"/>
+      <text class="winrate-label" x="50" y="54" text-anchor="middle" id="winrate-text">${pct!==null?pct+'%':'—'}</text>
+      <text class="winrate-sublabel" x="50" y="67" text-anchor="middle">WIN RATE</text>`;
+    container.innerHTML='';
+    container.appendChild(svg);
+    // Remove win-rate stat-lbl since it's now in SVG
+    const lbl=container.parentElement.querySelector('.stat-lbl');
+    if(lbl)lbl.style.display='none';
+  } else {
+    const arc=document.getElementById('winrate-arc');
+    const txt=document.getElementById('winrate-text');
+    if(arc){arc.className.baseVal=arc.className.baseVal.replace(' red','');if(pct!==null&&pct<50)arc.className.baseVal+=' red';}
+    if(txt)txt.textContent=pct!==null?pct+'%':'—';
+  }
+  const arc=document.getElementById('winrate-arc');
+  if(arc&&pct!==null){
+    const r=38,circ=2*Math.PI*r;
+    setTimeout(()=>{arc.style.strokeDashoffset=circ-(circ*pct/100);},50);
+  }
+}
+function updateStats(){
+  const hits=state.inventory.filter(i=>i.result==='hit').length;
+  const misses=state.inventory.filter(i=>i.result==='miss').length;
+  const total=hits+misses;
+  const winPct=total?Math.round(hits/total*100):null;
+  countUp(document.getElementById('s-active'),state.emitens.length,'',400);
+  countUp(document.getElementById('s-hit'),hits,'',500);
+  countUp(document.getElementById('s-miss'),misses,'',500);
+  updateWinrateRadial(winPct);
+  document.getElementById('badge-active').textContent=state.emitens.length;
+  document.getElementById('badge-inv').textContent=state.inventory.length;
+  const hint=document.getElementById('drag-hint');if(hint)hint.style.display=state.emitens.length>=2?'':'none';
+}
+
+// ============================================================
+// STATS TAB
+// ============================================================
+function renderStats(){
+  const el=document.getElementById('stats-content');
+  if(!el)return;
+  const inv=state.inventory;
+  if(!inv.length){el.innerHTML='<div class="stats-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="32" height="32" style="color:var(--text3);margin-bottom:8px"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg><br>Belum ada prediksi yang ditutup.<br>Statistik akan muncul setelah ada data di Archive.</div>';return;}
+
+  const hits=inv.filter(i=>i.result==='hit');
+  const misses=inv.filter(i=>i.result==='miss');
+  const total=inv.length;
+  const winrate=total?Math.round(hits.length/total*100):0;
+
+  // Duration buckets
+  const durMs=i=>{try{return i.tanggalAwal&&i.tanggalAkhir?new Date(i.tanggalAkhir)-new Date(i.tanggalAwal):0;}catch{return 0;}};
+  const buckets={'< 3 bln':0,'3–6 bln':0,'6–12 bln':0,'> 12 bln':0};
+  const bucketHits={'< 3 bln':0,'3–6 bln':0,'6–12 bln':0,'> 12 bln':0};
+  inv.forEach(i=>{
+    const mo=durMs(i)/(1000*60*60*24*30);
+    let b=mo<3?'< 3 bln':mo<6?'3–6 bln':mo<12?'6–12 bln':'> 12 bln';
+    buckets[b]++;if(i.result==='hit')bucketHits[b]++;
+  });
+
+  // Win rate by tebakan
+  const bullHits=inv.filter(i=>i.result==='hit'&&(i.tebakan||'bullish')==='bullish').length;
+  const bullTotal=inv.filter(i=>(i.tebakan||'bullish')==='bullish').length;
+  const bearHits=inv.filter(i=>i.result==='hit'&&i.tebakan==='bearish').length;
+  const bearTotal=inv.filter(i=>i.tebakan==='bearish').length;
+
+  // Win rate by sector
+  const sectorMap={};
+  inv.forEach(i=>{
+    const s=i.sector||'Tidak ada sektor';
+    if(!sectorMap[s])sectorMap[s]={hit:0,total:0};
+    sectorMap[s].total++;if(i.result==='hit')sectorMap[s].hit++;
+  });
+  const sectors=Object.entries(sectorMap).sort((a,b)=>b[1].total-a[1].total);
+
+  // Return analysis
+  const withReturn=inv.filter(i=>{
+    const hAwal=i.hargaAwal??i.price??null;
+    return hAwal&&i.hargaAkhir;
+  }).map(i=>{
+    const hAwal=i.hargaAwal??i.price;
+    const teb=i.tebakan||'bullish';
+    return teb==='bearish'?(hAwal-i.hargaAkhir)/hAwal*100:(i.hargaAkhir-hAwal)/hAwal*100;
+  });
+  const avgReturn=withReturn.length?withReturn.reduce((a,b)=>a+b,0)/withReturn.length:null;
+  const bestReturn=withReturn.length?Math.max(...withReturn):null;
+  const worstReturn=withReturn.length?Math.min(...withReturn):null;
+
+  // FV accuracy — how close each method was to actual close price
+  const fvAccData={fv1:[],fv2:[],fv3:[]};
+  inv.forEach(i=>{
+    const hAkhir=i.hargaAkhir;if(!hAkhir)return;
+    if(i.fv1){fvAccData.fv1.push(Math.abs(i.fv1-hAkhir)/hAkhir*100);}
+    if(i.fv2){fvAccData.fv2.push(Math.abs(i.fv2-hAkhir)/hAkhir*100);}
+    if(i.fv3){fvAccData.fv3.push(Math.abs(i.fv3-hAkhir)/hAkhir*100);}
+  });
+  const avgAcc=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null;
+  const fv1Acc=avgAcc(fvAccData.fv1), fv2Acc=avgAcc(fvAccData.fv2), fv3Acc=avgAcc(fvAccData.fv3);
+  const maxAcc=Math.max(fv1Acc||0,fv2Acc||0,fv3Acc||0)||1;
+  // Lower deviation = more accurate → accuracy score = 100 - avg%err
+  const fv1Score=fv1Acc!==null?Math.max(0,100-fv1Acc):null;
+  const fv2Score=fv2Acc!==null?Math.max(0,100-fv2Acc):null;
+  const fv3Score=fv3Acc!==null?Math.max(0,100-fv3Acc):null;
+  const maxScore=Math.max(fv1Score||0,fv2Score||0,fv3Score||0)||1;
+
+  const pct=(v,total)=>total?Math.round(v/total*100):0;
+  const barRow=(label,val,max,cls)=>`<div class="stats-bar-row"><span class="stats-bar-label">${label}</span><div class="stats-bar-track"><div class="stats-bar-fill" style="width:${Math.round(val/max*100)}%;background:${cls}"></div></div><span class="stats-bar-val">${Math.round(val/max*100)}%</span></div>`;
+
+  el.innerHTML=`
+  <div class="stats-tab-grid">
+    <!-- OVERVIEW -->
+    <div class="stats-section">
+      <div class="stats-section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        Overview
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div style="text-align:center;padding:12px;background:var(--bg2);border-radius:8px">
+          <div class="stats-big accent">${winrate}%</div>
+          <div class="stats-sub">Win rate keseluruhan</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:var(--bg2);border-radius:8px">
+          <div class="stats-big">${total}</div>
+          <div class="stats-sub">Total prediksi ditutup</div>
+        </div>
+      </div>
+      <div class="stats-kv"><span class="stats-k">Hit</span><span class="stats-v green">${hits.length}</span></div>
+      <div class="stats-kv"><span class="stats-k">Miss</span><span class="stats-v red">${misses.length}</span></div>
+      <div class="stats-kv"><span class="stats-k">Aktif sekarang</span><span class="stats-v accent">${state.emitens.length}</span></div>
+      <div class="stats-kv"><span class="stats-k">Perlu review (>6 bln)</span><span class="stats-v" style="color:var(--warn)">${state.emitens.filter(e=>checkHoldingWarn(e)).length}</span></div>
+    </div>
+
+    <!-- WIN RATE BY TEBAKAN -->
+    <div class="stats-section">
+      <div class="stats-section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Win Rate per Tebakan
+      </div>
+      <div class="stats-kv"><span class="stats-k">▲ Bullish</span><span class="stats-v ${bullTotal?'green':''}"">${bullTotal?pct(bullHits,bullTotal)+'% ('+bullHits+'/'+bullTotal+')':'—'}</span></div>
+      <div class="stats-kv"><span class="stats-k">▼ Bearish</span><span class="stats-v ${bearTotal?'green':''}"">${bearTotal?pct(bearHits,bearTotal)+'% ('+bearHits+'/'+bearTotal+')':'—'}</span></div>
+      <div style="margin-top:14px">
+        <div class="stats-section-title" style="font-size:12px;margin-bottom:8px;border-bottom:none;padding-bottom:0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Win Rate per Durasi
+        </div>
+        ${Object.entries(buckets).map(([b,cnt])=>{
+          const wr=cnt?Math.round(bucketHits[b]/cnt*100):0;
+          return `<div class="stats-bar-row"><span class="stats-bar-label">${b}</span><div class="stats-bar-track"><div class="stats-bar-fill" style="width:${wr}%;background:var(--green)"></div></div><span class="stats-bar-val">${cnt?wr+'%':'—'} <span style="color:var(--text3)">(${cnt})</span></span></div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- RETURN ANALYSIS -->
+    <div class="stats-section">
+      <div class="stats-section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Analisis Return
+      </div>
+      ${withReturn.length===0?'<div class="stats-empty">Belum ada data return (butuh harga awal & akhir)</div>':`
+      <div class="stats-kv"><span class="stats-k">Rata-rata return</span><span class="stats-v ${avgReturn>=0?'green':'red'}">${avgReturn!==null?(avgReturn>=0?'+':'')+avgReturn.toFixed(1)+'%':'—'}</span></div>
+      <div class="stats-kv"><span class="stats-k">Return terbaik</span><span class="stats-v return-best">${bestReturn!==null?(bestReturn>=0?'+':'')+bestReturn.toFixed(1)+'%':'—'}</span></div>
+      <div class="stats-kv"><span class="stats-k">Return terburuk</span><span class="stats-v return-worst">${worstReturn!==null?(worstReturn>=0?'+':'')+worstReturn.toFixed(1)+'%':'—'}</span></div>
+      <div class="stats-kv"><span class="stats-k">Prediksi dengan data return</span><span class="stats-v">${withReturn.length}/${total}</span></div>
+      `}
+    </div>
+
+    <!-- WIN RATE BY SECTOR -->
+    <div class="stats-section" style="grid-column:1/-1">
+      <div class="stats-section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Win Rate per Sektor
+      </div>
+      ${sectors.length===0?'<div class="stats-empty">Belum ada data sektor. Tambahkan sektor saat membuat emiten.</div>':`
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
+        ${sectors.map(([s,d])=>{
+          const wr=d.total?Math.round(d.hit/d.total*100):0;
+          const col=wr>=60?'var(--green)':wr>=40?'var(--accent)':'var(--red)';
+          return `<div style="background:var(--bg2);border-radius:8px;padding:10px 12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <span style="font-family:sans-serif;font-size:12px;font-weight:600;color:var(--text)">${escHtml(s)}</span>
+              <span style="font-family:sans-serif;font-size:11px;color:var(--text3)">${d.hit}/${d.total}</span>
+            </div>
+            <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${wr}%;background:${col}"></div></div>
+            <div style="font-family:sans-serif;font-size:11px;color:${col};font-weight:600;margin-top:4px">${wr}% win rate</div>
+          </div>`;
+        }).join('')}
+      </div>`}
+    </div>
+
+    <!-- FV ACCURACY -->
+    <div class="stats-section" style="grid-column:1/-1">
+      <div class="stats-section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Akurasi Model FV <span style="font-weight:400;font-size:11px;color:var(--text3);font-family:sans-serif;margin-left:4px">(seberapa dekat FV ke harga akhir — lebih tinggi = lebih akurat)</span>
+      </div>
+      ${(fv1Score===null&&fv2Score===null&&fv3Score===null)?'<div class="stats-empty">Belum ada data (butuh harga akhir di Archive)</div>':`
+      <div class="fv-acc-row">
+        <span class="fv-acc-label">FV1 (BVPS×PBV)</span>
+        <div class="fv-acc-bar"><div class="fv-acc-fill" style="width:${fv1Score!==null?Math.round(fv1Score/maxScore*100):0}%;background:var(--accent)"></div></div>
+        <span class="fv-acc-val">${fv1Score!==null?fv1Score.toFixed(1)+'%':'—'} <span style="font-size:10px;color:var(--text3)">(${fvAccData.fv1.length} data)</span></span>
+      </div>
+      <div class="fv-acc-row">
+        <span class="fv-acc-label">FV2 (NI×PE/Saham)</span>
+        <div class="fv-acc-bar"><div class="fv-acc-fill" style="width:${fv2Score!==null?Math.round(fv2Score/maxScore*100):0}%;background:var(--accent)"></div></div>
+        <span class="fv-acc-val">${fv2Score!==null?fv2Score.toFixed(1)+'%':'—'} <span style="font-size:10px;color:var(--text3)">(${fvAccData.fv2.length} data)</span></span>
+      </div>
+      <div class="fv-acc-row">
+        <span class="fv-acc-label">FV3 (PE×EPS)</span>
+        <div class="fv-acc-bar"><div class="fv-acc-fill" style="width:${fv3Score!==null?Math.round(fv3Score/maxScore*100):0}%;background:var(--accent)"></div></div>
+        <span class="fv-acc-val">${fv3Score!==null?fv3Score.toFixed(1)+'%':'—'} <span style="font-size:10px;color:var(--text3)">(${fvAccData.fv3.length} data)</span></span>
+      </div>
+      <div style="margin-top:10px;font-family:sans-serif;font-size:11px;color:var(--text3);line-height:1.5;background:var(--bg2);border-radius:6px;padding:8px 10px">
+        Skor akurasi = 100% − rata-rata deviasi absolut antara nilai FV dan harga akhir. Model yang paling sering mendekati harga aktual akan mendapat skor tertinggi.
+      </div>
+      `}
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// CARD ORDER
+// ============================================================
+function getCardOrder(){
+  const ids=state.emitens.map(e=>e.id);
+  const stored=(state.cardOrder||[]).filter(id=>ids.includes(id));
+  ids.forEach(id=>{if(!stored.includes(id))stored.push(id);});
+  state.cardOrder=[...stored];return stored;
+}
+
+// ============================================================
+// DRAG AND DROP
+// ============================================================
+function onDragStart(e,id){dragSrcId=id;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',id);setTimeout(()=>{const el=document.getElementById('card-'+id);if(el)el.classList.add('dragging');},0);}
+function onDragEnd(e,id){dragSrcId=null;dragOverId=null;document.querySelectorAll('.emiten-card').forEach(c=>c.classList.remove('dragging','drag-over'));}
+function onDragOver(e,id){e.preventDefault();if(!dragSrcId||dragSrcId===id)return;e.dataTransfer.dropEffect='move';if(dragOverId!==id){document.querySelectorAll('.drag-over').forEach(c=>c.classList.remove('drag-over'));const el=document.getElementById('card-'+id);if(el)el.classList.add('drag-over');dragOverId=id;}}
+function onDragLeave(e,id){const el=document.getElementById('card-'+id);if(el&&!el.contains(e.relatedTarget)){el.classList.remove('drag-over');if(dragOverId===id)dragOverId=null;}}
+function onDrop(e,id){e.preventDefault();e.stopPropagation();if(!dragSrcId||dragSrcId===id)return;const order=getCardOrder();const from=order.indexOf(dragSrcId),to=order.indexOf(id);if(from!==-1&&to!==-1){order.splice(from,1);order.splice(to,0,dragSrcId);state.cardOrder=[...order];save();renderCards();}document.querySelectorAll('.emiten-card').forEach(c=>c.classList.remove('dragging','drag-over'));dragSrcId=null;dragOverId=null;}
+
+// ============================================================
+// RENDER CARDS
+// ============================================================
+function renderCards(){
+  const grid=document.getElementById('emiten-grid');
+  const q=document.getElementById('search-input').value.trim().toLowerCase();
+  const order=getCardOrder();
+  const sorted=order.map(id=>state.emitens.find(e=>e.id===id)).filter(Boolean);
+  let filtered=sorted.filter(e=>!q||e.ticker.toLowerCase().includes(q)||(e.entries[e.entries.length-1]?.notes||'').toLowerCase().includes(q));
+  if(showOnlyWarn) filtered=filtered.filter(e=>checkHoldingWarn(e));
+  else if(activeSectorFilter!=='all') filtered=filtered.filter(e=>e.sector===activeSectorFilter);
+
+  renderSectorFilterBar();
+
+  let html='';
+  filtered.forEach(em=>{
+    const last=em.entries[em.entries.length-1];if(!last)return;
+    const {fv1,fv2,fv3,avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
+    const isUnder=avg&&last.price<avg,isOver=avg&&last.price>=avg;
+    const isWarn=checkHoldingWarn(em);
+    const cardClass=(isWarn?'holding-warn ':isUnder?'undervalue ':isOver?'overvalue ':''). trim();
+    const discStr=fv=>{if(!fv||!last.price)return '';const d=fmtDisc(last.price,fv),cls=parseFloat(d)>0?'pos':'neg',sgn=parseFloat(d)>0?'+':'';return '<span class="disc-pill '+cls+'">'+sgn+d+'%</span>';};
+    const progress=avg&&last.price?Math.min(100,Math.round(last.price/avg*100)):0;
+    const pColor=isUnder?'var(--green)':'var(--red)';
+    const mosPct=avg&&last.price?((avg-last.price)/last.price*100):null;
+    const tebakan=em.tebakan||'bullish';
+    const tanggalD=last.tanggalAwal?fmtDate(last.tanggalAwal):null;
+
+    html+='<div class="emiten-card anim-card-drop '+cardClass+'" id="card-'+em.id+'" style="animation-delay:'+(filtered.indexOf(em)*0.08).toFixed(2)+'s" draggable="true"'
+      +' onclick="openCardPopup(event,\''+em.id+'\')"'
+      +' ondragstart="onDragStart(event,\''+em.id+'\')" ondragend="onDragEnd(event,\''+em.id+'\')"'
+      +' ondragover="onDragOver(event,\''+em.id+'\')" ondragleave="onDragLeave(event,\''+em.id+'\')" ondrop="onDrop(event,\''+em.id+'\')">'
+      +'<div class="card-header">'
+        +'<div class="card-header-left">'
+          +'<div class="ticker">'+escHtml(em.ticker)+'</div>'
+          +'<span class="tebakan-inline '+tebakan+'">'+(tebakan==='bullish'?'🔼 Bullish':'🔽 Bearish')+'</span>'
+        +'</div>'
+        +'<div class="card-header-right">'
+          +'<span class="badge '+(isWarn?'':'')+(isUnder?'green':isOver?'red':'pending')+'">'+(isWarn?'⚠ ':' ')+(isUnder?'Undervalue':isOver?'Overvalue':'Belum terhitung')+'</span>'
+          +'<div class="drag-handle" title="Drag"><svg viewBox="0 0 10 16" width="10" height="16" fill="currentColor"><circle cx="2.5" cy="2.5" r="1.5"/><circle cx="7.5" cy="2.5" r="1.5"/><circle cx="2.5" cy="8" r="1.5"/><circle cx="7.5" cy="8" r="1.5"/><circle cx="2.5" cy="13.5" r="1.5"/><circle cx="7.5" cy="13.5" r="1.5"/></svg></div>'
+        +'</div>'
+      +'</div>'
+      +'<div class="meta-row">'
+        +'<span>'+escHtml(last.quarter)+'</span>'
+        +(em.sector?'<span class="meta-dot"></span><span class="sector-badge">'+escHtml(em.sector)+'</span>':'')
+        +'<span class="meta-dot"></span><span>'+em.entries.length+' entry</span>'
+        +(tanggalD?'<span class="meta-dot"></span><span>'+tanggalD+'</span>':'')
+      +'</div>'
+      +(isWarn?'<div class="holding-warn-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+getHoldingWarnMessage(em)+'</div>':'')
+      +'<div class="fv-section">'
+        +'<div class="price-main"><span class="price-label">Harga Awal</span><span class="price-val">Rp '+(last.price?Math.round(last.price).toLocaleString('id-ID'):'—')+'</span></div>'
+        +'<div class="price-main" style="margin-top:2px"><span class="price-label">Harga Live</span><span class="live-price-val price-val" style="color:var(--text)" data-base-price="'+(last.price||0)+'">—</span></div>'
+        +'<div class="fv-row"><span class="fv-label">FV1 — BVPS × PBV</span><span class="fv-vals"><span class="fv-num">'+fmt(fv1)+'</span>'+discStr(fv1)+'</span></div>'
+        +'<div class="fv-row"><span class="fv-label">FV2 — (NI × PE) ÷ Saham</span><span class="fv-vals"><span class="fv-num">'+fmt(fv2)+'</span>'+discStr(fv2)+'</span></div>'
+        +'<div class="fv-row"><span class="fv-label">FV3 — PE × EPS</span><span class="fv-vals"><span class="fv-num">'+fmt(fv3)+'</span>'+discStr(fv3)+'</span></div>'
+        +(mosPct!==null?'<div class="fv-row"><span class="fv-label" style="font-weight:600;color:var(--text2)">Margin of Safety <button class="mos-info-btn" onclick="event.stopPropagation();toggleMosTooltip(event,this)">i</button></span><span class="fv-vals"><span class="fv-num" style="font-size:13px;color:'+(mosPct>=0?'var(--green-t)':'var(--red-t)')+'">'+(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%</span></span></div>':'')
+      +'</div>'
+      +(avg&&last.price?'<div class="progress-wrap"><div class="progress-label"><span>Harga vs FV avg ('+fmt(avg)+')</span><span>'+progress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%;background:'+pColor+'"></div></div></div>':'')
+      +(last.notes?'<div class="notes-box">'+formatNotes(last.notes)+'</div>':'')
+      +'<div class="card-popup-hint">🔍 Klik untuk detail &amp; aksi</div>'
+      +'</div>';
+  });
+
+  html+='<div class="add-card" onclick="openAddModal()"><svg viewBox="0 0 24 24" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Tambah emiten baru</div>';
+  if(!filtered.length&&!state.emitens.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><p>Belum ada emiten aktif.</p><span>Klik "Tambah emiten" untuk mulai screening.</span></div>'+html;}
+  else grid.innerHTML=html;
+  if(window.livePriceMap)updateCardLivePrices();
+}
+function filterCards(){renderCards();}
+
+// ============================================================
+// CARD POPUP
+// ============================================================
+function openCardPopup(e, emitenId){
+  if(e.target.closest('.drag-handle'))return;
+  const em=state.emitens.find(x=>x.id===emitenId);if(!em)return;
+  const last=em.entries[em.entries.length-1];if(!last)return;
+  const {fv1,fv2,fv3,avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
+  const isUnder=avg&&last.price<avg,isOver=avg&&last.price>=avg;
+  const isWarn=checkHoldingWarn(em);
+  const cardClass=isWarn?'holding-warn-popup':isUnder?'undervalue':isOver?'overvalue':'';
+  const tebakan=em.tebakan||'bullish';
+  const tanggalD=last.tanggalAwal?fmtDate(last.tanggalAwal):null;
+  const pColor=isUnder?'var(--green)':'var(--red)';
+  const progress=avg&&last.price?Math.min(100,Math.round(last.price/avg*100)):0;
+  const mosPct=avg&&last.price?((avg-last.price)/last.price*100):null;
+  const discStr=fv=>{if(!fv||!last.price)return '';const d=fmtDisc(last.price,fv),cls=parseFloat(d)>0?'pos':'neg',sgn=parseFloat(d)>0?'+':'';return '<span class="disc-pill '+cls+'">'+sgn+d+'%</span>';};
+  const histHTML=em.entries.slice(0,-1).reverse().map(e=>{
+    const {avg:ha}=calcFV(e.bvps,e.pbv,e.ni,e.pe,e.shares,e.eps);
+    const {fv1:h1,fv2:h2,fv3:h3}=calcFV(e.bvps,e.pbv,e.ni,e.pe,e.shares,e.eps);
+    return '<div class="history-entry"><div class="he-top"><span class="he-quarter">'+escHtml(e.quarter)+'</span><span class="he-price">Rp '+(e.price?Math.round(e.price).toLocaleString('id-ID'):'—')+(e.tanggalAwal?' · '+fmtDate(e.tanggalAwal):'')+' </span></div><div class="he-fvs">'+(h1?'<span class="he-fv-chip">FV1: Rp '+Math.round(h1).toLocaleString('id-ID')+'</span>':'')+(h2?'<span class="he-fv-chip">FV2: Rp '+Math.round(h2).toLocaleString('id-ID')+'</span>':'')+(h3?'<span class="he-fv-chip">FV3: Rp '+Math.round(h3).toLocaleString('id-ID')+'</span>':'')+'</div></div>';
+  }).join('');
+
+  const content=''
+    +'<div class="card-header" style="padding-right:28px">'
+      +'<div class="card-header-left">'
+        +'<div class="ticker">'+escHtml(em.ticker)+'</div>'
+        +'<span class="tebakan-inline '+tebakan+'">'+(tebakan==='bullish'?'🔼 Bullish':'🔽 Bearish')+'</span>'
+      +'</div>'
+      +'<span class="badge '+(isUnder?'green':isOver?'red':'pending')+'">'+(isUnder?'Undervalue':isOver?'Overvalue':'Belum terhitung')+'</span>'
+    +'</div>'
+    +'<div class="meta-row"><span>'+escHtml(last.quarter)+'</span>'+(em.sector?'<span class="meta-dot"></span><span class="sector-badge">'+escHtml(em.sector)+'</span>':'')+'<span class="meta-dot"></span><span>'+em.entries.length+' entry</span>'+(tanggalD?'<span class="meta-dot"></span><span>'+tanggalD+'</span>':'')+'</div>'
+    +(isWarn?'<div class="holding-warn-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+getHoldingWarnMessage(em)+'</div>':'')
+    +'<div class="fv-section">'
+      +'<div class="price-main"><span class="price-label">Harga</span><span class="price-val">Rp '+(last.price?Math.round(last.price).toLocaleString('id-ID'):'—')+'</span></div>'
+      +'<div class="fv-row"><span class="fv-label">FV1 — BVPS × PBV</span><span class="fv-vals"><span class="fv-num">'+fmt(fv1)+'</span>'+discStr(fv1)+'</span></div>'
+      +'<div class="fv-row"><span class="fv-label">FV2 — (NI × PE) ÷ Saham</span><span class="fv-vals"><span class="fv-num">'+fmt(fv2)+'</span>'+discStr(fv2)+'</span></div>'
+      +'<div class="fv-row"><span class="fv-label">FV3 — PE × EPS</span><span class="fv-vals"><span class="fv-num">'+fmt(fv3)+'</span>'+discStr(fv3)+'</span></div>'
+      +(mosPct!==null?'<div class="fv-row"><span class="fv-label" style="font-weight:600;color:var(--text2)">Margin of Safety <button class="mos-info-btn" onclick="event.stopPropagation();toggleMosTooltip(event,this)">i</button></span><span class="fv-vals"><span class="fv-num" style="font-size:13px;color:'+(mosPct>=0?'var(--green-t)':'var(--red-t)')+'">'+(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%</span></span></div>':'')
+    +'</div>'
+    +(avg&&last.price?'<div class="progress-wrap"><div class="progress-label"><span>Harga vs FV avg ('+fmt(avg)+')</span><span>'+progress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%;background:'+pColor+'"></div></div></div>':'')
+    +'<div style="border-top:1px solid var(--border);padding-top:10px">'
+      +'<div class="expand-section-label">Data Fundamental</div>'
+      +'<div class="expand-kv-grid">'
+        +'<div class="expand-kv"><span class="expand-k">BVPS</span><span class="expand-v">'+(last.bvps?last.bvps.toLocaleString('id-ID'):'—')+'</span></div>'
+        +'<div class="expand-kv"><span class="expand-k">PBV</span><span class="expand-v">'+(last.pbv?last.pbv+'x':'—')+'</span></div>'
+        +'<div class="expand-kv"><span class="expand-k">EPS</span><span class="expand-v">'+(last.eps?last.eps.toLocaleString('id-ID'):'—')+'</span></div>'
+        +'<div class="expand-kv"><span class="expand-k">PE</span><span class="expand-v">'+(last.pe?last.pe+'x':'—')+'</span></div>'
+        +'<div class="expand-kv"><span class="expand-k">Net Income (T)</span><span class="expand-v">'+(last.ni?'Rp '+last.ni.toLocaleString('id-ID')+'T':'—')+'</span></div>'
+        +'<div class="expand-kv"><span class="expand-k">Saham (M)</span><span class="expand-v">'+(last.shares?last.shares.toLocaleString('id-ID')+'M':'—')+'</span></div>'
+      +'</div>'
+    +'</div>'
+    +(last.notes?'<div class="notes-box">'+formatNotes(last.notes)+'</div>':'')
+    +(em.entries.length>1?'<div><div class="history-toggle" onclick="toggleHistory(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg> Riwayat '+(em.entries.length-1)+' kuartal sebelumnya</div><div class="history-list" style="display:none">'+histHTML+'</div></div>':'')
+    +'<div class="card-footer">'
+      +'<button class="btn btn-edit btn-icon" onclick="closeCardPopup();openEditModal(\''+emitenId+'\')" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+      +'<button class="btn" onclick="closeCardPopup();openQuarterModal(\''+emitenId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M12 5v14M5 12h14"/></svg> Entry baru</button>'
+      +'<button class="btn btn-hit" onclick="closeCardPopup();openHitModal(\''+emitenId+'\')">✓ Hit</button>'
+      +'<button class="btn btn-miss" onclick="closeCardPopup();openMissModal(\''+emitenId+'\')">✗ Miss</button>'
+      +'<button class="btn btn-icon" onclick="event.stopPropagation();closeCardPopup();openActiveSharePopup(\''+emitenId+'\')" title="PNG"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>'
+      +'<button class="btn btn-icon" onclick="closeCardPopup();deleteEmiten(\''+emitenId+'\')" title="Hapus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>'
+    +'</div>'
+    +'<button class="btn btn-idx-lapkeu" onclick="event.stopPropagation();openIdxLapkeu(\''+em.ticker+'\')">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+      +' Laporan Keuangan IDX — '+escHtml(em.ticker)
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" style="margin-left:auto;opacity:.55"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
+    +'</button>';
+
+  const popup=document.getElementById('card-popup-inner');
+  popup.className='card-popup'+(cardClass?' '+cardClass:'');
+  document.getElementById('card-popup-content').innerHTML=content;
+  document.getElementById('card-popup-backdrop').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeCardPopup(){document.getElementById('card-popup-backdrop').classList.remove('open');document.body.style.overflow='';}
+function handleCardPopupBackdropClick(e){if(e.target===document.getElementById('card-popup-backdrop'))closeCardPopup();}
+function toggleHistory(el){const list=el.nextElementSibling,open=list.style.display!=='none';list.style.display=open?'none':'flex';el.querySelector('svg').style.transform=open?'':'rotate(180deg)';}
+
+// ============================================================
+// MODAL: ADD / EDIT
+// ============================================================
+function openAddModal(){
+  editingEmitenId=null;
+  document.getElementById('modal-title').textContent='Tambah emiten baru';
+  document.getElementById('modal-sub').textContent='Isi data kuartal pertama untuk emiten ini.';
+  document.getElementById('modal-save-btn').textContent='Simpan';
+  ['ticker','quarter','price','bvps','pbv','ni','pe','shares','eps'].forEach(f=>{const el=document.getElementById('f-'+f);if(el)el.value='';});
+  clearNotesSections('f');
+  document.getElementById('f-tebakan').value='bullish';
+  document.getElementById('f-tanggal').value=todayISO();
+  document.getElementById('f-sector').value='';
+  ['prev-fv1','prev-fv2','prev-fv3','prev-avg'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('modal-add').classList.add('open');
+  setTimeout(()=>document.getElementById('f-ticker').focus(),50);
+}
+function openEditModal(emitenId){
+  const em=state.emitens.find(e=>e.id===emitenId);if(!em)return;
+  editingEmitenId=emitenId;
+  const last=em.entries[em.entries.length-1];
+  document.getElementById('modal-title').textContent='Edit — '+em.ticker;
+  document.getElementById('modal-sub').textContent='Perbarui data emiten dan entry terkini.';
+  document.getElementById('modal-save-btn').textContent='Perbarui';
+  document.getElementById('f-ticker').value=em.ticker;
+  document.getElementById('f-tebakan').value=em.tebakan||'bullish';
+  document.getElementById('f-sector').value=em.sector||'';
+  document.getElementById('f-quarter').value=last.quarter||'';
+  document.getElementById('f-tanggal').value=last.tanggalAwal||'';
+  document.getElementById('f-price').value=last.price||'';
+  document.getElementById('f-bvps').value=last.bvps||'';
+  document.getElementById('f-pbv').value=last.pbv||'';
+  document.getElementById('f-ni').value=last.ni||'';
+  document.getElementById('f-pe').value=last.pe||'';
+  document.getElementById('f-shares').value=last.shares||'';
+  document.getElementById('f-eps').value=last.eps||'';
+  fillNotesSections('f',last.notes||'');
+  computePreview();
+  document.getElementById('modal-add').classList.add('open');
+  setTimeout(()=>document.getElementById('f-ticker').focus(),50);
+}
+function closeModal(){document.getElementById('modal-add').classList.remove('open');editingEmitenId=null;}
+function computePreview(){
+  const v=f=>parseFloat(document.getElementById('f-'+f).value)||null;
+  const {fv1,fv2,fv3,avg}=calcFV(v('bvps'),v('pbv'),v('ni'),v('pe'),v('shares'),v('eps'));
+  document.getElementById('prev-fv1').textContent=fmt(fv1);document.getElementById('prev-fv2').textContent=fmt(fv2);
+  document.getElementById('prev-fv3').textContent=fmt(fv3);document.getElementById('prev-avg').textContent=fmt(avg);
+}
+function saveEntry(){
+  const ticker=document.getElementById('f-ticker').value.trim().toUpperCase();
+  const tebakan=document.getElementById('f-tebakan').value;
+  const sector=document.getElementById('f-sector').value||'';
+  if(!ticker){alert('Kode emiten wajib diisi.');return;}
+  const entryData={
+    quarter:document.getElementById('f-quarter').value.trim()||'—',
+    tanggalAwal:document.getElementById('f-tanggal').value||null,
+    price:parseFloat(document.getElementById('f-price').value)||0,
+    bvps:parseFloat(document.getElementById('f-bvps').value)||null,
+    pbv:parseFloat(document.getElementById('f-pbv').value)||null,
+    ni:parseFloat(document.getElementById('f-ni').value)||null,
+    pe:parseFloat(document.getElementById('f-pe').value)||null,
+    shares:parseFloat(document.getElementById('f-shares').value)||null,
+    eps:parseFloat(document.getElementById('f-eps').value)||null,
+    notes:getSerializedNotes('f'),
+  };
+  if(editingEmitenId){
+    const em=state.emitens.find(e=>e.id===editingEmitenId);
+    if(em){em.ticker=ticker;em.tebakan=tebakan;em.sector=sector;Object.assign(em.entries[em.entries.length-1],entryData);}
+    showToast(ticker+' berhasil diperbarui.');
+  }else{
+    state.emitens.push({id:uid(),ticker,tebakan,sector,createdAt:Date.now(),entries:[{id:uid(),...entryData,createdAt:Date.now()}]});
+    showToast(ticker+' berhasil ditambahkan.');
+  }
+  editingEmitenId=null;save();closeModal();renderCards();updateStats();
+}
+
+// ============================================================
+// MODAL: QUARTER
+// ============================================================
+function openQuarterModal(emitenId){
+  const em=state.emitens.find(e=>e.id===emitenId);if(!em)return;
+  document.getElementById('mq-title').textContent='Entry baru — '+em.ticker;
+  document.getElementById('mq-emiten-id').value=emitenId;
+  document.getElementById('mq-tanggal').value=todayISO();
+  ['quarter','price','bvps','pbv','ni','pe','shares','eps'].forEach(f=>{const el=document.getElementById('mq-'+f);if(el)el.value='';});
+  clearNotesSections('mq');
+  ['mq-fv1','mq-fv2','mq-fv3','mq-avg'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('modal-quarter').classList.add('open');
+  setTimeout(()=>document.getElementById('mq-quarter').focus(),50);
+}
+function closeQuarterModal(){document.getElementById('modal-quarter').classList.remove('open');}
+function computeQuarterPreview(){
+  const v=f=>parseFloat(document.getElementById('mq-'+f).value)||null;
+  const {fv1,fv2,fv3,avg}=calcFV(v('bvps'),v('pbv'),v('ni'),v('pe'),v('shares'),v('eps'));
+  document.getElementById('mq-fv1').textContent=fmt(fv1);document.getElementById('mq-fv2').textContent=fmt(fv2);
+  document.getElementById('mq-fv3').textContent=fmt(fv3);document.getElementById('mq-avg').textContent=fmt(avg);
+}
+function saveQuarterEntry(){
+  const emitenId=document.getElementById('mq-emiten-id').value;
+  const em=state.emitens.find(e=>e.id===emitenId);if(!em)return;
+  em.entries.push({id:uid(),quarter:document.getElementById('mq-quarter').value.trim()||'—',tanggalAwal:document.getElementById('mq-tanggal').value||null,price:parseFloat(document.getElementById('mq-price').value)||0,bvps:parseFloat(document.getElementById('mq-bvps').value)||null,pbv:parseFloat(document.getElementById('mq-pbv').value)||null,ni:parseFloat(document.getElementById('mq-ni').value)||null,pe:parseFloat(document.getElementById('mq-pe').value)||null,shares:parseFloat(document.getElementById('mq-shares').value)||null,eps:parseFloat(document.getElementById('mq-eps').value)||null,notes:getSerializedNotes('mq'),createdAt:Date.now()});
+  save();closeQuarterModal();renderCards();showToast('Entry kuartal '+em.ticker+' disimpan.');
+}
+
+// ============================================================
+// MODAL: HIT / MISS
+// ============================================================
+function openHitModal(emitenId){
+  const em=state.emitens.find(e=>e.id===emitenId);if(!em)return;
+  const last=em.entries[em.entries.length-1];const {avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
+  document.getElementById('mch-title').textContent='✓ Hit — '+em.ticker;
+  document.getElementById('mch-emiten-id').value=emitenId;
+  document.getElementById('mch-fv-info').textContent=avg?fmt(avg):'Belum terhitung';
+  document.getElementById('mch-price').value='';document.getElementById('mch-date').value=todayISO();
+  document.getElementById('modal-close-hit').classList.add('open');
+  setTimeout(()=>document.getElementById('mch-price').focus(),50);
+}
+function closeHitModal(){document.getElementById('modal-close-hit').classList.remove('open');}
+function confirmHit(){
+  const emitenId=document.getElementById('mch-emiten-id').value;
+  const em=state.emitens.find(e=>e.id===emitenId);if(!em)return;
+  _closeEmiten(em,'hit',parseFloat(document.getElementById('mch-price').value)||null,document.getElementById('mch-date').value||null,null);closeHitModal();
+}
+function openMissModal(emitenId){
+  const em=state.emitens.find(e=>e.id===emitenId);if(!em)return;
+  const teb=em.tebakan||'bullish';
+  document.getElementById('mcm-title').textContent='✗ Miss — '+em.ticker;
+  document.getElementById('mcm-emiten-id').value=emitenId;
+  document.getElementById('mcm-price').value='';document.getElementById('mcm-date').value=todayISO();
+  document.getElementById('miss-label-price-move').textContent=teb==='bearish'?'Harga naik ≥30%':'Harga turun ≥30%';
+  document.querySelectorAll('input[name="miss-indicator"]')[0].checked=true;
+  document.getElementById('modal-close-miss').classList.add('open');
+}
+function closeMissModal(){document.getElementById('modal-close-miss').classList.remove('open');}
+function confirmMiss(){
+  const emitenId=document.getElementById('mcm-emiten-id').value;
+  const em=state.emitens.find(e=>e.id===emitenId);if(!em)return;
+  _closeEmiten(em,'miss',parseFloat(document.getElementById('mcm-price').value)||null,document.getElementById('mcm-date').value||null,document.querySelector('input[name="miss-indicator"]:checked')?.value||null);closeMissModal();
+}
+
+// ============================================================
+// INTERNAL CLOSE
+// ============================================================
+function _closeEmiten(em,result,hargaAkhir,tanggalAkhir,missIndicator){
+  const first=em.entries[0],last=em.entries[em.entries.length-1];
+  const {fv1,fv2,fv3,avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
+  state.inventory.push({id:uid(),emitenId:em.id,ticker:em.ticker,tebakan:em.tebakan||'bullish',sector:em.sector||'',quarter:last.quarter,hargaAwal:first.price,tanggalAwal:first.tanggalAwal||null,hargaAkhir,tanggalAkhir,fv1,fv2,fv3,avg,notes:last.notes,result,missIndicator,allEntries:em.entries.map(e=>({...e})),entriesCount:em.entries.length,closedAt:Date.now()});
+  state.emitens=state.emitens.filter(e=>e.id!==em.id);
+  state.cardOrder=(state.cardOrder||[]).filter(id=>id!==em.id);
+  save();renderCards();updateStats();
+  showToast(em.ticker+' ditutup sebagai '+(result==='hit'?'HIT':'MISS')+'.');
+}
+function deleteEmiten(emitenId){
+  const em=state.emitens.find(e=>e.id===emitenId);if(!em)return;
+  if(!confirm('Hapus '+em.ticker+'? Data tidak bisa dikembalikan.'))return;
+  state.emitens=state.emitens.filter(e=>e.id!==emitenId);
+  state.cardOrder=(state.cardOrder||[]).filter(id=>id!==emitenId);
+  save();renderCards();updateStats();showToast(em.ticker+' dihapus.');
+}
+
+// ============================================================
+// INVENTORY
+// ============================================================
+function setInvSort(sort){state.invSort=sort;save();renderInventory();}
+function getSortedInventory(){
+  const sort=state.invSort||'newest';const inv=[...state.inventory];
+  const durMs=i=>{if(!i.tanggalAwal||!i.tanggalAkhir)return 0;try{return new Date(i.tanggalAkhir)-new Date(i.tanggalAwal);}catch{return 0;}};
+  switch(sort){
+    case 'newest':return inv.sort((a,b)=>(b.closedAt||0)-(a.closedAt||0));
+    case 'oldest':return inv.sort((a,b)=>(a.closedAt||0)-(b.closedAt||0));
+    case 'az':return inv.sort((a,b)=>a.ticker.localeCompare(b.ticker));
+    case 'za':return inv.sort((a,b)=>b.ticker.localeCompare(a.ticker));
+    case 'dur_asc':return inv.sort((a,b)=>durMs(a)-durMs(b));
+    case 'dur_desc':return inv.sort((a,b)=>durMs(b)-durMs(a));
+    case 'tgl_awal_asc':return inv.sort((a,b)=>(a.tanggalAwal||'')>(b.tanggalAwal||'')?1:-1);
+    case 'tgl_awal_desc':return inv.sort((a,b)=>(b.tanggalAwal||'')>(a.tanggalAwal||'')?1:-1);
+    case 'tgl_akhir_asc':return inv.sort((a,b)=>(a.tanggalAkhir||'')>(b.tanggalAkhir||'')?1:-1);
+    case 'tgl_akhir_desc':return inv.sort((a,b)=>(b.tanggalAkhir||'')>(a.tanggalAkhir||'')?1:-1);
+    default:return inv.sort((a,b)=>(b.closedAt||0)-(a.closedAt||0));
+  }
+}
+function renderInventory(){
+  const tbody=document.getElementById('inv-body');
+  if(!state.inventory.length){tbody.innerHTML='<tr><td colspan="12" class="inv-empty">Belum ada prediksi yang ditutup.</td></tr>';return;}
+  const sel=document.getElementById('inv-sort');if(sel)sel.value=state.invSort||'newest';
+  tbody.innerHTML=getSortedInventory().map(inv=>{
+    const teb=inv.tebakan||'bullish';
+    const missLbl=inv.result==='miss'&&inv.missIndicator?getMissLabel(inv.missIndicator,teb):'—';
+    const dur=formatDuration(inv.tanggalAwal,inv.tanggalAkhir);
+    const hAwal=inv.hargaAwal??inv.price??null;
+    const returnPct=(hAwal&&inv.hargaAkhir)?(teb==='bearish'?(hAwal-inv.hargaAkhir)/hAwal*100:(inv.hargaAkhir-hAwal)/hAwal*100):null;
+    const mosPct=(inv.avg&&hAwal)?((inv.avg-hAwal)/hAwal*100):null;
+    const expandInner='<div class="inv-expand-inner">'
+      +(returnPct!==null?(()=>{const pos=returnPct>=0,sign=pos?'+':'';const col=pos?'var(--green-t)':'var(--red-t)',bg=pos?'var(--green-bg)':'var(--red-bg)';return '<div class="expand-kv" style="flex-basis:100%;flex-direction:row;align-items:center;justify-content:space-between;background:'+bg+';border-radius:6px;padding:8px 12px;border-left:none"><span class="expand-k" style="color:'+col+';font-size:11px;font-weight:600">Return</span><span style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:'+col+'">'+sign+returnPct.toFixed(1)+'%</span></div>';})():'')
+      +'<div class="expand-kv"><span class="expand-k">FV1</span><span class="expand-v">'+fmt(inv.fv1)+'</span></div>'
+      +'<div class="expand-kv"><span class="expand-k">FV2</span><span class="expand-v">'+fmt(inv.fv2)+'</span></div>'
+      +'<div class="expand-kv"><span class="expand-k">FV3</span><span class="expand-v">'+fmt(inv.fv3)+'</span></div>'
+      +'<div class="expand-kv"><span class="expand-k">FV Avg</span><span class="expand-v" style="color:var(--accent)">'+fmt(inv.avg)+'</span></div>'
+      +(mosPct!==null?'<div class="expand-kv"><span class="expand-k">MoS</span><span class="expand-v" style="color:'+(mosPct>=0?'var(--green-t)':'var(--red-t)')+'">'+( mosPct>=0?'+':'')+mosPct.toFixed(1)+'%</span></div>':'')
+      +(inv.result==='miss'&&inv.missIndicator?'<div class="expand-kv"><span class="expand-k">Indikator Miss</span><span class="expand-v" style="color:var(--red-t)">'+escHtml(missLbl)+'</span></div>':'')
+      +'<div style="flex-basis:100%;margin-top:6px;display:flex;gap:8px">'
+        +'<button class="btn" style="flex:1;justify-content:center;font-size:12px" onclick="event.stopPropagation();openInvEditModal(\''+inv.id+'\')">✎ Edit Tanggal</button>'
+        +'<button class="btn" style="flex:1;justify-content:center;font-size:12px" onclick="event.stopPropagation();openSharePopup(\''+inv.id+'\')">↓ Simpan PNG</button>'
+      +'</div>'
+      +'</div>';
+    return '<tr class="inv-row" onclick="toggleInvExpand(event,\''+inv.id+'\')" data-inv-id="'+inv.id+'">'
+      +'<td><div class="inv-ticker">'+escHtml(inv.ticker)+'</div><div class="inv-quarter">'+escHtml(inv.quarter)+'</div></td>'
+      +'<td><span style="font-family:sans-serif;font-size:11px;color:var(--text3)">'+(inv.sector||'—')+'</span></td>'
+      +'<td class="col-tebakan"><span class="inv-badge '+teb+'">'+(teb==='bullish'?'🔼 Bullish':'🔽 Bearish')+'</span></td>'
+      +'<td><div class="inv-price-main">'+(hAwal?fmt(hAwal):'—')+'</div>'+(inv.tanggalAwal?'<div class="inv-date-sub">'+fmtDate(inv.tanggalAwal)+'</div>':'')+'</td>'
+      +'<td><div class="inv-price-main">'+(inv.hargaAkhir?fmt(inv.hargaAkhir):'—')+'</div>'+(inv.tanggalAkhir?'<div class="inv-date-sub">'+fmtDate(inv.tanggalAkhir)+'</div>':'')+'</td>'
+      +'<td style="font-family:sans-serif;font-size:12px">'+fmt(inv.fv1)+'</td>'
+      +'<td style="font-family:sans-serif;font-size:12px">'+fmt(inv.fv2)+'</td>'
+      +'<td style="font-family:sans-serif;font-size:12px">'+fmt(inv.fv3)+'</td>'
+      +'<td class="col-hasil"><span class="inv-badge '+inv.result+'">'+(inv.result==='hit'?'✓ Hit':'✗ Miss')+'</span></td>'
+      +'<td><div class="inv-duration">'+dur+'</div></td>'
+      +'<td>'+(inv.result==='miss'&&inv.missIndicator?'<span class="inv-miss-chip">'+escHtml(missLbl)+'</span>':'<span style="color:var(--text3);font-size:12px">—</span>')+'</td>'
+      +'<td onclick="event.stopPropagation()"><div style="display:flex;gap:5px">'
+        +'<button class="btn btn-restore" onclick="restoreFromInventory(\''+inv.id+'\')" style="padding:4px 8px;font-size:11px">↺ Restore</button>'
+        +'<button class="btn" onclick="deleteInventory(\''+inv.id+'\')" style="padding:4px 8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>'
+      +'</div></td>'
+      +'</tr>'
+      +'<tr class="inv-expand-row" id="inv-expand-'+inv.id+'" style="display:none"><td colspan="12">'+expandInner+'</td></tr>';
+  }).join('');
+}
+function toggleInvExpand(e,invId){
+  if(e.target.closest('button'))return;
+  const expandRow=document.getElementById('inv-expand-'+invId);const mainRow=e.currentTarget;if(!expandRow)return;
+  const isOpen=expandRow.style.display!=='none';
+  document.querySelectorAll('.inv-expand-row').forEach(r=>r.style.display='none');
+  document.querySelectorAll('.inv-row').forEach(r=>r.classList.remove('inv-row-open'));
+  if(!isOpen){expandRow.style.display='';mainRow.classList.add('inv-row-open');}
+}
+function restoreFromInventory(invId){
+  const inv=state.inventory.find(i=>i.id===invId);if(!inv)return;
+  if(!confirm('Pulihkan '+inv.ticker+' ke daftar aktif?'))return;
+  const em={id:uid(),ticker:inv.ticker,tebakan:inv.tebakan||'bullish',sector:inv.sector||'',createdAt:Date.now(),entries:inv.allEntries?inv.allEntries.map(e=>({...e})):[{id:uid(),quarter:inv.quarter,tanggalAwal:inv.tanggalAwal,price:inv.hargaAwal??0,bvps:null,pbv:null,ni:null,pe:null,shares:null,eps:null,notes:inv.notes||'',createdAt:Date.now()}]};
+  state.emitens.push(em);state.inventory=state.inventory.filter(i=>i.id!==invId);
+  save();renderInventory();updateStats();switchTab('active');showToast(inv.ticker+' dipulihkan.');
+}
+function deleteInventory(id){if(!confirm('Hapus item dari inventori?'))return;state.inventory=state.inventory.filter(i=>i.id!==id);save();renderInventory();updateStats();showToast('Item dihapus.');}
+function openInvEditModal(invId){const inv=state.inventory.find(i=>i.id===invId);if(!inv)return;document.getElementById('mie-inv-id').value=invId;document.getElementById('mie-quarter').value=inv.quarter||'';document.getElementById('mie-tgl-awal').value=inv.tanggalAwal||'';document.getElementById('mie-tgl-akhir').value=inv.tanggalAkhir||'';document.getElementById('mie-sector').value=inv.sector||'';document.getElementById('modal-inv-edit').classList.add('open');document.body.style.overflow='hidden';}
+function closeInvEditModal(){document.getElementById('modal-inv-edit').classList.remove('open');document.body.style.overflow='';}
+function saveInvEdit(){const invId=document.getElementById('mie-inv-id').value;const inv=state.inventory.find(i=>i.id===invId);if(!inv)return;inv.quarter=document.getElementById('mie-quarter').value.trim()||inv.quarter;inv.tanggalAwal=document.getElementById('mie-tgl-awal').value||inv.tanggalAwal;inv.tanggalAkhir=document.getElementById('mie-tgl-akhir').value||inv.tanggalAkhir;inv.sector=document.getElementById('mie-sector').value||inv.sector||'';save();renderInventory();updateStats();closeInvEditModal();showToast('Perubahan disimpan.');}
+
+// ============================================================
+// EXPORT CSV / PDF
+// ============================================================
+function exportCSV(){
+  if(!state.inventory.length){showToast('Inventori masih kosong.');return;}
+  const rows=[['Emiten','Sektor','Kuartal','Tebakan','Harga Awal','Tgl Awal','Harga Akhir','Tgl Akhir','FV1','FV2','FV3','FV Avg','Hasil','Durasi','Ind. Miss'],
+    ...getSortedInventory().map(i=>{const teb=i.tebakan||'bullish',hAwal=i.hargaAwal??i.price??'';return[i.ticker,i.sector||'',i.quarter,teb==='bullish'?'Bullish':'Bearish',hAwal||'',i.tanggalAwal?fmtDate(i.tanggalAwal):'',i.hargaAkhir?Math.round(i.hargaAkhir):'',i.tanggalAkhir?fmtDate(i.tanggalAkhir):'',i.fv1?Math.round(i.fv1):'',i.fv2?Math.round(i.fv2):'',i.fv3?Math.round(i.fv3):'',i.avg?Math.round(i.avg):'',i.result==='hit'?'Hit':'Miss',formatDuration(i.tanggalAwal,i.tanggalAkhir),i.result==='miss'?getMissLabel(i.missIndicator,teb):''];})];
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='stocktracker_inventori.csv';a.click();URL.revokeObjectURL(u);showToast('CSV berhasil diunduh.');
+}
+function exportPDF(){
+  if(!state.inventory.length){showToast('Inventori masih kosong.');return;}
+  const hits=state.inventory.filter(i=>i.result==='hit').length,misses=state.inventory.filter(i=>i.result==='miss').length,total=hits+misses,wr=total?Math.round(hits/total*100)+'%':'—';
+  const rows=getSortedInventory().map(i=>{const teb=i.tebakan||'bullish',hAwal=i.hargaAwal??i.price??null,dur=formatDuration(i.tanggalAwal,i.tanggalAkhir);return'<tr><td style="font-weight:700;font-family:Georgia,serif">'+escHtml(i.ticker)+'</td><td style="font-size:11px;color:#888">'+escHtml(i.sector||'—')+'</td><td style="font-size:11px;color:#888">'+escHtml(i.quarter)+'</td><td style="font-weight:600;color:'+(teb==='bullish'?'#16a34a':'#dc2626')+'">'+( teb==='bullish'?'Bullish':'Bearish')+'</td><td>'+(hAwal?'Rp '+Math.round(hAwal).toLocaleString('id-ID'):'—')+'</td><td>'+(i.hargaAkhir?'Rp '+Math.round(i.hargaAkhir).toLocaleString('id-ID'):'—')+'</td><td>'+(i.fv1?'Rp '+Math.round(i.fv1).toLocaleString('id-ID'):'—')+'</td><td>'+(i.fv2?'Rp '+Math.round(i.fv2).toLocaleString('id-ID'):'—')+'</td><td>'+(i.fv3?'Rp '+Math.round(i.fv3).toLocaleString('id-ID'):'—')+'</td><td style="font-weight:700;color:'+(i.result==='hit'?'#16a34a':'#dc2626')+'">'+(i.result==='hit'?'✓ Hit':'✗ Miss')+'</td><td>'+dur+'</td></tr>';}).join('');
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>StockTracker</title><style>body{font-family:Georgia,serif;padding:32px;color:#1c1917;font-size:12px}h1{font-size:22px;font-weight:700;margin-bottom:4px}.sub{color:#888;font-family:sans-serif;font-size:12px;margin-bottom:24px}.stats{display:flex;gap:20px;margin-bottom:24px;font-family:sans-serif}.sc{background:#f5f4f1;border-radius:8px;padding:10px 16px;text-align:center}.sn{font-size:22px;font-weight:700;font-family:Georgia,serif}.sl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.5px}table{width:100%;border-collapse:collapse;font-family:sans-serif;font-size:11px}th{text-align:left;padding:7px 9px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#888;border-bottom:1.5px solid #e7e5e0;background:#f5f4f1}td{padding:9px;border-bottom:1px solid #e7e5e0;vertical-align:top}.footer{margin-top:32px;font-family:sans-serif;font-size:11px;color:#bbb;text-align:center}</style></head><body><h1>StockTracker — Inventori</h1><div class="sub">Dicetak '+new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</div><div class="stats"><div class="sc"><div class="sn" style="color:#d97706">'+state.inventory.length+'</div><div class="sl">Total</div></div><div class="sc"><div class="sn" style="color:#16a34a">'+hits+'</div><div class="sl">Hit</div></div><div class="sc"><div class="sn" style="color:#dc2626">'+misses+'</div><div class="sl">Miss</div></div><div class="sc"><div class="sn">'+wr+'</div><div class="sl">Win rate</div></div></div><table><thead><tr><th>Emiten</th><th>Sektor</th><th>Kuartal</th><th>Tebakan</th><th>Harga Awal</th><th>Harga Akhir</th><th>FV1</th><th>FV2</th><th>FV3</th><th>Hasil</th><th>Durasi</th></tr></thead><tbody>'+rows+'</tbody></table><div class="footer">StockTracker · Data lokal</div></body></html>';
+  const w=window.open('','_blank');w.document.write(html);w.document.close();w.onload=()=>w.print();showToast('Halaman print dibuka.');
+}
+
+// ============================================================
+// SHARE / SNAPSHOT
+// ============================================================
+function _rrect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
+function openSharePopup(invId){const inv=state.inventory.find(i=>i.id===invId);if(!inv)return;const canvas=document.getElementById('share-canvas');canvas.dataset.ticker=inv.ticker;document.querySelector('#share-modal h2').textContent='Bagikan Hasil';document.querySelector('#share-modal .modal-sub').textContent='Preview kartu hasil prediksi.';document.getElementById('share-modal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>drawShareCard(canvas,inv),60);}
+function closeShareModal(){document.getElementById('share-modal').classList.remove('open');document.body.style.overflow='';}
+function downloadShareImage(){const canvas=document.getElementById('share-canvas');const ticker=canvas.dataset.ticker||'stocktracker';const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=ticker+'_share.png';a.click();showToast('Gambar berhasil diunduh.');}
+function drawShareCard(canvas,inv){
+  const W=600,H=340,dpr=Math.min(window.devicePixelRatio||1,2);
+  canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width='100%';canvas.style.height='auto';
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const teb=inv.tebakan||'bullish',isBullish=teb==='bullish',isHit=inv.result==='hit';
+  const hAwal=inv.hargaAwal??inv.price??null;const accentCol=isHit?'#22c55e':'#ef4444';
+  const returnPct=(hAwal&&inv.hargaAkhir)?(isBullish?(inv.hargaAkhir-hAwal)/hAwal*100:(hAwal-inv.hargaAkhir)/hAwal*100):null;
+  const returnPositive=returnPct!==null?returnPct>=0:isHit;const returnCol=returnPositive?'#22c55e':'#ef4444';
+  const bgGrad=ctx.createLinearGradient(0,0,W,H);bgGrad.addColorStop(0,'#1c1917');bgGrad.addColorStop(1,'#2c2826');
+  ctx.fillStyle=bgGrad;ctx.fillRect(0,0,W,H);
+  const barGrad=ctx.createLinearGradient(0,0,0,H);barGrad.addColorStop(0,accentCol);barGrad.addColorStop(1,accentCol+'66');
+  ctx.fillStyle=barGrad;ctx.fillRect(0,0,5,H);
+  ctx.font='600 11px sans-serif';ctx.fillStyle='#57534e';ctx.fillText('STOCKTRACKER',22,26);
+  const badgeTxt=isHit?'✓ HIT':'✗ MISS';ctx.font='bold 11px sans-serif';const bW=ctx.measureText(badgeTxt).width+18;
+  ctx.fillStyle=isHit?'rgba(22,163,74,0.15)':'rgba(220,38,38,0.15)';_rrect(ctx,W-bW-16,12,bW,22,5);ctx.fill();
+  ctx.strokeStyle=accentCol+'66';ctx.lineWidth=1;_rrect(ctx,W-bW-16,12,bW,22,5);ctx.stroke();
+  ctx.fillStyle=accentCol;ctx.fillText(badgeTxt,W-bW-7,27);
+  ctx.font='bold 56px Georgia,serif';ctx.fillStyle='#fafaf9';ctx.fillText(inv.ticker,22,92);
+  if(inv.sector){ctx.font='12px sans-serif';ctx.fillStyle='#57534e';ctx.fillText(inv.sector,22,110);}
+  ctx.font='13px sans-serif';ctx.fillStyle='#a8a29e';ctx.fillText((isBullish?'▲ Bullish':'▼ Bearish')+'   ·   '+(inv.quarter||''),22,inv.sector?128:114);
+  ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(22,140);ctx.lineTo(W-22,140);ctx.stroke();
+  if(returnPct!==null){const sign=returnPct>=0?'+':'';ctx.font='bold 68px Georgia,serif';ctx.fillStyle=returnCol;ctx.fillText(sign+returnPct.toFixed(1)+'%',22,222);ctx.font='11px sans-serif';ctx.fillStyle='#57534e';ctx.fillText('return',24,240);}
+  ctx.textAlign='right';const rx=W-24;
+  if(hAwal){ctx.font='9px sans-serif';ctx.fillStyle='#57534e';ctx.fillText('HARGA AWAL',rx,158);ctx.font='bold 18px Georgia,serif';ctx.fillStyle='#d6d3cc';ctx.fillText('Rp '+Math.round(hAwal).toLocaleString('id-ID'),rx,178);}
+  if(inv.hargaAkhir){ctx.font='9px sans-serif';ctx.fillStyle='#57534e';ctx.fillText('HARGA AKHIR',rx,208);ctx.font='bold 18px Georgia,serif';ctx.fillStyle='#fafaf9';ctx.fillText('Rp '+Math.round(inv.hargaAkhir).toLocaleString('id-ID'),rx,228);}
+  ctx.textAlign='left';
+  const tglAwal=inv.tanggalAwal?fmtDate(inv.tanggalAwal):'?',tglAkhir=inv.tanggalAkhir?fmtDate(inv.tanggalAkhir):'?',dur=formatDuration(inv.tanggalAwal,inv.tanggalAkhir);
+  ctx.font='12px sans-serif';ctx.fillStyle='#78716c';ctx.fillText(tglAwal+'  →  '+tglAkhir+'     ·     '+dur,24,278);
+  ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.beginPath();ctx.moveTo(22,292);ctx.lineTo(W-22,292);ctx.stroke();
+  ctx.font='10px sans-serif';ctx.fillStyle='#3d3835';ctx.fillText('Prediksi saham pribadi — bukan rekomendasi investasi',24,315);
+  if(inv.avg){ctx.textAlign='right';ctx.fillStyle='#3d3835';ctx.fillText('FV Avg: '+fmt(inv.avg),W-24,315);ctx.textAlign='left';}
+}
+function openActiveSharePopup(emitenId){const em=state.emitens.find(e=>e.id===emitenId);if(!em)return;const canvas=document.getElementById('share-canvas');canvas.dataset.ticker=em.ticker;document.querySelector('#share-modal h2').textContent='Simpan Snapshot';document.querySelector('#share-modal .modal-sub').textContent='Snapshot valuasi '+em.ticker;document.getElementById('share-modal').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>drawActiveCard(canvas,em),60);}
+function drawActiveCard(canvas,em){
+  const cs=getComputedStyle(document.documentElement);const v=n=>cs.getPropertyValue(n).trim();
+  const c={surface:v('--surface'),bg2:v('--bg2'),border:v('--border'),text:v('--text'),text2:v('--text2'),text3:v('--text3'),accent:v('--accent'),green:v('--green'),greenBg:v('--green-bg'),greenT:v('--green-t'),red:v('--red'),redBg:v('--red-bg'),redT:v('--red-t')};
+  const last=em.entries[em.entries.length-1];const {fv1,fv2,fv3,avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
+  const teb=em.tebakan||'bullish',iBull=teb==='bullish',px=last.price||null;
+  const isUnder=avg&&px&&px<avg,isOver=avg&&px&&px>=avg;const mosPct=(avg&&px)?(avg-px)/px*100:null;
+  const leftBar=isUnder?c.green:isOver?c.red:c.accent;
+  const fmtRp=n=>n?'Rp '+Math.round(n).toLocaleString('id-ID'):'—';
+  const discPct=fv=>(fv&&px)?(fv-px)/px*100:null;
+  const nd=last.notes?parseNotes(last.notes):null;const hasNotes=nd&&(nd.plus.length||nd.minus.length||nd.general);const hasProgress=!!(avg&&px);
+  const P=16,W=320,dpr=Math.min(window.devicePixelRatio||1,2);
+  const _tmp=document.createElement('canvas').getContext('2d');
+  const wrap=(text,maxW,font)=>{_tmp.font=font;let lines=[],cur='';text.split(' ').forEach(w=>{const t=cur?cur+' '+w:w;if(_tmp.measureText(t).width>maxW&&cur){lines.push(cur);cur=w;}else cur=t;});if(cur)lines.push(cur);return lines;};
+  const trunc=(ctx,text,maxW)=>{if(ctx.measureText(text).width<=maxW)return text;let t=text;while(ctx.measureText(t+'…').width>maxW&&t.length)t=t.slice(0,-1);return t+'…';};
+  const ROW=28,GAP=10;let H=P;H+=26;H+=5;H+=20;H+=GAP;H+=18;H+=12;H+=28;H+=8;H+=ROW*3;if(mosPct!==null)H+=ROW;H+=GAP;if(hasProgress){H+=34;H+=GAP;}
+  const colW=(W-2*P-8)/2-4;const NOTE_LINE_H=16;let notesH=0;
+  if(hasNotes){const hasGrid=nd.plus.length||nd.minus.length;if(hasGrid){const pL=nd.plus.reduce((s,it)=>s+wrap(it,colW-18,'11px sans-serif').length,0);const mL=nd.minus.reduce((s,it)=>s+wrap(it,colW-18,'11px sans-serif').length,0);notesH+=8+14+Math.max(pL,mL)*NOTE_LINE_H+8;}if(nd.general){const ls=wrap(nd.general,W-2*P-20,'12px sans-serif');notesH+=(hasGrid?8:0)+ls.length*18+16;}if(notesH>0)H+=notesH+GAP;}H+=P;
+  canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const rr=(x,y,w,h,r)=>{ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();};
+  const cardShape=()=>{const R=10;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W-R,0);ctx.arcTo(W,0,W,R,R);ctx.lineTo(W,H-R);ctx.arcTo(W,H,W-R,H,R);ctx.lineTo(0,H);ctx.closePath();};
+  ctx.fillStyle=c.surface;cardShape();ctx.fill();ctx.strokeStyle=c.border;ctx.lineWidth=1;cardShape();ctx.stroke();ctx.fillStyle=leftBar;ctx.fillRect(0,0,3,H);
+  let y=P;
+  ctx.font='bold 20px Georgia,serif';ctx.fillStyle=c.text;ctx.fillText(em.ticker,P,y+20);
+  const bLbl=isUnder?'Undervalue':isOver?'Overvalue':'Belum terhitung';const bBg=isUnder?c.greenBg:isOver?c.redBg:c.bg2;const bFg=isUnder?c.greenT:isOver?c.redT:c.text3;
+  ctx.font='600 11px sans-serif';const bW=ctx.measureText(bLbl).width+20,bH=24,bX=W-P-bW;
+  ctx.fillStyle=bBg;rr(bX,y,bW,bH,12);ctx.fill();ctx.fillStyle=bFg;ctx.fillText(bLbl,bX+10,y+16);y+=26+5;
+  const tLbl=iBull?'▲ Bullish':'▼ Bearish';const tBg=iBull?c.greenBg:c.redBg,tFg=iBull?c.greenT:c.redT;
+  ctx.font='600 11px sans-serif';const tW=ctx.measureText(tLbl).width+16;ctx.fillStyle=tBg;rr(P,y,tW,20,10);ctx.fill();ctx.fillStyle=tFg;ctx.fillText(tLbl,P+8,y+14);y+=20+GAP;
+  ctx.font='11px sans-serif';ctx.fillStyle=c.text3;const metaParts=[last.quarter,em.sector,em.entries.length+' entry',...(last.tanggalAwal?[fmtDate(last.tanggalAwal)]:[])].filter(Boolean);ctx.fillText(metaParts.join('   ·   '),P,y+13);y+=18+12;
+  ctx.font='11px sans-serif';ctx.fillStyle=c.text3;ctx.fillText('Harga',P,y+22);const lblW=ctx.measureText('Harga').width+8;ctx.font='bold 22px Georgia,serif';ctx.fillStyle=c.text;ctx.fillText(fmtRp(px),P+lblW,y+22);y+=28+8;
+  const fvRows=[{label:'FV1 — BVPS × PBV',val:fv1},{label:'FV2 — (NI × PE) ÷ Saham',val:fv2},{label:'FV3 — PE × EPS',val:fv3}];
+  if(mosPct!==null)fvRows.push({label:'Margin of Safety',val:null,mos:true});
+  const MAX_LABEL=W-2*P-96;
+  fvRows.forEach((row,i)=>{
+    const isLastRow=i===fvRows.length-1;if(!isLastRow){ctx.strokeStyle=c.border;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(P,y+ROW);ctx.lineTo(W-P,y+ROW);ctx.stroke();}
+    ctx.font=(row.mos?'600 ':'')+'12px sans-serif';ctx.fillStyle=row.mos?c.text2:c.text3;ctx.fillText(trunc(ctx,row.label,MAX_LABEL),P,y+19);
+    if(row.mos){const mosCol=mosPct>=0?c.greenT:c.redT;const mosStr=(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%';ctx.font='600 13px sans-serif';ctx.fillStyle=mosCol;ctx.textAlign='right';ctx.fillText(mosStr,W-P,y+19);ctx.textAlign='left';}
+    else{const dp=discPct(row.val);if(row.val&&dp!==null){const sign=dp>=0?'+':'';const pillTxt=sign+dp.toFixed(1)+'%';const pFg=dp>=0?c.greenT:c.redT,pBg=dp>=0?c.greenBg:c.redBg;ctx.font='600 10px sans-serif';const pW=ctx.measureText(pillTxt).width+12,pH=16,pX=W-P-pW;ctx.fillStyle=pBg;rr(pX,y+6,pW,pH,8);ctx.fill();ctx.fillStyle=pFg;ctx.fillText(pillTxt,pX+6,y+18);ctx.font='600 12px sans-serif';ctx.fillStyle=c.text;ctx.textAlign='right';ctx.fillText(fmtRp(row.val),pX-6,y+19);ctx.textAlign='left';}else{ctx.font='600 12px sans-serif';ctx.fillStyle=row.val?c.text:c.text3;ctx.textAlign='right';ctx.fillText(fmtRp(row.val),W-P,y+19);ctx.textAlign='left';}}
+    y+=ROW;
+  });
+  y+=GAP;
+  if(hasProgress){const pct=Math.min(100,Math.round(px/avg*100));const pColor=isUnder?c.green:c.red;ctx.font='10px sans-serif';ctx.fillStyle=c.text3;ctx.fillText('Harga vs FV avg ('+fmtRp(avg)+')',P,y+10);ctx.textAlign='right';ctx.fillText(pct+'%',W-P,y+10);ctx.textAlign='left';const bY=y+14,bH=4,bW2=W-2*P;ctx.fillStyle=c.bg2;rr(P,bY,bW2,bH,2);ctx.fill();ctx.fillStyle=pColor;rr(P,bY,Math.max(bW2*(pct/100),0),bH,2);ctx.fill();y+=34+GAP;}
+}
+
+// ============================================================
+// ============================================================
+// MARKDOWN + MATH HELPERS
+// ============================================================
+// Configure marked: no pedantic, smart breaks
+(function() {
+  if (window.marked) {
+    marked.setOptions({ breaks: true, gfm: true, pedantic: false });
+  }
+})();
+
+// Full markdown render (chatbot — block elements allowed)
+function renderMdFull(text) {
+  if (!text) return '';
+  if (!window.marked) return escHtml(text).replace(/\n/g, '<br>');
+  return marked.parse(String(text));
+}
+
+// Inline markdown render (AI summary — no wrapping <p> tags)
+function renderMdInline(text) {
+  if (!text) return '';
+  if (!window.marked) return escHtml(text);
+  // Use marked then strip outer <p> wrapper for inline usage
+  let html = marked.parse(String(text));
+  html = html.replace(/^<p>(.*)<\/p>\n?$/s, '$1');
+  return html;
+}
+
+// After inserting HTML, render math with KaTeX if available
+function renderMath(el) {
+  if (!window.renderMathInElement || !el) return;
+  try {
+    renderMathInElement(el, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '$',  right: '$',  display: false },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ],
+      throwOnError: false
+    });
+  } catch(e) {}
+}
+
+// AI PANEL
+// ============================================================
+let aiCurrentEmitenId=null;let aiCache={};const AI_CACHE_MS=10*60*1000;
+function renderAiList(){
+  const list=document.getElementById('ai-emiten-list');if(!list)return;
+  if(!state.emitens.length){list.innerHTML='<div class="ai-empty-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28" style="color:var(--text3)"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Belum ada emiten aktif</span></div>';return;}
+  const sorted=[...state.emitens].sort((a,b)=>a.ticker.localeCompare(b.ticker));
+  list.innerHTML=sorted.map(em=>{
+    const last=em.entries[em.entries.length-1];const {avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
+    const teb=em.tebakan||'bullish';const isCached=aiCache[em.id]&&(Date.now()-aiCache[em.id].timestamp<AI_CACHE_MS);
+    const mosPct=(avg&&last.price)?((avg-last.price)/last.price*100):null;const mosStr=mosPct!==null?(mosPct>=0?'+':'')+mosPct.toFixed(1)+'% MoS':'';
+    return`<div class="ai-emiten-item" id="ai-item-${em.id}">
+      <div class="ai-emiten-left">
+        <span class="ai-emiten-ticker">${escHtml(em.ticker)}</span>
+        <span class="ai-emiten-meta">${escHtml(last.quarter)}${em.sector?' · '+em.sector:''}${mosStr?' · '+mosStr:''}</span>
+      </div>
+      <div class="ai-emiten-right">
+        ${isCached?'<span class="ai-cached-badge">cached</span>':''}
+        <button class="ai-gen-btn" onclick="aiAnalyze('${em.id}',event)" id="aibtn-${em.id}">${isCached?'Lihat':'✦ Analisis'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function aiBack(){document.getElementById('ai-result-wrap').style.display='none';document.getElementById('ai-emiten-list').style.display='';aiCurrentEmitenId=null;document.querySelectorAll('.ai-emiten-item').forEach(el=>el.classList.remove('active'));}
+function aiRefresh(){if(!aiCurrentEmitenId)return;delete aiCache[aiCurrentEmitenId];renderAiList();aiAnalyze(aiCurrentEmitenId);}
+async function aiAnalyze(emitenId,e){
+  if(e)e.stopPropagation();const em=state.emitens.find(x=>x.id===emitenId);if(!em)return;
+  aiCurrentEmitenId=emitenId;
+  document.getElementById('ai-emiten-list').style.display='none';const resultWrap=document.getElementById('ai-result-wrap');resultWrap.style.display='flex';resultWrap.style.flexDirection='column';resultWrap.style.flex='1';resultWrap.style.overflow='hidden';
+  document.getElementById('ai-result-ticker').textContent=em.ticker;
+  document.querySelectorAll('.ai-emiten-item').forEach(el=>el.classList.remove('active'));const itemEl=document.getElementById('ai-item-'+emitenId);if(itemEl)itemEl.classList.add('active');
+  if(aiCache[emitenId]&&(Date.now()-aiCache[emitenId].timestamp<AI_CACHE_MS)){showAiContent(aiCache[emitenId].html);return;}
+  document.getElementById('ai-loading').style.display='flex';document.getElementById('ai-content').style.display='none';document.getElementById('ai-refresh-btn').disabled=true;
+  const last=em.entries[em.entries.length-1];const {fv1,fv2,fv3,avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
+  const mosPct=(avg&&last.price)?((avg-last.price)/last.price*100):null;const nd=last.notes?parseNotes(last.notes):null;
+  const fmtNum=n=>n?Math.round(n).toLocaleString('id-ID'):'N/A';const prompt=`Kamu adalah analis saham IDX. Analisis emiten berikut.\n\nDATA:\n- Ticker: ${em.ticker}\n- Sektor: ${em.sector||'N/A'}\n- Tebakan: ${(em.tebakan||'bullish').toUpperCase()}\n- Kuartal: ${last.quarter}\n- Harga: Rp ${last.price?Math.round(last.price):'N/A'}\n- BVPS: ${last.bvps||'N/A'}, PBV: ${last.pbv||'N/A'}x, EPS: ${last.eps||'N/A'}, PE: ${last.pe||'N/A'}x, NI: ${last.ni||'N/A'}T, Saham: ${last.shares||'N/A'}M\n\nFV1: ${fv1?'Rp '+Math.round(fv1):'N/A'}, FV2: ${fv2?'Rp '+Math.round(fv2):'N/A'}, FV3: ${fv3?'Rp '+Math.round(fv3):'N/A'}, FV Avg: ${avg?'Rp '+Math.round(avg):'N/A'}, MoS: ${mosPct!==null?(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%':'N/A'}\n\nCatatan Positif: ${nd&&nd.plus.length?nd.plus.join('; '):'tidak ada'}\nRisiko: ${nd&&nd.minus.length?nd.minus.join('; '):'tidak ada'}\n\nPENTING: Tulis angka harga sebagai integer tanpa pemisah (contoh: 3000, bukan 3.000 atau 3,000).\nBalas HANYA JSON tanpa markdown:\n{"verdict":{"label":"BULLISH"|"BEARISH"|"NETRAL","summary":"1-2 kalimat"},"valuation":{"interpretation":"2-3 kalimat tentang FV1/FV2/FV3","mos_interpretation":"1-2 kalimat MoS"},"fundamentals":{"analysis":"2-3 kalimat"},"price_action":{"bullish_scenario":"skenario dan target","bearish_scenario":"risiko downside","key_levels":"level kunci"},"risks":"2-3 risiko","watchlist":["3-4 hal yang dipantau"]}`;
+  let parsed;
+  try{
+    const apiKey=localStorage.getItem('nw_groq_key')||'';if(!apiKey)throw new Error('Groq API key belum disimpan.');
+    const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:'openai/gpt-oss-120b',max_tokens:1400,temperature:0.4,messages:[{role:'user',content:prompt}]})});
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.error?.message||'API error '+resp.status);}
+    const data=await resp.json();const raw=data.choices?.[0]?.message?.content||'';if(!raw)throw new Error('Respons kosong.');
+    try{const clean=raw.replace(/^```[\w]*\n?/,'').replace(/\n?```$/,'').trim();parsed=JSON.parse(clean);}catch{throw new Error('Format respons tidak valid.');}
+    const html=renderAiHtml(parsed,em,{fv1,fv2,fv3,avg,mosPct});aiCache[emitenId]={html,timestamp:Date.now()};renderAiList();showAiContent(html);
+  }catch(err){showAiError(err.message);}finally{document.getElementById('ai-refresh-btn').disabled=false;}
+}
+function showAiContent(html){document.getElementById('ai-loading').style.display='none';const c=document.getElementById('ai-content');c.innerHTML=html;c.style.display='block';renderMath(c);}
+function showAiError(msg){document.getElementById('ai-loading').style.display='none';const c=document.getElementById('ai-content');c.style.display='block';c.innerHTML=`<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:8px;padding:12px 14px;font-family:sans-serif;font-size:12px;color:var(--red-t);line-height:1.6"><strong>Gagal:</strong> ${escHtml(msg)}</div>`;}
+function initApiKeyBanner(){
+  const key=localStorage.getItem('nw_groq_key')||'';const banner=document.getElementById('ai-key-banner');const statusEl=document.getElementById('ai-key-status-row');const inputRow=document.getElementById('ai-key-input-row');const input=document.getElementById('ai-key-input');if(!banner)return;
+  if(key){statusEl.className='ai-key-status ok';statusEl.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg><span>Groq API key tersimpan &nbsp;·&nbsp; <button onclick="clearApiKey()" style="background:none;border:none;color:var(--red-t);font-size:10px;cursor:pointer;padding:0;font-family:sans-serif">Hapus</button></span>`;inputRow.style.display='none';setTimeout(()=>{if(banner)banner.style.display='none';},2000);}
+  else{statusEl.className='ai-key-status missing';statusEl.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Groq API key belum disimpan</span>`;inputRow.style.display='flex';if(input)input.value='';}
+}
+function saveApiKey(){const input=document.getElementById('ai-key-input');const val=(input?.value||'').trim();if(!val){showToast('Masukkan API key.');return;}if(!val.startsWith('gsk_')){showToast('Format key tidak valid (harus diawali gsk_)');return;}localStorage.setItem('nw_groq_key',val);showToast('Groq API key disimpan.');initApiKeyBanner();}
+function clearApiKey(){localStorage.removeItem('nw_groq_key');const banner=document.getElementById('ai-key-banner');if(banner)banner.style.display='';initApiKeyBanner();showToast('API key dihapus.');}
+function renderAiHtml(d,em,fv){
+  const verdictClass=d.verdict.label==='BULLISH'?'bull':d.verdict.label==='BEARISH'?'bear':'neutral';
+  const fmtRp=n=>n?'Rp '+Math.round(n).toLocaleString('id-ID'):'—';const mosCls=fv.mosPct>=20?'green':fv.mosPct>=0?'accent':'red';
+  const html = `<div class="ai-verdict ${verdictClass}"><span class="ai-verdict-label">${d.verdict.label==='BULLISH'?'▲ ':'▼ '}${d.verdict.label}</span>${renderMdInline(d.verdict.summary)}</div>
+  <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>Valuasi</div>
+  <div style="margin-bottom:10px"><div class="ai-metric-row"><span class="ai-metric-label">FV1</span><span class="ai-metric-val">${fmtRp(fv.fv1)}</span></div><div class="ai-metric-row"><span class="ai-metric-label">FV2</span><span class="ai-metric-val">${fmtRp(fv.fv2)}</span></div><div class="ai-metric-row"><span class="ai-metric-label">FV3</span><span class="ai-metric-val">${fmtRp(fv.fv3)}</span></div><div class="ai-metric-row" style="border-top:1.5px solid var(--border);margin-top:4px;padding-top:8px"><span class="ai-metric-label" style="font-weight:600">FV Avg</span><span class="ai-metric-val accent">${fmtRp(fv.avg)}</span></div>${fv.mosPct!==null?`<div class="ai-metric-row"><span class="ai-metric-label">MoS</span><span class="ai-metric-val ${mosCls}">${fv.mosPct>=0?'+':''}${fv.mosPct.toFixed(1)}%</span></div>`:''}</div>
+  <div class="ai-prose">${renderMdInline(d.valuation.interpretation)}<br>${renderMdInline(d.valuation.mos_interpretation)}</div></div>
+  <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>Fundamental</div><div class="ai-prose">${renderMdInline(d.fundamentals.analysis)}</div></div>
+  <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Price Action</div>
+  <div class="ai-scenario bull"><div class="ai-scenario-label">▲ Bullish</div>${renderMdInline(d.price_action.bullish_scenario)}</div>
+  <div class="ai-scenario bear"><div class="ai-scenario-label">▼ Bearish</div>${renderMdInline(d.price_action.bearish_scenario)}</div>
+  <div style="background:var(--bg2);border-radius:6px;padding:9px 11px;font-family:sans-serif;font-size:12px;color:var(--text2);margin-top:6px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);margin-bottom:5px">Key Levels</div>${renderMdInline(d.price_action.key_levels)}</div></div>
+  <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>Risiko</div><div class="ai-prose">${renderMdInline(d.risks)}</div></div>
+  <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Watchlist</div>
+  <div style="display:flex;flex-wrap:wrap;gap:4px">${(d.watchlist||[]).map((w,i)=>`<span class="ai-tag ${i%3===0?'accent':i%3===1?'green':'red'}">${escHtml(w)}</span>`).join('')}</div></div>`;
+  // Render math after building HTML (will be applied when inserted into DOM via showAiContent)
+  return html;
+}
+
+// Patch renderCards and updateStats
+const _origRenderCards=renderCards;
+renderCards=function(){_origRenderCards();renderAiList();};
+const _origUpdateStats=updateStats;
+updateStats=function(){_origUpdateStats();renderAiList();};
+
+// ============================================================
+// MODAL CLOSE HANDLERS
+// ============================================================
+['modal-add','modal-quarter','modal-close-hit','modal-close-miss'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){
+    if(e.target!==this)return;
+    if(id==='modal-add')closeModal();
+    if(id==='modal-quarter')closeQuarterModal();
+    if(id==='modal-close-hit')closeHitModal();
+    if(id==='modal-close-miss')closeMissModal();
+  });
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeModal();closeQuarterModal();closeHitModal();closeMissModal();closeCardPopup();closeShareModal();}
+});
+
+// ============================================================
+// MOS TOOLTIP
+// ============================================================
+const mosTooltip=document.getElementById('mos-tooltip');let mosOpen=false;
+function toggleMosTooltip(e,btn){e.stopPropagation();if(mosOpen){hideMosTooltip();return;}const rect=btn.getBoundingClientRect();const tip=mosTooltip;tip.classList.add('visible');mosOpen=true;tip.style.top=(rect.top+window.scrollY-4)+'px';tip.style.left=(rect.right+8)+'px';const tipRect=tip.getBoundingClientRect();if(tipRect.right>window.innerWidth-12)tip.style.left=(rect.left-tipRect.width-8)+'px';if(tipRect.bottom>window.innerHeight-12)tip.style.top=(rect.bottom+window.scrollY-tipRect.height)+'px';}
+function hideMosTooltip(){mosTooltip.classList.remove('visible');mosOpen=false;}
+document.addEventListener('click',function(e){if(!mosTooltip.contains(e.target)&&mosOpen)hideMosTooltip();});
+
+// ============================================================
+// LIVE TICKER
+// ============================================================
+const GOAPI_KEY='7ffe102e-e7b8-5899-a706-1fab523a';
+const TICKER_LS_KEY='goapi_ticker_v1',TICKER_QUOTA_KEY='goapi_quota_v1';
+const TICKER_MAX_AGE=6*60*60*1000,TICKER_MAX_DAY=30,TICKER_AUTO_MS=(24*60*60*1000)/TICKER_MAX_DAY;
+function getQuota(){try{const q=JSON.parse(localStorage.getItem(TICKER_QUOTA_KEY)||'null');const today=new Date().toISOString().slice(0,10);if(!q||q.date!==today)return{date:today,count:0};return q;}catch(e){return{date:new Date().toISOString().slice(0,10),count:0};}}
+function bumpQuota(){const q=getQuota();q.count++;try{localStorage.setItem(TICKER_QUOTA_KEY,JSON.stringify(q));}catch(e){}updateQuotaBadge();}
+function updateQuotaBadge(){const el=document.getElementById('ticker-quota');if(!el)return;const q=getQuota();el.textContent=q.count+'/'+TICKER_MAX_DAY;el.style.color=q.count>=TICKER_MAX_DAY?'var(--red-t)':'var(--text3)';}
+function canRefresh(){return getQuota().count<TICKER_MAX_DAY;}
+function fmtTickerPrice(n){if(!n&&n!==0)return '—';return 'Rp '+Math.round(n).toLocaleString('id-ID');}
+async function fetchAllPrices(symbols){const url='https://api.goapi.io/stock/idx/prices?symbols='+encodeURIComponent(symbols.join(','));try{const res=await fetch(url,{headers:{'x-api-key':GOAPI_KEY}});if(!res.ok)return null;const json=await res.json();return json?.data?.results??null;}catch(e){return null;}}
+function renderTickerBar(items){
+  const track=document.getElementById('ticker-track'),loading=document.getElementById('ticker-loading');if(!track||!loading)return;
+  const valid=items.filter(i=>i&&i.price!=null);
+  if(valid.length===0){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Belum ada data harga tersedia</span>';track.style.display='none';return;}
+  // Store live prices globally
+  window.livePriceMap={};valid.forEach(i=>{window.livePriceMap[i.symbol.toUpperCase()]=i;});
+  // Update prices on existing cards
+  updateCardLivePrices();
+  const makeItems=()=>valid.map(item=>{const pct=item.pct;const chgCls=pct>0?'up':pct<0?'dn':'flat';const arrow=pct>0?'▲':pct<0?'▼':'—';const pctStr=pct!=null?(pct>0?'+':'')+pct.toFixed(2)+'%':'';return'<div class="ticker-item" onclick="highlightCardByTicker(\''+item.symbol+'\')"><span class="ticker-sym">'+item.symbol+'</span><span class="ticker-price">'+fmtTickerPrice(item.price)+'</span>'+(pctStr?'<span class="ticker-chg '+chgCls+'">'+arrow+' '+pctStr+'</span>':'')+'</div>';}).join('');
+  track.innerHTML=makeItems()+makeItems();track.style.display='inline-flex';track.style.animationDuration=Math.max(20,valid.length*6)+'s';loading.style.display='none';
+}
+function updateCardLivePrices(){
+  if(!window.livePriceMap||!state.emitens)return;
+  state.emitens.forEach(em=>{
+    const live=window.livePriceMap[em.ticker.toUpperCase()];
+    if(!live)return;
+    const card=document.getElementById('card-'+em.id);
+    if(!card)return;
+    const priceEl=card.querySelector('.live-price-val');
+    if(!priceEl)return;
+    const basePrice=parseFloat(priceEl.getAttribute('data-base-price'))||0;
+    const livePrice=live.price;
+    const pct=basePrice>0?((livePrice-basePrice)/basePrice*100):null;
+    const chgColor=pct===null?'var(--text3)':pct>0?'var(--green)':pct<0?'var(--red)':'var(--text3)';
+    const arrow=pct===null?'':pct>0?'▲':pct<0?'▼':'';
+    const pctStr=pct!==null?(pct>0?'+':'')+pct.toFixed(2)+'%':'';
+    const prevText=priceEl.textContent;
+    const newText='Rp '+Math.round(livePrice).toLocaleString('id-ID');
+    priceEl.innerHTML='<span style="color:var(--text)">Rp '+Math.round(livePrice).toLocaleString('id-ID')+'</span>'
+      +(pctStr?'<span style="font-size:11px;font-family:sans-serif;margin-left:6px;font-weight:600;color:'+chgColor+'">'+arrow+' '+pctStr+'</span>':'');
+    // Pulse on change
+    if(prevText&&!prevText.includes(newText.replace('Rp ',''))){
+      priceEl.classList.remove('price-pulse-up','price-pulse-down');
+      void priceEl.offsetWidth;
+      priceEl.classList.add(pct>=0?'price-pulse-up':'price-pulse-down');
+    }
+  });
+}
+function highlightCardByTicker(sym){
+  // Switch to Prediksi Aktif tab if not already
+  const predTab=document.querySelector('.tab-btn[onclick*="active"]')||document.querySelector('.tab-btn');
+  document.querySelectorAll('.emiten-card').forEach(c=>c.classList.remove('card-highlight'));
+  const em=state.emitens.find(e=>e.ticker.toUpperCase()===sym.toUpperCase());
+  if(!em)return;
+  const card=document.getElementById('card-'+em.id);
+  if(!card){
+    // Try switching tab first
+    const tabs=document.querySelectorAll('.tab-btn');
+    tabs.forEach(t=>{if(t.textContent.includes('Aktif')||t.textContent.includes('Prediksi'))t.click();});
+    setTimeout(()=>highlightCardByTicker(sym),150);
+    return;
+  }
+  card.classList.add('card-highlight');
+  card.scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(()=>card.classList.remove('card-highlight'),2500);
+}
+async function initTicker(forceRefresh){
+  const loading=document.getElementById('ticker-loading'),track=document.getElementById('ticker-track');
+  if(!state.emitens||state.emitens.length===0){if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Tambah emiten untuk melihat harga live</span>';}if(track)track.style.display='none';return;}
+  const symbols=state.emitens.map(e=>e.ticker.toUpperCase()),now=Date.now();
+  if(!forceRefresh){try{const saved=JSON.parse(localStorage.getItem(TICKER_LS_KEY)||'null');if(saved&&(now-saved.ts)<TICKER_MAX_AGE){const sameSyms=symbols.length===(saved.syms||[]).length&&symbols.every(s=>(saved.syms||[]).includes(s));if(sameSyms&&saved.items&&saved.items.length){renderTickerBar(saved.items);updateQuotaBadge();return;}}}catch(e){}}
+  if(!canRefresh()){if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Limit harian tercapai.</span>';}if(track)track.style.display='none';return;}
+  if(loading){loading.style.display='flex';loading.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" class="spin-icon"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg><span style="font-size:11px;color:var(--text3)">Memuat harga…</span>';}if(track)track.style.display='none';
+  const raw=await fetchAllPrices(symbols);bumpQuota();
+  if(!raw){if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Gagal memuat harga</span>';}return;}
+  const items=raw.map(d=>({symbol:d.symbol,price:d.close??d.last_price??null,change:d.change??null,pct:d.change_pct??d.percent_change??null})).sort((a,b)=>a.symbol.localeCompare(b.symbol));
+  try{localStorage.setItem(TICKER_LS_KEY,JSON.stringify({ts:now,syms:symbols,items}));}catch(e){}
+  renderTickerBar(items);updateQuotaBadge();
+}
+let tickerAutoTimer=null;
+function startTickerLoop(){updateQuotaBadge();initTicker(false);if(tickerAutoTimer)clearInterval(tickerAutoTimer);tickerAutoTimer=setInterval(()=>{if(canRefresh())initTicker(true);},TICKER_AUTO_MS);}
+
+// ============================================================
+// INIT
+// ============================================================
+load();
+document.documentElement.setAttribute('data-theme',localStorage.getItem('nw_theme')||'light');
+updateThemeIcon();
+initApiKeyBanner();
+const sortSel=document.getElementById('inv-sort');if(sortSel)sortSel.value=state.invSort||'newest';
+renderCards();
+updateStats();
+setTimeout(startTickerLoop,800);
+
+// ============================================================
+// BOOT ANIMATIONS
+// ============================================================
+(function bootAnimate(){
+  // Stat cards staggered fade up
+  ['sc-active','sc-hit','sc-miss','sc-winrate'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.style.opacity='0';
+    setTimeout(()=>{
+      el.classList.add('anim-fade-up');
+      el.style.animationDelay='0s';
+    },500+i*150);
+  });
+
+  // Emiten cards staggered drop — re-run after renderCards settles
+  setTimeout(()=>{
+    document.querySelectorAll('.emiten-card-anim').forEach((el,i)=>{
+      el.style.opacity='0';
+      el.style.animationDelay='0s';
+      setTimeout(()=>{
+        el.style.animationDelay='0s';
+        el.classList.remove('anim-card-drop');
+        void el.offsetWidth;
+        el.classList.add('anim-card-drop');
+      },i*80);
+    });
+  },200);
+})();
+</script>
+
+<!-- ============================================================
+     GROQ AI CHATBOT WIDGET (Llama via Groq Cloud)
+     ============================================================ -->
+<style>
+  /* --- FAB Button --- */
+  #ollama-fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.1);
+    z-index: 9990;
+    transition: transform .2s, box-shadow .2s, background .15s;
+    flex-shrink: 0;
+  }
+  #ollama-fab:hover { transform: scale(1.07); box-shadow: 0 6px 22px rgba(0,0,0,.22); }
+  #ollama-fab:active { transform: scale(.96); }
+  #ollama-fab svg { width: 26px; height: 26px; }
+
+  /* --- Chat Panel --- */
+  #ollama-panel {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    width: 360px;
+    height: 520px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.08);
+    z-index: 9989;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: sans-serif;
+    animation: ollamaPopIn .2s cubic-bezier(.34,1.3,.64,1);
+  }
+  #ollama-panel.open { display: flex; }
+  @keyframes ollamaPopIn {
+    from { opacity: 0; transform: scale(.93) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  /* --- Panel Header --- */
+  #ollama-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  #ollama-header-icon {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  #ollama-header-icon svg { width: 17px; height: 17px; }
+  #ollama-header-title {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  #ollama-header-title strong {
+    font-family: Georgia, serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  #ollama-model-label {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: .3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #ollama-header-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .ollama-icon-btn {
+    width: 28px; height: 28px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg2);
+    color: var(--text3);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, color .15s;
+  }
+  .ollama-icon-btn:hover { background: var(--border); color: var(--text); }
+  .ollama-icon-btn svg { width: 13px; height: 13px; }
+
+  /* --- Settings Panel --- */
+  #ollama-settings {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    flex-shrink: 0;
+  }
+  #ollama-settings.open { display: flex; }
+  .ollama-settings-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--text3);
+    margin-bottom: 2px;
+  }
+  .ollama-field { display: flex; flex-direction: column; gap: 4px; }
+  .ollama-field label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  .ollama-field input {
+    font-family: sans-serif;
+    font-size: 12px;
+    padding: 6px 9px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .ollama-field input:focus { border-color: var(--accent); }
+  #ollama-settings-save {
+    font-family: sans-serif;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 7px;
+    border: 1px solid var(--accent);
+    background: var(--accent-bg);
+    color: var(--accent-t);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background .15s, color .15s;
+    align-self: flex-end;
+  }
+  #ollama-settings-save:hover { background: var(--accent); color: #fff; }
+
+  /* --- Messages Area --- */
+  #ollama-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scroll-behavior: smooth;
+  }
+  #ollama-messages::-webkit-scrollbar { width: 4px; }
+  #ollama-messages::-webkit-scrollbar-track { background: transparent; }
+  #ollama-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .ollama-msg {
+    display: flex;
+    gap: 7px;
+    align-items: flex-end;
+    animation: ollamaMsgIn .18s ease;
+  }
+  @keyframes ollamaMsgIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .ollama-msg.user { flex-direction: row-reverse; }
+  .ollama-bubble {
+    max-width: 78%;
+    padding: 8px 11px;
+    border-radius: 12px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--text);
+    word-break: break-word;
+  }
+  .ollama-msg.user .ollama-bubble {
+    background: var(--accent);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .ollama-msg.bot .ollama-bubble {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+  .ollama-avatar {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+  .ollama-msg.bot .ollama-avatar {
+    background: var(--accent-bg);
+    border: 1px solid var(--accent);
+  }
+  .ollama-msg.bot .ollama-avatar svg { width: 13px; height: 13px; }
+  .ollama-msg.user .ollama-avatar { background: var(--bg2); border: 1px solid var(--border); }
+
+  /* Typing indicator */
+  .ollama-typing {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 11px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    border-bottom-left-radius: 4px;
+    width: fit-content;
+  }
+  .ollama-typing span {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: ollamaTyping 1.2s infinite ease-in-out;
+  }
+  .ollama-typing span:nth-child(2) { animation-delay: .2s; }
+  .ollama-typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes ollamaTyping {
+    0%,80%,100% { transform: scale(.6); opacity: .4; }
+    40%          { transform: scale(1); opacity: 1; }
+  }
+
+  /* Empty state */
+  #ollama-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 100%;
+    color: var(--text3);
+    font-size: 12px;
+    text-align: center;
+    padding: 0 24px;
+    pointer-events: none;
+  }
+  #ollama-empty svg { width: 32px; height: 32px; opacity: .4; }
+  #ollama-empty p { color: var(--text3); margin: 0; line-height: 1.5; }
+
+  /* Error bubble */
+  /* Markdown styling inside chatbot bubble */
+  .ollama-bubble.bot p { margin: 0 0 6px 0; }
+  .ollama-bubble.bot p:last-child { margin-bottom: 0; }
+  .ollama-bubble.bot ul, .ollama-bubble.bot ol { margin: 4px 0; padding-left: 18px; }
+  .ollama-bubble.bot li { margin: 2px 0; }
+  .ollama-bubble.bot strong { font-weight: 700; color: var(--text); }
+  .ollama-bubble.bot em { font-style: italic; }
+  .ollama-bubble.bot code { font-family: monospace; font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 4px; }
+  .ollama-bubble.bot pre { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px; overflow-x: auto; margin: 6px 0; }
+  .ollama-bubble.bot pre code { background: none; border: none; padding: 0; font-size: 11px; }
+  .ollama-bubble.bot h1,.ollama-bubble.bot h2,.ollama-bubble.bot h3 { font-size: 13px; font-weight: 700; margin: 6px 0 4px; }
+  .ollama-error {
+    background: var(--red-bg) !important;
+    border-color: var(--red) !important;
+    color: var(--red-t) !important;
+  }
+
+  /* --- Input Area --- */
+  #ollama-input-area {
+    display: flex;
+    align-items: flex-end;
+    gap: 7px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  #ollama-input {
+    flex: 1;
+    font-family: sans-serif;
+    font-size: 13px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--bg2);
+    color: var(--text);
+    resize: none;
+    outline: none;
+    line-height: 1.45;
+    max-height: 100px;
+    overflow-y: auto;
+    transition: border-color .15s;
+  }
+  #ollama-input:focus { border-color: var(--accent); }
+  #ollama-input::placeholder { color: var(--text3); }
+  #ollama-send {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: opacity .15s, transform .15s;
+  }
+  #ollama-send:hover { opacity: .88; }
+  #ollama-send:active { transform: scale(.93); }
+  #ollama-send:disabled { opacity: .4; cursor: not-allowed; }
+  #ollama-send svg { width: 16px; height: 16px; }
+
+  /* --- Disclaimer --- */
+  #ollama-disclaimer {
+    padding: 5px 12px 7px;
+    font-size: 10px;
+    color: var(--text3);
+    text-align: center;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  @media(max-width: 400px) {
+    #ollama-panel { width: calc(100vw - 20px); right: 10px; bottom: 80px; }
+    #ollama-fab   { bottom: 16px; right: 16px; }
+  }
+</style>
+
+<!-- FAB Button -->
+<button id="ollama-fab" title="Chat dengan AI (Groq · GPT-OSS)" onclick="ollamaToggle()">
+  <!-- Llama SVG icon -->
+  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Body -->
+    <ellipse cx="32" cy="42" rx="14" ry="16" fill="#fff" opacity=".95"/>
+    <!-- Neck -->
+    <rect x="26" y="22" width="12" height="18" rx="6" fill="#fff" opacity=".95"/>
+    <!-- Head -->
+    <ellipse cx="32" cy="18" rx="9" ry="10" fill="#fff" opacity=".95"/>
+    <!-- Ears -->
+    <ellipse cx="24" cy="10" rx="3.5" ry="6" transform="rotate(-15 24 10)" fill="#fff" opacity=".9"/>
+    <ellipse cx="40" cy="10" rx="3.5" ry="6" transform="rotate(15 40 10)" fill="#fff" opacity=".9"/>
+    <!-- Eyes -->
+    <circle cx="28.5" cy="17" r="1.8" fill="#d97706"/>
+    <circle cx="35.5" cy="17" r="1.8" fill="#d97706"/>
+    <!-- Nose -->
+    <ellipse cx="32" cy="21.5" rx="2.5" ry="1.5" fill="#d97706" opacity=".6"/>
+    <!-- Legs -->
+    <rect x="20" y="54" width="6" height="8" rx="3" fill="#fff" opacity=".85"/>
+    <rect x="28" y="56" width="6" height="6" rx="3" fill="#fff" opacity=".85"/>
+    <rect x="36" y="54" width="6" height="8" rx="3" fill="#fff" opacity=".85"/>
+  </svg>
+</button>
+
+<!-- Chat Panel -->
+<div id="ollama-panel">
+
+  <!-- Header -->
+  <div id="ollama-header">
+    <div id="ollama-header-icon">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="32" cy="42" rx="14" ry="16" fill="var(--accent)"/>
+        <rect x="26" y="22" width="12" height="18" rx="6" fill="var(--accent)"/>
+        <ellipse cx="32" cy="18" rx="9" ry="10" fill="var(--accent)"/>
+        <ellipse cx="24" cy="10" rx="3.5" ry="6" transform="rotate(-15 24 10)" fill="var(--accent)"/>
+        <ellipse cx="40" cy="10" rx="3.5" ry="6" transform="rotate(15 40 10)" fill="var(--accent)"/>
+        <circle cx="28.5" cy="17" r="1.8" fill="var(--surface)"/>
+        <circle cx="35.5" cy="17" r="1.8" fill="var(--surface)"/>
+      </svg>
+    </div>
+    <div id="ollama-header-title">
+      <strong>Llama AI Assistant</strong>
+      <span id="ollama-model-label">groq · gpt-oss-120b</span>
+    </div>
+    <div id="ollama-header-actions">
+      <button class="ollama-icon-btn" title="Hapus riwayat" onclick="ollamaClearHistory()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6m4-6v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+      <button class="ollama-icon-btn" title="Pengaturan" onclick="ollamaToggleSettings()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button class="ollama-icon-btn" title="Tutup" onclick="ollamaToggle()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div id="ollama-settings">
+    <div class="ollama-settings-title">⚙ Pengaturan Groq</div>
+    <div class="ollama-field">
+      <label>Groq API Key</label>
+      <input type="password" id="ollama-url-input" placeholder="gsk_••••••••••••••••••••••" />
+      <span style="font-size:10px;color:var(--text3);margin-top:2px">Daftar gratis di <a href="https://console.groq.com" target="_blank" style="color:var(--accent)">console.groq.com</a></span>
+    </div>
+    <div class="ollama-field">
+      <label>Model</label>
+      <select id="ollama-model-input" style="font-family:sans-serif;font-size:12px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);outline:none;cursor:pointer;transition:border-color .15s">
+        <option value="openai/gpt-oss-120b">gpt-oss-120b (terbaik, setara o4-mini)</option>
+        <option value="qwen/qwen3.6-27b">qwen3.6-27b (cerdas + reasoning)</option>
+        <option value="openai/gpt-oss-20b">gpt-oss-20b (cepat, hemat)</option>
+      </select>
+    </div>
+    <button id="ollama-settings-save" onclick="ollamaSaveSettings()">Simpan</button>
+  </div>
+
+  <!-- Messages -->
+  <div id="ollama-messages">
+    <div id="ollama-empty">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="32" cy="42" rx="14" ry="16" fill="currentColor"/>
+        <rect x="26" y="22" width="12" height="18" rx="6" fill="currentColor"/>
+        <ellipse cx="32" cy="18" rx="9" ry="10" fill="currentColor"/>
+        <ellipse cx="24" cy="10" rx="3.5" ry="6" transform="rotate(-15 24 10)" fill="currentColor"/>
+        <ellipse cx="40" cy="10" rx="3.5" ry="6" transform="rotate(15 40 10)" fill="currentColor"/>
+      </svg>
+      <p><strong style="color:var(--text2)">Tanya AI</strong><br>Tanyakan apa saja tentang saham,<br>analisis emiten, atau investasi.</p>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div id="ollama-input-area">
+    <textarea id="ollama-input" rows="1" placeholder="Tanya sesuatu…" onkeydown="ollamaHandleKey(event)" oninput="ollamaAutoResize(this)"></textarea>
+    <button id="ollama-send" onclick="ollamaSend()" title="Kirim">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+
+  <!-- Disclaimer -->
+  <div id="ollama-disclaimer">Powered by Groq Cloud · GPT-OSS · bukan saran keuangan</div>
+</div>
+
+<script>
+(function(){
+  // ── State ──
+  const LS_KEY   = 'groq_api_key_v1';
+  const LS_MODEL = 'groq_model_v1';
+  const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
+  let ollamaHistory   = [];
+  let ollamaStreaming  = false;
+  let ollamaPanelOpen = false;
+  let ollamaSettingsOpen = false;
+
+  function getKey()   { return localStorage.getItem(LS_KEY)   || ''; }
+  function getModel() { return localStorage.getItem(LS_MODEL) || 'openai/gpt-oss-120b'; }
+
+  function updateModelLabel() {
+    const model = getModel();
+    const shortModel = model.replace('openai/','').replace('qwen/','').replace('-versatile','').replace('-instant','');
+    document.getElementById('ollama-model-label').textContent = 'groq · ' + shortModel;
+    document.getElementById('ollama-url-input').value   = getKey();
+    document.getElementById('ollama-model-input').value = model;
+    // If no API key set, auto-open settings
+    if (!getKey() && ollamaPanelOpen) {
+      ollamaSettingsOpen = true;
+      document.getElementById('ollama-settings').classList.add('open');
+    }
+  }
+  updateModelLabel();
+
+  // ── Toggle panel ──
+  window.ollamaToggle = function() {
+    ollamaPanelOpen = !ollamaPanelOpen;
+    const panel = document.getElementById('ollama-panel');
+    if (ollamaPanelOpen) {
+      panel.classList.add('open');
+      updateModelLabel();
+      setTimeout(() => {
+        if (!getKey()) {
+          document.getElementById('ollama-url-input').focus();
+        } else {
+          document.getElementById('ollama-input').focus();
+        }
+      }, 120);
+    } else {
+      panel.classList.remove('open');
+    }
+  };
+
+  // ── Toggle settings ──
+  window.ollamaToggleSettings = function() {
+    ollamaSettingsOpen = !ollamaSettingsOpen;
+    document.getElementById('ollama-settings').classList.toggle('open', ollamaSettingsOpen);
+    if (ollamaSettingsOpen) {
+      document.getElementById('ollama-url-input').value   = getKey();
+      document.getElementById('ollama-model-input').value = getModel();
+    }
+  };
+
+  // ── Save settings ──
+  window.ollamaSaveSettings = function() {
+    const key   = document.getElementById('ollama-url-input').value.trim();
+    const model = document.getElementById('ollama-model-input').value.trim();
+    if (key)   localStorage.setItem(LS_KEY,   key);
+    if (model) localStorage.setItem(LS_MODEL, model);
+    updateModelLabel();
+    ollamaSettingsOpen = false;
+    document.getElementById('ollama-settings').classList.remove('open');
+    document.getElementById('ollama-input').focus();
+  };
+
+  // ── Clear history ──
+  window.ollamaClearHistory = function() {
+    ollamaHistory = [];
+    const msgs = document.getElementById('ollama-messages');
+    msgs.innerHTML = '';
+    const empty = document.createElement('div');
+    empty.id = 'ollama-empty';
+    empty.innerHTML = '<p><strong style="color:var(--text2)">Riwayat dihapus</strong><br>Mulai percakapan baru.</p>';
+    msgs.appendChild(empty);
+  };
+
+  // ── Auto-resize textarea ──
+  window.ollamaAutoResize = function(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+  };
+
+  // ── Handle Enter key ──
+  window.ollamaHandleKey = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ollamaSend(); }
+  };
+
+  // ── Render a message bubble ──
+  function appendBubble(role, text, streaming) {
+    const empty = document.getElementById('ollama-empty');
+    if (empty) empty.style.display = 'none';
+
+    const msgs = document.getElementById('ollama-messages');
+    const wrap = document.createElement('div');
+    wrap.className = 'ollama-msg ' + role;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'ollama-avatar';
+    if (role === 'bot') {
+      avatar.innerHTML = `<svg viewBox="0 0 64 64" fill="none"><ellipse cx="32" cy="42" rx="14" ry="16" fill="var(--accent)"/><rect x="26" y="22" width="12" height="18" rx="6" fill="var(--accent)"/><ellipse cx="32" cy="18" rx="9" ry="10" fill="var(--accent)"/><ellipse cx="24" cy="10" rx="3.5" ry="6" transform="rotate(-15 24 10)" fill="var(--accent)"/><ellipse cx="40" cy="10" rx="3.5" ry="6" transform="rotate(15 40 10)" fill="var(--accent)"/></svg>`;
+    } else {
+      avatar.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'ollama-bubble' + (role === 'bot' ? ' bot' : '');
+    if (streaming) bubble.innerHTML = '<div class="ollama-typing"><span></span><span></span><span></span></div>';
+    else bubble.textContent = text;
+
+    wrap.appendChild(role === 'bot' ? avatar : bubble);
+    wrap.appendChild(role === 'bot' ? bubble : avatar);
+    msgs.appendChild(wrap);
+    msgs.scrollTop = msgs.scrollHeight;
+    return bubble;
+  }
+
+  // ── Send message ──
+  window.ollamaSend = async function() {
+    if (ollamaStreaming) return;
+    const input = document.getElementById('ollama-input');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    // Check API key
+    if (!getKey()) {
+      ollamaSettingsOpen = true;
+      document.getElementById('ollama-settings').classList.add('open');
+      document.getElementById('ollama-url-input').focus();
+      return;
+    }
+
+    input.value = '';
+    input.style.height = 'auto';
+    document.getElementById('ollama-send').disabled = true;
+
+    appendBubble('user', text);
+    ollamaHistory.push({ role: 'user', content: text });
+
+    const botBubble = appendBubble('bot', '', true);
+    ollamaStreaming  = true;
+
+    try {
+      const res = await fetch(GROQ_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + getKey()
+        },
+        body: JSON.stringify({
+          model:    getModel(),
+          messages: ollamaHistory,
+          stream:   true,
+          max_tokens: 1024,
+          // Sembunyikan reasoning <think> block untuk model Qwen3
+          ...(getModel().startsWith('qwen/') && { reasoning_format: 'hidden' })
+        })
+      });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        const errMsg  = errBody?.error?.message || ('HTTP ' + res.status);
+        if (res.status === 401) throw new Error('API key tidak valid. Cek di Settings ⚙️');
+        throw new Error(errMsg);
+      }
+
+      const reader  = res.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText  = '';
+      botBubble.innerHTML = '';
+
+      // Strip <think>...</think> sebagai safety net (kalau reasoning_format belum cukup)
+      function stripThink(text) {
+        return text.replace(/<think>[\s\S]*?<\/think>/gi, '').trimStart();
+      }
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const raw = decoder.decode(value, { stream: true });
+        const lines = raw.split('\n');
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed === 'data: [DONE]') continue;
+          if (!trimmed.startsWith('data: ')) continue;
+          try {
+            const json  = JSON.parse(trimmed.slice(6));
+            const token = json?.choices?.[0]?.delta?.content || '';
+            fullText += token;
+            // Tampilkan plain text saat streaming (agar tidak glitch mid-markdown)
+            botBubble.textContent = stripThink(fullText);
+            document.getElementById('ollama-messages').scrollTop = 99999;
+          } catch (_) {}
+        }
+      }
+
+      // Setelah streaming selesai: render markdown + math
+      const cleanText = stripThink(fullText);
+      botBubble.innerHTML = renderMdFull(cleanText);
+      renderMath(botBubble);
+      document.getElementById('ollama-messages').scrollTop = 99999;
+
+      // Simpan ke history tanpa <think> block
+      ollamaHistory.push({ role: 'assistant', content: cleanText });
+
+    } catch (err) {
+      botBubble.textContent = '⚠ ' + err.message;
+      botBubble.classList.add('ollama-error');
+    } finally {
+      ollamaStreaming = false;
+      document.getElementById('ollama-send').disabled = false;
+      document.getElementById('ollama-input').focus();
+    }
+  };
+})();
+</script>
+</body>
+</html>

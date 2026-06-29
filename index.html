@@ -2358,273 +2358,382 @@ setTimeout(startTickerLoop,800);
 })();
 </script>
 
-// ============================================================
-// AGENT ROUTER CHATBOT WIDGET (via AgentRouter API)
-// ============================================================
-
-// --- CONSTANTS ---
-const AGENT_ROUTER_API_KEY = 'sk-dzrFP9tIBuol4dy8elkwBg36PC1kLmyLBMJaajLdQjTkJd7I';
-const AGENT_ROUTER_URL = 'https://api.agentrouter.ai/v1/chat/completions';
-
-// --- STATE ---
-let ollamaHistory = []; // { role: 'user'|'assistant', content: '...' }
-let ollamaIsOpen = false;
-let ollamaIsLoading = false;
-
-// --- DOM REFS (cached after first toggle) ---
-let ollamaPanel, ollamaMessages, ollamaInput, ollamaSendBtn, ollamaEmpty;
-
-function ollamaGetDom() {
-  if (!ollamaPanel) {
-    ollamaPanel = document.getElementById('ollama-panel');
-    ollamaMessages = document.getElementById('ollama-messages');
-    ollamaInput = document.getElementById('ollama-input');
-    ollamaSendBtn = document.getElementById('ollama-send');
-    ollamaEmpty = document.getElementById('ollama-empty');
+<!-- ============================================================
+     GROQ AI CHATBOT WIDGET (Llama via Groq Cloud)
+     ============================================================ -->
+<style>
+  /* --- FAB Button --- */
+  #ollama-fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 54px;
+    height: 54px;
+    border-radius: 12px;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,.3), 0 0 0 0 var(--accent);
+    z-index: 9990;
+    transition: transform .2s, box-shadow .2s;
+    flex-shrink: 0;
+    animation: fabGlow 2.5s ease-in-out infinite;
   }
-}
-
-// --- TOGGLE PANEL ---
-function ollamaToggle() {
-  ollamaGetDom();
-  ollamaIsOpen = !ollamaIsOpen;
-  if (ollamaIsOpen) {
-    ollamaPanel.classList.add('open');
-    ollamaInput.focus();
-    // Load history from localStorage
-    const saved = localStorage.getItem('ollama_history');
-    if (saved) {
-      try { ollamaHistory = JSON.parse(saved); } catch(e) { ollamaHistory = []; }
-    }
-    ollamaRenderMessages();
-  } else {
-    ollamaPanel.classList.remove('open');
+  @keyframes fabGlow {
+    0%,100% { box-shadow: 0 4px 16px rgba(0,0,0,.3), 0 0 0 0 var(--accent); }
+    50%      { box-shadow: 0 4px 16px rgba(0,0,0,.3), 0 0 0 6px transparent; }
   }
-}
+  #ollama-fab:hover { transform: scale(1.07); animation: none; box-shadow: 0 6px 22px rgba(0,0,0,.35); }
+  #ollama-fab:active { transform: scale(.96); }
+  #ollama-fab svg { width: 26px; height: 26px; }
 
-// --- TOGGLE SETTINGS ---
-function ollamaToggleSettings() {
-  const settings = document.getElementById('ollama-settings');
-  if (settings) {
-    settings.classList.toggle('open');
-    // Load saved settings
-    const savedKey = localStorage.getItem('agentrouter_api_key') || AGENT_ROUTER_API_KEY;
-    const savedModel = localStorage.getItem('agentrouter_model') || 'claude-sonnet-4-5-20250929';
-    document.getElementById('ollama-url-input').value = savedKey;
-    document.getElementById('ollama-model-input').value = savedModel;
+  /* --- Chat Panel --- */
+  #ollama-panel {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    width: 360px;
+    height: 520px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.15);
+    z-index: 9989;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: sans-serif;
+    animation: ollamaPopIn .2s cubic-bezier(.34,1.3,.64,1);
   }
-}
+  #ollama-panel.open { display: flex; }
+  @keyframes ollamaPopIn {
+    from { opacity: 0; transform: scale(.93) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
 
-// --- SAVE SETTINGS ---
-function ollamaSaveSettings() {
-  const keyInput = document.getElementById('ollama-url-input');
-  const modelInput = document.getElementById('ollama-model-input');
-  const apiKey = keyInput.value.trim();
-  const model = modelInput.value;
-  
-  if (!apiKey) {
-    alert('API key tidak boleh kosong');
-    return;
+  /* --- Panel Header --- */
+  #ollama-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 2px solid var(--accent);
+    background: linear-gradient(135deg, var(--surface), var(--accent-bg));
+    flex-shrink: 0;
   }
-  
-  localStorage.setItem('agentrouter_api_key', apiKey);
-  localStorage.setItem('agentrouter_model', model);
-  
-  // Update model label di header
-  const modelLabel = document.getElementById('ollama-model-label');
-  if (modelLabel) {
-    const modelNames = {
-      'claude-sonnet-4-5-20250929': 'Claude Sonnet 4.5',
-      'claude-haiku-4-5-20251001': 'Claude Haiku 4.5',
-      'gpt-4o': 'GPT-4o',
-      'gpt-4o-mini': 'GPT-4o Mini',
-      'deepseek-chat': 'DeepSeek Chat',
-      'gemini-2.0-flash': 'Gemini 2.0 Flash'
-    };
-    modelLabel.textContent = 'agentrouter · ' + (modelNames[model] || model);
+  #ollama-header-icon {
+    width: 30px; height: 30px;
+    border-radius: 6px;
+    background: var(--accent-bg);
+    border: 1.5px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px rgba(0,0,0,.2);
   }
-  
-  // Tutup settings
-  document.getElementById('ollama-settings').classList.remove('open');
-  
-  // Tampilkan notifikasi
-  ollamaAddMessage('system', '✅ Pengaturan disimpan. Model: ' + (modelNames[model] || model));
-}
+  #ollama-header-icon svg { width: 20px; height: 20px; }
+  #ollama-header-title {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  #ollama-header-title strong {
+    font-family: Georgia, serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  #ollama-model-label {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: .3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #ollama-header-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .ollama-icon-btn {
+    width: 28px; height: 28px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg2);
+    color: var(--text3);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, color .15s;
+  }
+  .ollama-icon-btn:hover { background: var(--border); color: var(--text); }
+  .ollama-icon-btn svg { width: 13px; height: 13px; }
 
-// --- CLEAR HISTORY ---
-function ollamaClearHistory() {
-  if (confirm('Hapus semua riwayat chat?')) {
-    ollamaHistory = [];
-    localStorage.removeItem('ollama_history');
-    ollamaRenderMessages();
+  /* --- Settings Panel --- */
+  #ollama-settings {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    flex-shrink: 0;
   }
-}
-
-// --- HANDLE KEY PRESS ---
-function ollamaHandleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    ollamaSend();
+  #ollama-settings.open { display: flex; }
+  .ollama-settings-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--text3);
+    margin-bottom: 2px;
   }
-}
-
-// --- AUTO RESIZE TEXTAREA ---
-function ollamaAutoResize(textarea) {
-  textarea.style.height = 'auto';
-  textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
-}
-
-// --- SEND MESSAGE ---
-async function ollamaSend() {
-  ollamaGetDom();
-  const text = ollamaInput.value.trim();
-  if (!text || ollamaIsLoading) return;
-  
-  // Clear input
-  ollamaInput.value = '';
-  ollamaInput.style.height = 'auto';
-  
-  // Add user message
-  ollamaAddMessage('user', text);
-  
-  // Show loading
-  ollamaIsLoading = true;
-  ollamaSendBtn.disabled = true;
-  const typingEl = ollamaShowTyping();
-  
-  try {
-    const apiKey = localStorage.getItem('agentrouter_api_key') || AGENT_ROUTER_API_KEY;
-    const model = localStorage.getItem('agentrouter_model') || 'claude-sonnet-4-5-20250929';
-    
-    // Build messages array
-    const messages = [
-      {
-        role: 'system',
-        content: 'Kamu adalah Oracle AI, asisten analis saham profesional untuk pasar Indonesia (IDX). Berikan analisis yang insightful, data-driven, dan mudah dipahami. Gunakan bahasa Indonesia yang baik. Format respons dengan markdown untuk keterbacaan. Disclaimer: bukan saran keuangan.'
-      },
-      ...ollamaHistory.slice(-10) // Last 10 messages for context
-    ];
-    
-    // Call Agent Router API
-    const response = await fetch(AGENT_ROUTER_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: messages,
-        max_tokens: 2000,
-        temperature: 0.7
-      })
-    });
-    
-    // Remove typing indicator
-    if (typingEl) typingEl.remove();
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('Agent Router Error:', errorData);
-      
-      if (response.status === 401) {
-        throw new Error('API key tidak valid. Cek pengaturan ⚙');
-      } else if (response.status === 429) {
-        throw new Error('Terlalu banyak request. Tunggu sebentar.');
-      } else {
-        throw new Error(errorData.error?.message || `Error ${response.status}: Gagal terhubung ke Agent Router`);
-      }
-    }
-    
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || 'Maaf, tidak ada respons dari AI.';
-    
-    // Add bot response
-    ollamaAddMessage('assistant', reply);
-    
-  } catch (error) {
-    console.error('Chat error:', error);
-    if (typingEl) typingEl.remove();
-    ollamaAddMessage('system', '❌ ' + error.message, true);
-  } finally {
-    ollamaIsLoading = false;
-    ollamaSendBtn.disabled = false;
-    ollamaInput.focus();
+  .ollama-field { display: flex; flex-direction: column; gap: 4px; }
+  .ollama-field label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .4px;
   }
-}
-
-// --- ADD MESSAGE ---
-function ollamaAddMessage(role, content, isError = false) {
-  // Add to history
-  if (role === 'user' || role === 'assistant') {
-    ollamaHistory.push({ role: role === 'assistant' ? 'assistant' : 'user', content });
-    // Keep max 50 messages
-    if (ollamaHistory.length > 50) ollamaHistory = ollamaHistory.slice(-50);
-    // Save to localStorage
-    localStorage.setItem('ollama_history', JSON.stringify(ollamaHistory));
+  .ollama-field input {
+    font-family: sans-serif;
+    font-size: 12px;
+    padding: 6px 9px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    transition: border-color .15s;
   }
-  
-  // Render to DOM
-  ollamaGetDom();
-  
-  // Hide empty state
-  if (ollamaEmpty) ollamaEmpty.style.display = 'none';
-  
-  // Create message element
-  const msgDiv = document.createElement('div');
-  msgDiv.className = `ollama-msg ${role === 'user' ? 'user' : 'bot'}`;
-  
-  if (role === 'system') {
-    // System message (notifications/errors)
-    msgDiv.className = 'ollama-msg bot';
-    msgDiv.innerHTML = `
-      <div class="ollama-avatar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-      </div>
-      <div class="ollama-bubble ${isError ? 'ollama-error' : ''}" style="font-size:11px;color:var(--text3);">
-        ${escapeHtml(content)}
-      </div>
-    `;
-  } else if (role === 'user') {
-    msgDiv.innerHTML = `
-      <div class="ollama-avatar">👤</div>
-      <div class="ollama-bubble">${escapeHtml(content)}</div>
-    `;
-  } else {
-    // Bot message with markdown rendering
-    msgDiv.innerHTML = `
-      <div class="ollama-avatar">
-        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="14" height="14">
-          <rect x="14" y="24" width="7" height="36" rx="2" fill="var(--accent)" opacity=".9"/>
-          <rect x="43" y="24" width="7" height="36" rx="2" fill="var(--accent)" opacity=".9"/>
-          <rect x="10" y="32" width="44" height="7" rx="2" fill="var(--accent)" opacity=".8"/>
-          <path d="M6 22 Q32 10 58 22" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" fill="none"/>
-          <rect x="6" y="18" width="52" height="8" rx="2" fill="var(--accent)" opacity=".95"/>
-        </svg>
-      </div>
-      <div class="ollama-bubble">${renderMarkdown(content)}</div>
-    `;
+  .ollama-field input:focus { border-color: var(--accent); }
+  #ollama-settings-save {
+    font-family: sans-serif;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 7px;
+    border: 1px solid var(--accent);
+    background: var(--accent-bg);
+    color: var(--accent-t);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background .15s, color .15s;
+    align-self: flex-end;
   }
-  
-  ollamaMessages.appendChild(msgDiv);
-  
-  // Scroll to bottom
-  ollamaMessages.scrollTop = ollamaMessages.scrollHeight;
-}
+  #ollama-settings-save:hover { background: var(--accent); color: #fff; }
 
-// --- SHOW TYPING INDICATOR ---
-function ollamaShowTyping() {
-  ollamaGetDom();
-  if (ollamaEmpty) ollamaEmpty.style.display = 'none';
-  
-  const typingDiv = document.createElement('div');
-  typingDiv.className = 'ollama-msg bot';
-  typingDiv.id = 'ollama-typing-indicator';
-  typingDiv.innerHTML = `
-    <div class="ollama-avatar">
-      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="14" height="14">
+  /* --- Messages Area --- */
+  #ollama-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scroll-behavior: smooth;
+  }
+  #ollama-messages::-webkit-scrollbar { width: 4px; }
+  #ollama-messages::-webkit-scrollbar-track { background: transparent; }
+  #ollama-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .ollama-msg {
+    display: flex;
+    gap: 7px;
+    align-items: flex-end;
+    animation: ollamaMsgIn .18s ease;
+  }
+  @keyframes ollamaMsgIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .ollama-msg.user { flex-direction: row-reverse; }
+  .ollama-bubble {
+    max-width: 78%;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--text);
+    word-break: break-word;
+    font-family: sans-serif;
+  }
+  /* Crimson lacquer user bubble */
+  .ollama-msg.user .ollama-bubble {
+    background: var(--accent);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  }
+  /* Aged paper bot bubble */
+  .ollama-msg.bot .ollama-bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.12);
+  }
+  .ollama-avatar {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+  .ollama-msg.bot .ollama-avatar {
+    background: var(--accent-bg);
+    border: 1px solid var(--accent);
+  }
+  .ollama-msg.bot .ollama-avatar svg { width: 13px; height: 13px; }
+  .ollama-msg.user .ollama-avatar { background: var(--bg2); border: 1px solid var(--border); }
+
+  /* Typing indicator */
+  .ollama-typing {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 11px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    border-bottom-left-radius: 4px;
+    width: fit-content;
+  }
+  .ollama-typing span {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: ollamaTyping 1.2s infinite ease-in-out;
+  }
+  .ollama-typing span:nth-child(2) { animation-delay: .2s; }
+  .ollama-typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes ollamaTyping {
+    0%,80%,100% { transform: scale(.6); opacity: .4; }
+    40%          { transform: scale(1); opacity: 1; }
+  }
+
+  /* Empty state */
+  #ollama-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 100%;
+    color: var(--text3);
+    font-size: 12px;
+    text-align: center;
+    padding: 0 24px;
+    pointer-events: none;
+  }
+  #ollama-empty svg { width: 32px; height: 32px; opacity: .4; }
+  #ollama-empty p { color: var(--text3); margin: 0; line-height: 1.5; }
+
+  /* Error bubble */
+  /* Markdown styling inside chatbot bubble */
+  .ollama-bubble.bot p { margin: 0 0 6px 0; }
+  .ollama-bubble.bot p:last-child { margin-bottom: 0; }
+  .ollama-bubble.bot ul, .ollama-bubble.bot ol { margin: 4px 0; padding-left: 18px; }
+  .ollama-bubble.bot li { margin: 2px 0; }
+  .ollama-bubble.bot strong { font-weight: 700; color: var(--text); }
+  .ollama-bubble.bot em { font-style: italic; }
+  .ollama-bubble.bot code { font-family: monospace; font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 4px; }
+  .ollama-bubble.bot pre { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px; overflow-x: auto; margin: 6px 0; }
+  .ollama-bubble.bot pre code { background: none; border: none; padding: 0; font-size: 11px; }
+  .ollama-bubble.bot h1,.ollama-bubble.bot h2,.ollama-bubble.bot h3 { font-size: 13px; font-weight: 700; margin: 6px 0 4px; }
+  .ollama-error {
+    background: var(--red-bg) !important;
+    border-color: var(--red) !important;
+    color: var(--red-t) !important;
+  }
+
+  /* --- Input Area --- */
+  #ollama-input-area {
+    display: flex;
+    align-items: flex-end;
+    gap: 7px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  #ollama-input {
+    flex: 1;
+    font-family: sans-serif;
+    font-size: 13px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--bg2);
+    color: var(--text);
+    resize: none;
+    outline: none;
+    line-height: 1.45;
+    max-height: 100px;
+    overflow-y: auto;
+    transition: border-color .15s;
+  }
+  #ollama-input:focus { border-color: var(--accent); }
+  #ollama-input::placeholder { color: var(--text3); }
+  #ollama-send {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: opacity .15s, transform .15s;
+  }
+  #ollama-send:hover { opacity: .88; }
+  #ollama-send:active { transform: scale(.93); }
+  #ollama-send:disabled { opacity: .4; cursor: not-allowed; }
+  #ollama-send svg { width: 16px; height: 16px; }
+
+  /* --- Disclaimer --- */
+  #ollama-disclaimer {
+    padding: 5px 12px 7px;
+    font-size: 10px;
+    color: var(--text3);
+    text-align: center;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  @media(max-width: 400px) {
+    #ollama-panel { width: calc(100vw - 20px); right: 10px; bottom: 80px; }
+    #ollama-fab   { bottom: 16px; right: 16px; }
+  }
+</style>
+
+<!-- FAB Button -->
+<button id="ollama-fab" title="Oracle AI — Chat tentang saham" onclick="ollamaToggle()">
+  <!-- Torii gate icon -->
+  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Left pillar -->
+    <rect x="14" y="22" width="7" height="38" rx="2" fill="#fff" opacity=".9"/>
+    <!-- Right pillar -->
+    <rect x="43" y="22" width="7" height="38" rx="2" fill="#fff" opacity=".9"/>
+    <!-- Bottom crossbeam -->
+    <rect x="10" y="30" width="44" height="7" rx="2" fill="#fff" opacity=".85"/>
+    <!-- Top crossbeam (curved) -->
+    <path d="M6 20 Q32 8 58 20" stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none" opacity=".95"/>
+    <rect x="6" y="17" width="52" height="7" rx="2" fill="#fff" opacity=".9"/>
+    <!-- Glow pulse circle -->
+    <circle cx="32" cy="32" r="28" stroke="rgba(255,255,255,.15)" stroke-width="2" fill="none"/>
+  </svg>
+</button>
+
+<!-- Chat Panel -->
+<div id="ollama-panel">
+
+  <!-- Header -->
+  <div id="ollama-header">
+    <div id="ollama-header-icon">
+      <!-- Torii gate mini icon -->
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="14" y="24" width="7" height="36" rx="2" fill="var(--accent)" opacity=".9"/>
         <rect x="43" y="24" width="7" height="36" rx="2" fill="var(--accent)" opacity=".9"/>
         <rect x="10" y="32" width="44" height="7" rx="2" fill="var(--accent)" opacity=".8"/>
@@ -2632,115 +2741,71 @@ function ollamaShowTyping() {
         <rect x="6" y="18" width="52" height="8" rx="2" fill="var(--accent)" opacity=".95"/>
       </svg>
     </div>
-    <div class="ollama-typing">
-      <span></span><span></span><span></span>
+    <div id="ollama-header-title">
+      <strong>Oracle AI</strong>
+      <span id="ollama-model-label">agentrouter · sonnet-4-5</span>
     </div>
-  `;
-  
-  ollamaMessages.appendChild(typingDiv);
-  ollamaMessages.scrollTop = ollamaMessages.scrollHeight;
-  return typingDiv;
-}
+    <div id="ollama-header-actions">
+      <button class="ollama-icon-btn" title="Hapus riwayat" onclick="ollamaClearHistory()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6m4-6v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+      <button class="ollama-icon-btn" title="Pengaturan" onclick="ollamaToggleSettings()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button class="ollama-icon-btn" title="Tutup" onclick="ollamaToggle()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
 
-// --- RENDER ALL MESSAGES ---
-function ollamaRenderMessages() {
-  ollamaGetDom();
-  
-  // Clear messages except empty state
-  const children = ollamaMessages.children;
-  for (let i = children.length - 1; i >= 0; i--) {
-    if (children[i].id !== 'ollama-empty') {
-      children[i].remove();
-    }
-  }
-  
-  if (ollamaHistory.length === 0) {
-    if (ollamaEmpty) ollamaEmpty.style.display = '';
-  } else {
-    if (ollamaEmpty) ollamaEmpty.style.display = 'none';
-    ollamaHistory.forEach(msg => {
-      ollamaAddMessage(msg.role === 'assistant' ? 'assistant' : 'user', msg.content);
-    });
-  }
-}
+  <!-- Settings -->
+  <div id="ollama-settings">
+    <div class="ollama-settings-title">⚙ Pengaturan AgentRouter</div>
+    <div class="ollama-field">
+      <label>AgentRouter API Key</label>
+      <input type="password" id="ollama-url-input" placeholder="sk-••••••••••••••••••••••" />
+      <span style="font-size:10px;color:var(--text3);margin-top:2px">Daftar gratis di <a href="https://agentrouter.org/register" target="_blank" style="color:var(--accent)">agentrouter.org/register</a> · API key di <a href="https://agentrouter.org/console/token" target="_blank" style="color:var(--accent)">console/token</a></span>
+    </div>
+    <div class="ollama-field">
+      <label>Model</label>
+      <select id="ollama-model-input" style="font-family:sans-serif;font-size:12px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);outline:none;cursor:pointer;transition:border-color .15s">
+        <option value="claude-sonnet-4-5-20250929">Claude Sonnet 4.5 (terbaik, cerdas)</option>
+        <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (cepat, hemat)</option>
+        <option value="gpt-4o">GPT-4o (OpenAI, powerful)</option>
+        <option value="gpt-4o-mini">GPT-4o Mini (OpenAI, cepat)</option>
+        <option value="deepseek-chat">DeepSeek Chat (reasoning)</option>
+        <option value="gemini-2.0-flash">Gemini 2.0 Flash (Google, cepat)</option>
+      </select>
+    </div>
+    <button id="ollama-settings-save" onclick="ollamaSaveSettings()">Simpan</button>
+  </div>
 
-// --- SIMPLE MARKDOWN RENDERER ---
-function renderMarkdown(text) {
-  if (!text) return '';
-  
-  let html = escapeHtml(text);
-  
-  // Code blocks (```code```)
-  html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
-  
-  // Inline code (`code`)
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-  
-  // Bold (**text**)
-  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  
-  // Italic (*text*)
-  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  
-  // Headers
-  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-  
-  // Unordered lists
-  html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
-  html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-  
-  // Ordered lists
-  html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
-  
-  // Line breaks
-  html = html.replace(/\n\n/g, '</p><p>');
-  html = html.replace(/\n/g, '<br>');
-  
-  // Wrap in paragraphs
-  html = '<p>' + html + '</p>';
-  
-  return html;
-}
+  <!-- Messages -->
+  <div id="ollama-messages">
+    <div id="ollama-empty">
+      <!-- Torii gate empty state -->
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40" opacity=".4">
+        <rect x="14" y="24" width="7" height="36" rx="2" fill="currentColor"/>
+        <rect x="43" y="24" width="7" height="36" rx="2" fill="currentColor"/>
+        <rect x="10" y="32" width="44" height="7" rx="2" fill="currentColor" opacity=".8"/>
+        <path d="M6 22 Q32 10 58 22" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <rect x="6" y="18" width="52" height="8" rx="2" fill="currentColor"/>
+      </svg>
+      <p><strong style="color:var(--text2)">Oracle AI</strong><br>Tanyakan apa saja tentang saham,<br>analisis emiten, atau investasi.</p>
+    </div>
+  </div>
 
-// --- ESCAPE HTML ---
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
+  <!-- Input Area -->
+  <div id="ollama-input-area">
+    <textarea id="ollama-input" rows="1" placeholder="Tanya sesuatu…" onkeydown="ollamaHandleKey(event)" oninput="ollamaAutoResize(this)"></textarea>
+    <button id="ollama-send" onclick="ollamaSend()" title="Kirim">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
 
-// --- INIT ---
-(function() {
-  // Load saved API key & model ke form settings
-  const savedKey = localStorage.getItem('agentrouter_api_key') || AGENT_ROUTER_API_KEY;
-  const savedModel = localStorage.getItem('agentrouter_model') || 'claude-sonnet-4-5-20250929';
-  
-  // Update header label
-  const modelLabel = document.getElementById('ollama-model-label');
-  if (modelLabel) {
-    const modelNames = {
-      'claude-sonnet-4-5-20250929': 'Claude Sonnet 4.5',
-      'claude-haiku-4-5-20251001': 'Claude Haiku 4.5',
-      'gpt-4o': 'GPT-4o',
-      'gpt-4o-mini': 'GPT-4o Mini',
-      'deepseek-chat': 'DeepSeek Chat',
-      'gemini-2.0-flash': 'Gemini 2.0 Flash'
-    };
-    modelLabel.textContent = 'agentrouter · ' + (modelNames[savedModel] || savedModel);
-  }
-  
-  // Set default values di form
-  setTimeout(() => {
-    const keyInput = document.getElementById('ollama-url-input');
-    const modelInput = document.getElementById('ollama-model-input');
-    if (keyInput && !keyInput.value) keyInput.value = savedKey;
-    if (modelInput && !modelInput.value) modelInput.value = savedModel;
-  }, 100);
-  
-  console.log('🤖 Oracle AI Chatbot initialized with Agent Router');
-})();
+  <!-- Disclaimer -->
+  <div id="ollama-disclaimer">Powered by AgentRouter · Claude / GPT / Gemini · bukan saran keuangan</div>
+</div>
 
 <script>
 (function(){

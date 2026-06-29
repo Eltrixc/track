@@ -436,9 +436,112 @@
   .winrate-fill.red{stroke:var(--red)}
   .winrate-label{font-family:Georgia,serif;font-size:26px;font-weight:700;fill:var(--text)}
   .winrate-sublabel{font-family:sans-serif;font-size:10px;fill:var(--text3);letter-spacing:.5px;text-transform:uppercase}
+
+/* ===== INTRO GATE ===== */
+#intro-gate{
+  position:fixed;
+  inset:0;
+  z-index:10000;
+  background:#050505;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  transition:opacity .8s ease, visibility .8s ease;
+}
+#intro-gate.hide{opacity:0;visibility:hidden;pointer-events:none}
+.intro-mist{
+  position:absolute;
+  width:55vw;
+  height:55vw;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(180,40,40,.25),transparent 65%);
+  filter:blur(40px);
+  animation:mistMove 4s ease-in-out infinite alternate;
+}
+.intro-gate-svg{
+  width:min(420px,80vw);
+  position:relative;
+  z-index:2;
+}
+.intro-gate-svg path{
+  fill:none;
+  stroke:#c0392b;
+  stroke-width:8;
+  stroke-linecap:round;
+  stroke-dasharray:1000;
+  stroke-dashoffset:1000;
+  animation:drawGate 2s ease forwards 1s;
+  filter:drop-shadow(0 0 12px rgba(220,40,40,.8));
+}
+.intro-title{
+  position:absolute;
+  bottom:28%;
+  z-index:3;
+  color:#f5efe6;
+  font-family:Georgia,serif;
+  font-size:clamp(32px,7vw,64px);
+  letter-spacing:3px;
+  opacity:0;
+  animation:titleReveal 1s ease forwards 2.5s;
+}
+.intro-sub{
+  position:absolute;
+  bottom:22%;
+  color:#c9a97a;
+  font-family:sans-serif;
+  font-size:14px;
+  opacity:0;
+  animation:titleReveal 1s ease forwards 3s;
+}
+.intro-door{
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:50%;
+  background:#120707;
+  z-index:4;
+  transition:transform 1s cubic-bezier(.7,0,.2,1);
+}
+.intro-door.left{left:0}
+.intro-door.right{right:0}
+#intro-gate.open .intro-door.left{transform:translateX(-100%)}
+#intro-gate.open .intro-door.right{transform:translateX(100%)}
+#intro-gate.open .intro-title,#intro-gate.open .intro-sub{opacity:0}
+.intro-skip{
+  position:absolute;
+  right:24px;
+  bottom:24px;
+  z-index:10;
+  padding:8px 16px;
+  border:1px solid rgba(255,255,255,.3);
+  background:transparent;
+  color:white;
+  border-radius:20px;
+  cursor:pointer;
+  font-family:sans-serif;
+}
+@keyframes drawGate{to{stroke-dashoffset:0}}
+@keyframes titleReveal{to{opacity:1}}
+@keyframes mistMove{from{transform:translateX(-40px)}to{transform:translateX(40px)}}
+
 </style>
 </head>
 <body>
+
+<!-- INTRO GATE -->
+<div id="intro-gate">
+  <div class="intro-mist"></div>
+  <div class="intro-door left"></div>
+  <div class="intro-door right"></div>
+  <svg class="intro-gate-svg" viewBox="0 0 300 260">
+    <path d="M70 220V70M230 220V70M40 70H260M70 35Q150 10 230 35M90 120H210"/>
+  </svg>
+  <div class="intro-title">StockTracker</div>
+  <div class="intro-sub">Market analysis dashboard</div>
+  <button class="intro-skip" onclick="skipIntro()">Skip</button>
+</div>
+
 
 <div class="topbar anim-fade-down">
   <div class="logo-wrap">
@@ -1797,7 +1900,29 @@ function exportPDF(){
   if(!state.inventory.length){showToast('Inventori masih kosong.');return;}
   const hits=state.inventory.filter(i=>i.result==='hit').length,misses=state.inventory.filter(i=>i.result==='miss').length,total=hits+misses,wr=total?Math.round(hits/total*100)+'%':'—';
   const rows=getSortedInventory().map(i=>{const teb=i.tebakan||'bullish',hAwal=i.hargaAwal??i.price??null,dur=formatDuration(i.tanggalAwal,i.tanggalAkhir);return'<tr><td style="font-weight:700;font-family:Georgia,serif">'+escHtml(i.ticker)+'</td><td style="font-size:11px;color:#888">'+escHtml(i.sector||'—')+'</td><td style="font-size:11px;color:#888">'+escHtml(i.quarter)+'</td><td style="font-weight:600;color:'+(teb==='bullish'?'#16a34a':'#dc2626')+'">'+( teb==='bullish'?'Bullish':'Bearish')+'</td><td>'+(hAwal?'Rp '+Math.round(hAwal).toLocaleString('id-ID'):'—')+'</td><td>'+(i.hargaAkhir?'Rp '+Math.round(i.hargaAkhir).toLocaleString('id-ID'):'—')+'</td><td>'+(i.fv1?'Rp '+Math.round(i.fv1).toLocaleString('id-ID'):'—')+'</td><td>'+(i.fv2?'Rp '+Math.round(i.fv2).toLocaleString('id-ID'):'—')+'</td><td>'+(i.fv3?'Rp '+Math.round(i.fv3).toLocaleString('id-ID'):'—')+'</td><td style="font-weight:700;color:'+(i.result==='hit'?'#16a34a':'#dc2626')+'">'+(i.result==='hit'?'✓ Hit':'✗ Miss')+'</td><td>'+dur+'</td></tr>';}).join('');
-  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>StockTracker</title><style>body{font-family:Georgia,serif;padding:32px;color:#1c1917;font-size:12px}h1{font-size:22px;font-weight:700;margin-bottom:4px}.sub{color:#888;font-family:sans-serif;font-size:12px;margin-bottom:24px}.stats{display:flex;gap:20px;margin-bottom:24px;font-family:sans-serif}.sc{background:#f5f4f1;border-radius:8px;padding:10px 16px;text-align:center}.sn{font-size:22px;font-weight:700;font-family:Georgia,serif}.sl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.5px}table{width:100%;border-collapse:collapse;font-family:sans-serif;font-size:11px}th{text-align:left;padding:7px 9px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#888;border-bottom:1.5px solid #e7e5e0;background:#f5f4f1}td{padding:9px;border-bottom:1px solid #e7e5e0;vertical-align:top}.footer{margin-top:32px;font-family:sans-serif;font-size:11px;color:#bbb;text-align:center}</style></head><body><h1>StockTracker — Inventori</h1><div class="sub">Dicetak '+new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</div><div class="stats"><div class="sc"><div class="sn" style="color:#d97706">'+state.inventory.length+'</div><div class="sl">Total</div></div><div class="sc"><div class="sn" style="color:#16a34a">'+hits+'</div><div class="sl">Hit</div></div><div class="sc"><div class="sn" style="color:#dc2626">'+misses+'</div><div class="sl">Miss</div></div><div class="sc"><div class="sn">'+wr+'</div><div class="sl">Win rate</div></div></div><table><thead><tr><th>Emiten</th><th>Sektor</th><th>Kuartal</th><th>Tebakan</th><th>Harga Awal</th><th>Harga Akhir</th><th>FV1</th><th>FV2</th><th>FV3</th><th>Hasil</th><th>Durasi</th></tr></thead><tbody>'+rows+'</tbody></table><div class="footer">StockTracker · Data lokal</div></body></html>';
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>StockTracker</title><style>body{font-family:Georgia,serif;padding:32px;color:#1c1917;font-size:12px}h1{font-size:22px;font-weight:700;margin-bottom:4px}.sub{color:#888;font-family:sans-serif;font-size:12px;margin-bottom:24px}.stats{display:flex;gap:20px;margin-bottom:24px;font-family:sans-serif}.sc{background:#f5f4f1;border-radius:8px;padding:10px 16px;text-align:center}.sn{font-size:22px;font-weight:700;font-family:Georgia,serif}.sl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.5px}table{width:100%;border-collapse:collapse;font-family:sans-serif;font-size:11px}th{text-align:left;padding:7px 9px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#888;border-bottom:1.5px solid #e7e5e0;background:#f5f4f1}td{padding:9px;border-bottom:1px solid #e7e5e0;vertical-align:top}.footer{margin-top:32px;font-family:sans-serif;font-size:11px;color:#bbb;text-align:center}</style></head><body><h1>StockTracker — Inventori</h1><div class="sub">Dicetak '+new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</div><div class="stats"><div class="sc"><div class="sn" style="color:#d97706">'+state.inventory.length+'</div><div class="sl">Total</div></div><div class="sc"><div class="sn" style="color:#16a34a">'+hits+'</div><div class="sl">Hit</div></div><div class="sc"><div class="sn" style="color:#dc2626">'+misses+'</div><div class="sl">Miss</div></div><div class="sc"><div class="sn">'+wr+'</div><div class="sl">Win rate</div></div></div><table><thead><tr><th>Emiten</th><th>Sektor</th><th>Kuartal</th><th>Tebakan</th><th>Harga Awal</th><th>Harga Akhir</th><th>FV1</th><th>FV2</th><th>FV3</th><th>Hasil</th><th>Durasi</th></tr></thead><tbody>'+rows+'</tbody></table><div class="footer">StockTracker · Data lokal</div>
+<script>
+(function(){
+  const gate=document.getElementById('intro-gate');
+  if(!gate) return;
+  function removeGate(){
+    gate.classList.add('open');
+    setTimeout(()=>gate.classList.add('hide'),900);
+    setTimeout(()=>gate.remove(),1800);
+  }
+  window.skipIntro=removeGate;
+  if(localStorage.getItem('st_intro_seen')){
+    removeGate();
+  }else{
+    setTimeout(()=>{
+      localStorage.setItem('st_intro_seen','1');
+      removeGate();
+    },6000);
+  }
+})();
+</script>
+
+</body></html>';
   const w=window.open('','_blank');w.document.write(html);w.document.close();w.onload=()=>w.print();showToast('Halaman print dibuka.');
 }
 

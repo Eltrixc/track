@@ -1,10 +1,14 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="light">
+<html lang="id" data-theme="morning">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StockTracker by BosGeng</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<!-- Google Fonts: Noto Serif for samurai aesthetic -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <!-- Markdown renderer -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <!-- KaTeX for math equations -->
@@ -12,26 +16,82 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <style>
-  :root {
-    --bg:#fafaf9;--bg2:#f5f4f1;--surface:#ffffff;--border:#e7e5e0;--border2:#d6d3cc;
-    --text:#1c1917;--text2:#57534e;--text3:#a8a29e;
-    --accent:#d97706;--accent-bg:#fef3c7;--accent-t:#92400e;
-    --green:#16a34a;--green-bg:#f0fdf4;--green-t:#14532d;
-    --red:#dc2626;--red-bg:#fef2f2;--red-t:#7f1d1d;
-    --warn:#b45309;--warn-bg:#fffbeb;--warn-border:#fcd34d;--warn-t:#78350f;
-    --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
-  }
-  [data-theme="dark"] {
-    --bg:#1c1917;--bg2:#292524;--surface:#2c2826;--border:#3d3835;--border2:#57534e;
-    --text:#fafaf9;--text2:#d6d3cc;--text3:#78716c;
-    --accent:#f59e0b;--accent-bg:#451a03;--accent-t:#fde68a;
-    --green:#22c55e;--green-bg:#052e16;--green-t:#bbf7d0;
-    --red:#ef4444;--red-bg:#450a0a;--red-t:#fecaca;
-    --warn:#fbbf24;--warn-bg:#1c1205;--warn-border:#92400e;--warn-t:#fde68a;
-    --shadow:0 1px 3px rgba(0,0,0,.3);
-  }
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s}
+
+/* ============================================================
+   CONCEPT 1: FOUR TIME-BASED THEMES — The Samurai's Palette
+   ============================================================ */
+
+/* 🌅 Dawn — 夜明け Yoake [04:30–06:00] */
+[data-theme="dawn"] {
+  --bg:#0e1220;--bg2:#141926;--surface:#1a2135;--border:#2a3a55;--border2:#3a4f70;
+  --text:#e8dfd0;--text2:#a09080;--text3:#5a6070;
+  --accent:#e8913a;--accent-bg:#1e1a10;--accent-t:#f5c878;
+  --green:#5aab72;--green-bg:#0a1f12;--green-t:#a8e8bc;
+  --red:#e05050;--red-bg:#1f0a0a;--red-t:#f5a8a8;
+  --warn:#e8913a;--warn-bg:#1e1a10;--warn-border:#a05010;--warn-t:#f5c878;
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.3);
+  --theme-name:"夜明け Dawn";
+}
+
+/* 🌸 Morning — 朝 Asa [06:00–16:00] */
+[data-theme="morning"] {
+  --bg:#fdf6f0;--bg2:#f5ede4;--surface:#fffaf6;--border:#e8d5c4;--border2:#d4b99a;
+  --text:#2d1a0e;--text2:#5c4033;--text3:#a0856a;
+  --accent:#c0392b;--accent-bg:#fdf0ee;--accent-t:#8b1a10;
+  --green:#4a7c59;--green-bg:#eef7f1;--green-t:#2d5c3a;
+  --red:#8b0000;--red-bg:#fdf0f0;--red-t:#6b1010;
+  --warn:#a0520a;--warn-bg:#fef9ee;--warn-border:#d4891a;--warn-t:#7a3c06;
+  --shadow:0 1px 3px rgba(45,26,14,.08),0 1px 2px rgba(45,26,14,.05);
+  --theme-name:"朝 Morning";
+}
+
+/* 🌆 Dusk — 夕暮れ Yugure [16:00–17:30] */
+[data-theme="dusk"] {
+  --bg:#1a0e08;--bg2:#1f1208;--surface:#251508;--border:#3d2010;--border2:#5a3018;
+  --text:#f5e6d0;--text2:#c9a07a;--text3:#7a5030;
+  --accent:#e8913a;--accent-bg:#2a1808;--accent-t:#f5c878;
+  --green:#5aab72;--green-bg:#0a1f10;--green-t:#a8e8bc;
+  --red:#e05050;--red-bg:#200a0a;--red-t:#f5a8a8;
+  --warn:#e8913a;--warn-bg:#2a1808;--warn-border:#a05010;--warn-t:#f5c878;
+  --shadow:0 1px 3px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.35);
+  --theme-name:"夕暮れ Dusk";
+}
+
+/* 🌙 Night — 夜 Yoru [17:30–04:30] */
+[data-theme="night"] {
+  --bg:#0d0d0d;--bg2:#111014;--surface:#161318;--border:#2a1f1a;--border2:#3d3030;
+  --text:#f5efe6;--text2:#c9a97a;--text3:#6b5040;
+  --accent:#e84040;--accent-bg:#1f0808;--accent-t:#f5a0a0;
+  --green:#5aab72;--green-bg:#051f0e;--green-t:#bbf7d0;
+  --red:#ef4444;--red-bg:#1f0505;--red-t:#fecaca;
+  --warn:#e84040;--warn-bg:#1f0808;--warn-border:#8b0000;--warn-t:#f5a0a0;
+  --shadow:0 1px 3px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.4);
+  --theme-name:"夜 Night";
+}
+
+/* Legacy dark/light support — map to night/morning */
+[data-theme="dark"] {
+  --bg:#0d0d0d;--bg2:#111014;--surface:#161318;--border:#2a1f1a;--border2:#3d3030;
+  --text:#f5efe6;--text2:#c9a97a;--text3:#6b5040;
+  --accent:#e84040;--accent-bg:#1f0808;--accent-t:#f5a0a0;
+  --green:#5aab72;--green-bg:#051f0e;--green-t:#bbf7d0;
+  --red:#ef4444;--red-bg:#1f0505;--red-t:#fecaca;
+  --warn:#e84040;--warn-bg:#1f0808;--warn-border:#8b0000;--warn-t:#f5a0a0;
+  --shadow:0 1px 3px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.4);
+}
+[data-theme="light"] {
+  --bg:#fdf6f0;--bg2:#f5ede4;--surface:#fffaf6;--border:#e8d5c4;--border2:#d4b99a;
+  --text:#2d1a0e;--text2:#5c4033;--text3:#a0856a;
+  --accent:#c0392b;--accent-bg:#fdf0ee;--accent-t:#8b1a10;
+  --green:#4a7c59;--green-bg:#eef7f1;--green-t:#2d5c3a;
+  --red:#8b0000;--red-bg:#fdf0f0;--red-t:#6b1010;
+  --warn:#a0520a;--warn-bg:#fef9ee;--warn-border:#d4891a;--warn-t:#7a3c06;
+  --shadow:0 1px 3px rgba(45,26,14,.08),0 1px 2px rgba(45,26,14,.05);
+}
+
+/* Theme transition */
+body { transition: background .3s, color .3s; }
+
 
   .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
   .logo{font-family:Georgia,serif;font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.3px;white-space:nowrap}
@@ -436,13 +496,1271 @@
   .winrate-fill.red{stroke:var(--red)}
   .winrate-label{font-family:Georgia,serif;font-size:26px;font-weight:700;fill:var(--text)}
   .winrate-sublabel{font-family:sans-serif;font-size:10px;fill:var(--text3);letter-spacing:.5px;text-transform:uppercase}
+
+
+/* ============================================================
+   CONCEPT 2: INTRO GATE ANIMATION — "The Gate Opens"
+   ============================================================ */
+
+/* Theme icon tooltip */
+#theme-tooltip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--text);
+  color: var(--bg);
+  font-family: 'Noto Serif', Georgia, serif;
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,.25);
+  z-index: 9999;
+  pointer-events: none;
+  animation: tooltipFade .2s ease;
+}
+@keyframes tooltipFade { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+.theme-btn-wrap { position: relative; }
+.theme-btn-wrap:hover #theme-tooltip { display: block; }
+
+/* Intro overlay */
+#intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+#intro-overlay.hidden { display: none; }
+
+/* Mist layers */
+.intro-mist {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.intro-mist-left,
+.intro-mist-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  background: radial-gradient(ellipse at center, rgba(30,20,10,.7) 0%, transparent 70%);
+  filter: blur(40px);
+  opacity: 0;
+  transition: opacity .8s ease;
+}
+.intro-mist-left  { left: -20%;  }
+.intro-mist-right { right: -20%; }
+#intro-overlay.phase1 .intro-mist-left,
+#intro-overlay.phase1 .intro-mist-right { opacity: 1; }
+
+/* Red center glow */
+.intro-glow {
+  position: absolute;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(232,60,60,.3) 0%, transparent 70%);
+  border-radius: 50%;
+  opacity: 0;
+  animation: none;
+}
+#intro-overlay.phase1 .intro-glow {
+  opacity: 1;
+  animation: glowPulse 1.5s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%, 100% { transform: scale(1); opacity: .3; }
+  50%       { transform: scale(1.4); opacity: .6; }
+}
+
+/* Sakura canvas (shared) */
+#sakura-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+#sakura-canvas.visible { opacity: 1; }
+
+/* Torii SVG container */
+#intro-torii-wrap {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  opacity: 0;
+}
+#intro-overlay.phase2 #intro-torii-wrap { opacity: 1; }
+
+#intro-torii-svg {
+  width: min(340px, 80vw);
+  height: auto;
+  filter: drop-shadow(0 0 20px rgba(192,57,43,.5));
+}
+
+/* Torii SVG stroke draw animation */
+.torii-stroke {
+  fill: none;
+  stroke: #c0392b;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.torii-draw {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: none;
+}
+#intro-overlay.phase2 .torii-draw {
+  animation: drawStroke 2s ease-out forwards;
+}
+.torii-draw:nth-child(1) { animation-delay: .0s !important; }
+.torii-draw:nth-child(2) { animation-delay: .1s !important; }
+.torii-draw:nth-child(3) { animation-delay: .2s !important; }
+.torii-draw:nth-child(4) { animation-delay: .3s !important; }
+.torii-draw:nth-child(5) { animation-delay: .5s !important; }
+.torii-draw:nth-child(6) { animation-delay: .6s !important; }
+@keyframes drawStroke {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Text reveal */
+#intro-text-wrap {
+  position: absolute;
+  z-index: 3;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+#intro-kanji-large {
+  font-family: 'Noto Serif', Georgia, serif;
+  font-size: clamp(48px, 10vw, 90px);
+  color: #c0392b;
+  text-shadow: 0 0 30px rgba(192,57,43,.6), 0 0 60px rgba(192,57,43,.3);
+  opacity: 0;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+#intro-title {
+  font-family: 'Noto Serif', Georgia, serif;
+  font-size: clamp(22px, 5vw, 38px);
+  font-weight: 700;
+  color: #f5efe6;
+  letter-spacing: 4px;
+  opacity: 0;
+  text-shadow: 0 2px 20px rgba(0,0,0,.5);
+  margin-bottom: 10px;
+}
+#intro-subtitle {
+  font-family: 'Noto Serif', Georgia, serif;
+  font-size: clamp(12px, 2vw, 15px);
+  color: #c9a97a;
+  letter-spacing: 2px;
+  opacity: 0;
+}
+
+/* Gate door panels */
+#intro-gate-left,
+#intro-gate-right {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 50%;
+  z-index: 4;
+  background: linear-gradient(to bottom, #1a0a05 0%, #2a1208 40%, #1a0a05 100%);
+  opacity: 0;
+  pointer-events: none;
+}
+#intro-gate-left  { left: 0;  transform-origin: left center;  }
+#intro-gate-right { right: 0; transform-origin: right center; }
+
+/* Wood grain texture overlay on doors */
+#intro-gate-left::after,
+#intro-gate-right::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255,255,255,.015) 0px,
+    rgba(255,255,255,.015) 1px,
+    transparent 1px,
+    transparent 8px
+  );
+}
+
+/* Golden light burst behind gate */
+#intro-light-burst {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(245,200,120,.5) 0%, rgba(232,145,58,.2) 30%, transparent 70%);
+  border-radius: 50%;
+  opacity: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Red seal stamp */
+#intro-seal {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(2) rotate(-5deg);
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  font-family: 'Noto Serif', Georgia, serif;
+  font-size: 80px;
+  color: #c0392b;
+  text-shadow: 0 0 20px rgba(192,57,43,.8);
+  border: 4px solid #c0392b;
+  border-radius: 4px;
+  padding: 4px 12px;
+  line-height: 1;
+}
+
+/* Skip button */
+#intro-skip {
+  position: absolute;
+  bottom: 32px; right: 32px;
+  z-index: 10;
+  font-family: 'Noto Serif', Georgia, serif;
+  font-size: 12px;
+  color: rgba(200,160,120,.7);
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(200,160,120,.25);
+  border-radius: 6px;
+  padding: 7px 16px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: color .2s, border-color .2s, background .2s;
+}
+#intro-skip:hover {
+  color: #f5c878;
+  border-color: rgba(245,200,120,.5);
+  background: rgba(255,255,255,.08);
+}
+
+
+/* ============================================================
+   CONCEPT 3: TOPBAR — "The War Banner"
+   ============================================================ */
+
+/* Lacquered wood topbar */
+.topbar {
+  background: linear-gradient(180deg, #1a0a05 0%, #2a1208 60%, #1a0a05 100%) !important;
+  border-bottom: 1px solid rgba(192,57,43,.35) !important;
+  position: relative;
+}
+/* Subtle grain overlay on topbar */
+.topbar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255,255,255,.012) 0px,
+    rgba(255,255,255,.012) 1px,
+    transparent 1px,
+    transparent 12px
+  );
+  pointer-events: none;
+}
+/* Morning theme: lighter wood */
+[data-theme="morning"] .topbar,
+[data-theme="light"] .topbar {
+  background: linear-gradient(180deg, #3d1a08 0%, #5a2810 60%, #3d1a08 100%) !important;
+  border-bottom: 1px solid rgba(192,57,43,.4) !important;
+}
+
+/* Logo with 侍 prefix and red seal */
+.logo::before {
+  content: '侍 ';
+  color: #c0392b;
+  font-family: 'Noto Serif', Georgia, serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.logo {
+  color: #f5efe6 !important;
+  text-shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+.logo span {
+  color: #f5c878 !important;
+}
+[data-theme="morning"] .logo,
+[data-theme="light"] .logo {
+  color: #f5efe6 !important;
+}
+[data-theme="morning"] .logo span,
+[data-theme="light"] .logo span {
+  color: #f5c878 !important;
+}
+
+/* Scroll-tab style tab buttons */
+.tab-group {
+  background: rgba(0,0,0,.25) !important;
+  border: 1px solid rgba(192,57,43,.2) !important;
+  border-radius: 4px !important;
+}
+.tab-btn {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  color: rgba(245,200,120,.65) !important;
+  font-size: 12px !important;
+  letter-spacing: .3px;
+  border-radius: 3px !important;
+}
+.tab-btn.active {
+  background: rgba(192,57,43,.25) !important;
+  color: #f5c878 !important;
+  box-shadow: inset 0 1px 0 rgba(245,200,120,.15), inset 0 -1px 0 rgba(192,57,43,.3) !important;
+}
+.tab-btn:hover:not(.active) {
+  background: rgba(255,255,255,.05) !important;
+  color: #f5efe6 !important;
+}
+.tab-badge {
+  background: rgba(192,57,43,.3) !important;
+  color: #f5a8a8 !important;
+}
+
+/* Paper scroll search input */
+.search-input {
+  background: rgba(0,0,0,.3) !important;
+  border-color: rgba(192,57,43,.25) !important;
+  color: #f5efe6 !important;
+  border-radius: 3px !important;
+}
+.search-input::placeholder { color: rgba(200,160,120,.45) !important; }
+.search-input:focus { border-color: rgba(192,57,43,.6) !important; }
+.search-icon { color: rgba(200,160,120,.5) !important; }
+
+/* Icon buttons: lacquer ring style */
+.icon-btn {
+  background: rgba(0,0,0,.2) !important;
+  border-color: rgba(192,57,43,.2) !important;
+  color: rgba(245,200,120,.7) !important;
+  border-radius: 4px !important;
+}
+.icon-btn:hover {
+  background: rgba(192,57,43,.2) !important;
+  color: #f5c878 !important;
+  border-color: rgba(192,57,43,.5) !important;
+}
+
+/* Logo tooltip in theme context */
+.logo-tooltip {
+  background: rgba(26,10,5,.95) !important;
+  color: #c9a97a !important;
+  border: 1px solid rgba(192,57,43,.3);
+}
+
+/* ============================================================
+   CONCEPT 3: TICKER BAR — "The Messenger Hawk"
+   ============================================================ */
+
+.ticker-bar {
+  background: linear-gradient(90deg, #0d0505 0%, #110808 50%, #0d0505 100%) !important;
+  border-bottom: 1px solid rgba(192,57,43,.25) !important;
+  height: 38px !important;
+}
+
+/* ⛩️ torii glyph instead of green dot */
+.ticker-live-dot {
+  background: transparent !important;
+  box-shadow: none !important;
+  animation: none !important;
+  width: auto !important;
+  height: auto !important;
+  border-radius: 0 !important;
+  font-size: 13px;
+  line-height: 1;
+}
+.ticker-live-dot::after {
+  content: '⛩';
+  display: inline-block;
+  animation: toriiPulse 2s ease-in-out infinite;
+}
+@keyframes toriiPulse {
+  0%, 100% { opacity: .7; transform: scale(1); }
+  50%       { opacity: 1;  transform: scale(1.1); filter: drop-shadow(0 0 3px rgba(192,57,43,.8)); }
+}
+
+/* 速報 label instead of "Live" */
+.ticker-live-label {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  color: #e05050 !important;
+  letter-spacing: 1px !important;
+  font-size: 10px !important;
+}
+.ticker-live-label::before { content: '速報'; }
+/* Hide the original text content via font-size trick – we use ::before */
+/* (label text "Live" is still in HTML but hidden visually) */
+
+.ticker-live-badge {
+  background: rgba(0,0,0,.3) !important;
+  border-right-color: rgba(192,57,43,.2) !important;
+}
+
+/* Dispatch scroll ticker chips */
+.ticker-item {
+  border-right-color: rgba(192,57,43,.12) !important;
+  font-family: 'Noto Serif', Georgia, serif !important;
+}
+.ticker-item:hover { background: rgba(192,57,43,.1) !important; }
+.ticker-sym { color: #f5c878 !important; }
+.ticker-price { color: rgba(245,239,230,.7) !important; }
+.ticker-chg.up  { background: rgba(90,171,114,.15) !important; color: #a8e8bc !important; }
+.ticker-chg.dn  { background: rgba(224,80,80,.15) !important;  color: #f5a8a8 !important; }
+.ticker-chg.flat { background: rgba(255,255,255,.06) !important; color: rgba(200,160,120,.6) !important; }
+
+.ticker-scroll-outer::before {
+  background: linear-gradient(to right, #0d0505, transparent) !important;
+}
+.ticker-scroll-outer::after {
+  background: linear-gradient(to left, #0d0505, transparent) !important;
+}
+
+.ticker-refresh-btn { color: rgba(200,160,120,.5) !important; }
+.ticker-refresh-btn:hover { color: #f5c878 !important; background: rgba(192,57,43,.15) !important; }
+#ticker-quota { color: rgba(200,160,120,.4) !important; }
+
+/* ============================================================
+   CONCEPT 4a: EMITEN CARDS — "Battle Scrolls"
+   ============================================================ */
+
+/* Card base — makimono scroll aesthetic */
+.emiten-card {
+  border-radius: 0 8px 8px 0 !important;
+  border-left-width: 3px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Torn-paper texture lines on card top */
+.emiten-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px, transparent 4px,
+    rgba(255,255,255,.06) 4px, rgba(255,255,255,.06) 5px
+  );
+  pointer-events: none;
+}
+
+/* Katana slash left border — crimson over, jade under */
+.emiten-card { border-left-color: var(--accent) !important; }
+.emiten-card.overvalue { border-left-color: var(--red) !important; }
+.emiten-card.undervalue { border-left-color: var(--green) !important; }
+.emiten-card.holding-warn { border-left-color: var(--warn) !important; }
+
+/* Paper lift hover (replaces old translateY) */
+.emiten-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(192,57,43,.15), var(--shadow) !important;
+}
+
+/* Katana slash reveal — skewX + fade (safe for grid, no clip-path) */
+@keyframes katanaSlash {
+  from { opacity: 0; transform: translateX(-12px) skewX(-4deg) scaleX(0.96); }
+  to   { opacity: 1; transform: translateX(0)     skewX(0deg)  scaleX(1); }
+}
+.anim-card-drop {
+  animation: katanaSlash .38s cubic-bezier(.22,1,.36,1) forwards !important;
+}
+
+/* Ticker text — Noto Serif, ink-shadow */
+.ticker {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+
+/* Tebakan badges — seal style */
+.tebakan-inline {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  border-radius: 3px !important;
+  letter-spacing: .5px;
+}
+/* tebakan icons set directly in JS */
+
+/* Value badges — seal stamp style */
+.badge {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  border-radius: 3px !important;
+  letter-spacing: .5px;
+  font-size: 10px !important;
+}
+
+/* Sector badge — clan mon style */
+.sector-badge {
+  border-radius: 20px !important;
+  font-family: 'Noto Serif', Georgia, serif !important;
+}
+.sector-badge::before { content: '⬡ '; font-size: 9px; opacity: .6; }
+
+/* Ink-bleed progress bar */
+.progress-bar {
+  border-radius: 1px !important;
+  height: 5px !important;
+}
+.progress-fill {
+  border-radius: 1px !important;
+  position: relative;
+  overflow: visible !important;
+}
+/* Wet ink leading edge glow */
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: -2px;
+  width: 4px;
+  height: 9px;
+  border-radius: 2px;
+  background: inherit;
+  filter: blur(3px);
+  opacity: .9;
+}
+
+/* Holding warn banner — aged parchment */
+.holding-warn-banner {
+  border-radius: 3px !important;
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-style: italic;
+  position: relative;
+}
+.holding-warn-banner::before {
+  content: '要注意 ';
+  font-style: normal;
+  font-weight: 700;
+  margin-right: 4px;
+  color: var(--warn);
+  opacity: .8;
+}
+
+/* Add card — brush-stroke dashed border */
+.add-card {
+  border-radius: 4px !important;
+  border-style: dashed !important;
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-style: italic;
+  letter-spacing: .3px;
+  position: relative;
+}
+.add-card::after {
+  content: '＋ 新しい戦を始める';
+  position: absolute;
+  bottom: 20px;
+  font-size: 11px;
+  opacity: .5;
+  font-family: 'Noto Serif', Georgia, serif;
+  letter-spacing: 1px;
+}
+
+/* ============================================================
+   CONCEPT 4b: CARD HOVER HIGHLIGHT
+   ============================================================ */
+.emiten-card.card-highlight {
+  box-shadow: 0 0 0 2px var(--red), 0 8px 32px rgba(192,57,43,.25) !important;
+}
+
+/* ============================================================
+   CONCEPT 4c: CARD POPUP — scroll aesthetic
+   ============================================================ */
+.card-popup {
+  border-radius: 0 10px 10px 0 !important;
+  border-left-width: 3px !important;
+}
+
+/* ── Noto Serif headlines ── */
+.logo, .section-title, .modal h2, .stats-section-title,
+.ai-panel-title, .ticker-sym, .stat-num,
+.stats-big, .winrate-label {
+  font-family: 'Noto Serif', Georgia, serif !important;
+}
+
+/* ============================================================
+   CONCEPT 4d: MODAL REDESIGN — "The War Council Scrolls"
+   ============================================================ */
+
+/* Washi paper modal background */
+[data-theme="morning"] .modal,
+[data-theme="light"] .modal {
+  background: #fdfaf0 !important;
+}
+[data-theme="dawn"] .modal,
+[data-theme="dusk"] .modal,
+[data-theme="night"] .modal,
+[data-theme="dark"] .modal {
+  background: #111014 !important;
+}
+
+/* Lacquer frame border with corner ornaments */
+.modal {
+  border-radius: 4px !important;
+  border-color: var(--border2) !important;
+  position: relative;
+  overflow: visible !important;
+}
+/* Top-left corner ornament */
+.modal::before {
+  content: '✦';
+  position: absolute;
+  top: -8px; left: -8px;
+  font-size: 14px;
+  color: var(--accent);
+  opacity: .6;
+  pointer-events: none;
+  line-height: 1;
+}
+/* Bottom-right corner ornament */
+.modal::after {
+  content: '✦';
+  position: absolute;
+  bottom: -8px; right: -8px;
+  font-size: 14px;
+  color: var(--accent);
+  opacity: .6;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* Scroll unfurl open animation */
+@keyframes scrollUnfurl {
+  from { clip-path: inset(0 0 100% 0); transform: scaleY(0.6); opacity: 0; }
+  to   { clip-path: inset(0 0 0% 0);   transform: scaleY(1);   opacity: 1; }
+}
+.modal-backdrop.open .modal {
+  animation: scrollUnfurl .35s cubic-bezier(.22,1,.36,1) both;
+  transform-origin: top center;
+}
+
+/* Modal title — brush ink style */
+.modal h2 {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  letter-spacing: .5px;
+  position: relative;
+  padding-bottom: 12px;
+  margin-bottom: 8px !important;
+}
+.modal h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent 70%);
+  opacity: .5;
+}
+
+/* Section dividers — ── ✦ ── brush style */
+.form-divider {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  letter-spacing: .3px;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.form-divider::before {
+  content: '──';
+  opacity: .35;
+  font-style: normal;
+}
+.form-divider::after {
+  content: '──';
+  opacity: .35;
+  font-style: normal;
+  flex: 1;
+}
+
+/* Paper scroll inputs — gold focus border */
+.form-field input,
+.form-field textarea,
+.form-field select {
+  border-radius: 3px !important;
+  font-family: 'Noto Serif', Georgia, serif !important;
+}
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(192,57,43,.12) !important;
+}
+
+/* Primary button — red lacquer seal */
+.btn-primary {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  border-radius: 3px !important;
+  letter-spacing: .5px;
+  transition: opacity .15s, transform .1s, box-shadow .15s !important;
+}
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 2px 8px rgba(192,57,43,.35) !important;
+  transform: translateY(-1px);
+}
+.btn-primary:active:not(:disabled) {
+  transform: scale(.96) translateY(0) !important;
+  box-shadow: none !important;
+}
+
+/* Hit confirm — golden scroll */
+.hit-confirm-box {
+  border-radius: 3px !important;
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-style: italic;
+  position: relative;
+}
+.hit-confirm-box::before {
+  content: '的中 ';
+  font-style: normal;
+  font-weight: 700;
+  color: var(--green);
+  opacity: .85;
+}
+
+/* Hit/Miss confirm buttons — seal stamp effect */
+@keyframes sealStamp {
+  0%   { transform: scale(1.8) rotate(-3deg); opacity: 0; }
+  40%  { transform: scale(0.95) rotate(1deg); opacity: 1; }
+  70%  { transform: scale(1.04) rotate(0deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.btn-hit:active,
+.btn-miss:active {
+  animation: sealStamp .3s cubic-bezier(.2,1.5,.5,1) !important;
+}
+.btn-hit,
+.btn-miss {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  border-radius: 3px !important;
+  letter-spacing: .5px;
+}
+
+/* ============================================================
+   CONCEPT 5: AI PANEL REDESIGN — "陰陽 The Oracle Scroll"
+   ============================================================ */
+
+/* Panel header — oracle scroll title */
+.ai-panel-header {
+  background: linear-gradient(180deg, var(--surface) 0%, var(--bg2) 100%);
+  border-bottom: 1px solid var(--border) !important;
+  position: relative;
+  padding-bottom: 14px !important;
+}
+.ai-panel-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 14px; right: 14px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: .4;
+}
+
+/* Panel title — 陰陽 神託 */
+.ai-panel-title {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-size: 15px !important;
+  letter-spacing: .5px;
+}
+.ai-panel-title::before {
+  content: '陰陽 ';
+  font-size: 12px;
+  opacity: .7;
+  color: var(--accent);
+}
+
+/* Sub label */
+.ai-panel-sub {
+  font-style: italic;
+  opacity: .75;
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-size: 10px !important;
+}
+
+/* Emiten list items — scroll list with clan-mon circle icons */
+.ai-emiten-item {
+  border-radius: 3px !important;
+  position: relative;
+  padding-left: 36px !important;
+}
+/* Clan-mon circle icon */
+.ai-emiten-item::before {
+  content: '⬡';
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: var(--border2);
+  transition: color .15s;
+}
+.ai-emiten-item.active::before,
+.ai-emiten-item:hover::before {
+  color: var(--accent);
+}
+.ai-emiten-ticker {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-size: 14px !important;
+}
+
+/* Analyze button — red seal stamp ✦ 占う */
+.ai-gen-btn {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  border-radius: 3px !important;
+  letter-spacing: .3px;
+  transition: background .15s, transform .1s, box-shadow .15s !important;
+}
+.ai-gen-btn:hover:not(:disabled) {
+  box-shadow: 0 2px 8px rgba(192,57,43,.3) !important;
+  transform: translateY(-1px);
+}
+.ai-gen-btn:active:not(:disabled) {
+  animation: sealStamp .25s cubic-bezier(.2,1.5,.5,1) !important;
+}
+/* Add ✦ 占う prefix via JS — via title text override with CSS trick */
+.ai-gen-btn::before {
+  content: '✦ ';
+  opacity: .7;
+}
+
+/* Loading animation — ink drops falling */
+@keyframes inkDrop {
+  0%   { transform: translateY(-6px) scale(.5); opacity: 0; }
+  40%  { transform: translateY(0) scale(1);     opacity: 1; }
+  70%  { transform: translateY(2px) scale(.95); opacity: .85; }
+  100% { transform: translateY(0) scale(1);     opacity: .4; }
+}
+.ai-loading-dots span {
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40% !important; /* teardrop shape */
+  animation: inkDrop 1.4s infinite ease-in-out !important;
+}
+.ai-loading-dots span:nth-child(2) { animation-delay: .22s !important; }
+.ai-loading-dots span:nth-child(3) { animation-delay: .44s !important; }
+
+/* Result sections — brush-stroke title lines */
+.ai-section-title {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  border-bottom: none !important;
+  position: relative;
+  padding-bottom: 8px !important;
+}
+.ai-section-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent 60%);
+  opacity: .5;
+}
+
+/* Verdict badge — red wax seal stamp */
+.ai-verdict {
+  border-radius: 3px !important;
+  font-family: 'Noto Serif', Georgia, serif !important;
+  position: relative;
+  overflow: hidden;
+}
+/* Seal watermark texture overlay */
+.ai-verdict::before {
+  content: '印';
+  position: absolute;
+  right: 10px; bottom: -4px;
+  font-size: 48px;
+  opacity: .06;
+  font-family: 'Noto Serif', Georgia, serif;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+.ai-verdict-label {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-size: 12px !important;
+  letter-spacing: 1px;
+}
+/* Bullish verdict — 強気 ▲ gold seal */
+.ai-verdict.bull .ai-verdict-label::after {
+  content: '  強気 ▲';
+  font-size: 11px;
+  opacity: .8;
+}
+/* Bearish verdict — 弱気 ▼ crimson seal */
+.ai-verdict.bear .ai-verdict-label::after {
+  content: '  弱気 ▼';
+  font-size: 11px;
+  opacity: .8;
+}
+/* Neutral verdict — 中立 grey seal */
+.ai-verdict.neutral .ai-verdict-label::after {
+  content: '  中立';
+  font-size: 11px;
+  opacity: .8;
+}
+
+/* Watchlist tags — bamboo tag strips */
+.ai-tag {
+  border-radius: 2px !important;
+  font-family: 'Noto Serif', Georgia, serif !important;
+  border-left: 2px solid currentColor !important;
+  padding: 2px 8px 2px 6px !important;
+  letter-spacing: .2px;
+}
+
+/* Disclaimer — faded ink footer */
+.ai-disclaimer {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-style: italic;
+  font-size: 10px !important;
+  opacity: .7;
+}
+
+/* Key banner — scroll parchment style */
+.ai-key-banner {
+  border-bottom: 1px solid var(--accent) !important;
+  background: var(--accent-bg) !important;
+  position: relative;
+}
+.ai-key-banner-title {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  letter-spacing: .5px;
+}
+
+/* Result header */
+.ai-back-btn {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  border-radius: 3px !important;
+}
+.ai-result-ticker {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-size: 15px !important;
+  letter-spacing: .5px;
+}
+
+/* ============================================================
+   CONCEPT 6: CHATBOT WIDGET — "The Scroll Messenger"
+   ============================================================ */
+
+/* FAB button — torii gate icon with red glow pulse */
+#ollama-fab {
+  background: linear-gradient(145deg, #c0392b, #8b0000) !important;
+  border: none !important;
+  border-radius: 12px !important; /* torii-gate square shape, not circle */
+  box-shadow: 0 4px 16px rgba(192,57,43,.45), 0 0 0 0 rgba(192,57,43,.4) !important;
+  animation: toriiGlowPulse 2.5s ease-in-out infinite !important;
+}
+@keyframes toriiGlowPulse {
+  0%  { box-shadow: 0 4px 16px rgba(192,57,43,.45), 0 0 0 0 rgba(192,57,43,.35); }
+  50% { box-shadow: 0 4px 20px rgba(192,57,43,.6),  0 0 0 8px rgba(192,57,43,0); }
+  100%{ box-shadow: 0 4px 16px rgba(192,57,43,.45), 0 0 0 0 rgba(192,57,43,0); }
+}
+#ollama-fab:hover {
+  animation: none !important;
+  box-shadow: 0 6px 24px rgba(192,57,43,.6) !important;
+  transform: scale(1.07) !important;
+}
+
+/* Chat panel — tall scroll panel aesthetic */
+#ollama-panel {
+  border-radius: 4px 4px 0 0 !important;
+  border-color: rgba(192,57,43,.3) !important;
+  box-shadow: 0 -2px 0 rgba(192,57,43,.3), 0 12px 40px rgba(0,0,0,.25) !important;
+  /* Scroll rolled-top visual via box decorations */
+}
+/* Rolled top of scroll */
+#ollama-panel::before {
+  content: '';
+  position: absolute;
+  top: -3px; left: 10px; right: 10px;
+  height: 6px;
+  background: linear-gradient(180deg, rgba(192,57,43,.5), rgba(192,57,43,.1));
+  border-radius: 3px 3px 0 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Panel header — lacquered dark wood */
+#ollama-header {
+  background: linear-gradient(180deg, #1a0a05 0%, #2a1208 100%) !important;
+  border-bottom: 1px solid rgba(192,57,43,.35) !important;
+  padding: 10px 12px !important;
+}
+[data-theme="morning"] #ollama-header,
+[data-theme="light"] #ollama-header {
+  background: linear-gradient(180deg, #3d1a08 0%, #5a2810 100%) !important;
+}
+
+/* Bot avatar — small torii icon */
+#ollama-header-icon {
+  background: rgba(192,57,43,.15) !important;
+  border: 1px solid rgba(192,57,43,.4) !important;
+  border-radius: 6px !important;
+}
+
+/* Header title */
+#ollama-header-title strong {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  color: #f5c878 !important;
+  letter-spacing: .3px;
+}
+#ollama-model-label {
+  color: rgba(200,160,120,.6) !important;
+  font-style: italic;
+}
+
+/* Header action buttons */
+.ollama-icon-btn {
+  background: rgba(0,0,0,.2) !important;
+  border-color: rgba(192,57,43,.2) !important;
+  color: rgba(245,200,120,.7) !important;
+  border-radius: 4px !important;
+}
+.ollama-icon-btn:hover {
+  background: rgba(192,57,43,.2) !important;
+  color: #f5c878 !important;
+  border-color: rgba(192,57,43,.5) !important;
+}
+
+/* Messages area — scroll parchment feel */
+#ollama-messages {
+  background: var(--bg) !important;
+}
+
+/* User bubbles — crimson lacquer */
+.ollama-msg.user .ollama-bubble {
+  background: linear-gradient(135deg, #c0392b, #8b1a10) !important;
+  color: #f5efe6 !important;
+  border-radius: 8px 8px 3px 8px !important;
+  font-family: 'Noto Serif', Georgia, serif !important;
+  box-shadow: 0 2px 8px rgba(192,57,43,.3) !important;
+}
+/* User avatar */
+.ollama-msg.user .ollama-avatar {
+  background: rgba(192,57,43,.15) !important;
+  border-color: rgba(192,57,43,.35) !important;
+  border-radius: 4px !important;
+}
+
+/* Bot bubbles — aged paper */
+.ollama-msg.bot .ollama-bubble {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px 8px 8px 3px !important;
+  font-family: 'Noto Serif', Georgia, serif !important;
+  position: relative;
+  /* Subtle paper grain */
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0px, transparent 4px,
+    rgba(255,255,255,.012) 4px, rgba(255,255,255,.012) 5px
+  ) !important;
+}
+[data-theme="morning"] .ollama-msg.bot .ollama-bubble,
+[data-theme="light"] .ollama-msg.bot .ollama-bubble {
+  background: #fdfaf0 !important;
+}
+
+/* Bot avatar — torii icon style */
+.ollama-msg.bot .ollama-avatar {
+  background: rgba(192,57,43,.1) !important;
+  border: 1px solid rgba(192,57,43,.3) !important;
+  border-radius: 4px !important;
+}
+
+/* Typing indicator — ink drops falling */
+.ollama-typing {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  border-radius: 8px 8px 8px 3px !important;
+}
+.ollama-typing span {
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40% !important; /* teardrop */
+  animation: inkDrop 1.4s infinite ease-in-out !important;
+}
+.ollama-typing span:nth-child(2) { animation-delay: .22s !important; }
+.ollama-typing span:nth-child(3) { animation-delay: .44s !important; }
+
+/* Input area — paper scroll input */
+#ollama-input-area {
+  background: var(--surface) !important;
+  border-top: 1px solid rgba(192,57,43,.2) !important;
+}
+#ollama-input {
+  border-radius: 3px !important;
+  font-family: 'Noto Serif', Georgia, serif !important;
+  border-color: var(--border) !important;
+  caret-color: var(--accent) !important;
+}
+#ollama-input:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(192,57,43,.12) !important;
+}
+#ollama-input::placeholder {
+  font-style: italic !important;
+  font-family: 'Noto Serif', Georgia, serif !important;
+}
+
+/* Send button — red seal press */
+#ollama-send {
+  background: linear-gradient(145deg, #c0392b, #8b0000) !important;
+  border-radius: 3px !important;
+  box-shadow: 0 2px 6px rgba(192,57,43,.3) !important;
+  transition: opacity .15s, transform .1s, box-shadow .15s !important;
+}
+#ollama-send:hover:not(:disabled) {
+  box-shadow: 0 3px 10px rgba(192,57,43,.5) !important;
+  transform: translateY(-1px) !important;
+  opacity: 1 !important;
+}
+#ollama-send:active:not(:disabled) {
+  animation: sealStamp .25s cubic-bezier(.2,1.5,.5,1) !important;
+}
+
+/* Disclaimer — faded ink */
+#ollama-disclaimer {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-style: italic;
+  opacity: .6;
+  font-size: 10px !important;
+  border-top: 1px solid rgba(192,57,43,.1) !important;
+}
+
+/* Empty state */
+#ollama-empty p strong {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  color: var(--text2) !important;
+}
+#ollama-empty {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-style: italic;
+}
+
+/* Settings panel */
+#ollama-settings {
+  background: var(--bg2) !important;
+  border-bottom: 1px solid rgba(192,57,43,.2) !important;
+}
+.ollama-settings-title {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  letter-spacing: .5px;
+}
+.ollama-field label {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  letter-spacing: .5px !important;
+}
+.ollama-field input,
+#ollama-model-input {
+  border-radius: 3px !important;
+  font-family: 'Noto Serif', Georgia, serif !important;
+}
+.ollama-field input:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(192,57,43,.12) !important;
+}
+#ollama-settings-save {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  border-radius: 3px !important;
+  letter-spacing: .3px;
+}
+#ollama-settings-save:hover {
+  box-shadow: 0 2px 8px rgba(192,57,43,.3) !important;
+  transform: translateY(-1px);
+}
+
+/* Error bubble */
+.ollama-error {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  border-radius: 3px !important;
+}
+
+/* Message in animation — paper unfurl */
+@keyframes scrollMsgIn {
+  from { opacity: 0; transform: translateY(8px) scaleY(.9); transform-origin: bottom; }
+  to   { opacity: 1; transform: translateY(0) scaleY(1); }
+}
+.ollama-msg {
+  animation: scrollMsgIn .2s cubic-bezier(.22,1,.36,1) !important;
+}
+
 </style>
 </head>
+
 <body>
+
+<!-- ============================================================
+     CONCEPT 2: INTRO GATE OVERLAY
+     ============================================================ -->
+<div id="intro-overlay">
+  <!-- Mist layer -->
+  <div class="intro-mist">
+    <div class="intro-mist-left"></div>
+    <div class="intro-mist-right"></div>
+  </div>
+  <!-- Center glow -->
+  <div class="intro-glow"></div>
+
+  <!-- Sakura canvas (shared with main app, lives outside overlay) -->
+
+  <!-- Torii Gate SVG -->
+  <div id="intro-torii-wrap">
+    <svg id="intro-torii-svg" viewBox="0 0 340 260" xmlns="http://www.w3.org/2000/svg">
+      <!-- Top decorative bar (kasagi) -->
+      <path class="torii-stroke torii-draw" d="M20 60 Q170 30 320 60" stroke-dasharray="650" />
+      <!-- Second top bar (shimagi) -->
+      <path class="torii-stroke torii-draw" d="M40 80 L300 80" stroke-dasharray="270" />
+      <!-- Horizontal connector bar (nuki) -->
+      <line class="torii-stroke torii-draw" x1="60" y1="130" x2="280" y2="130" stroke-dasharray="230" />
+      <!-- Left pillar -->
+      <line class="torii-stroke torii-draw" x1="80" y1="80" x2="80" y2="260" stroke-dasharray="200" />
+      <!-- Right pillar -->
+      <line class="torii-stroke torii-draw" x1="260" y1="80" x2="260" y2="260" stroke-dasharray="200" />
+      <!-- Left base stone -->
+      <rect class="torii-stroke torii-draw" x="60" y="245" width="40" height="12" rx="2" stroke-dasharray="120" />
+      <!-- Right base stone -->
+      <rect class="torii-stroke torii-draw" x="240" y="245" width="40" height="12" rx="2" stroke-dasharray="120" />
+    </svg>
+  </div>
+
+  <!-- Text reveal -->
+  <div id="intro-text-wrap">
+    <div id="intro-kanji-large">侍</div>
+    <div id="intro-title">StockTracker</div>
+    <div id="intro-subtitle">市場の道へようこそ</div>
+  </div>
+
+  <!-- Gate door panels -->
+  <div id="intro-gate-left"></div>
+  <div id="intro-gate-right"></div>
+
+  <!-- Light burst -->
+  <div id="intro-light-burst"></div>
+
+  <!-- Seal stamp -->
+  <div id="intro-seal">判</div>
+
+  <!-- Skip button -->
+  <button id="intro-skip" onclick="skipIntro()">Skip ›</button>
+</div>
+
+<!-- Sakura canvas (behind everything in main app) -->
+<canvas id="sakura-canvas"></canvas>
+
 
 <div class="topbar anim-fade-down">
   <div class="logo-wrap">
-    <div class="logo">Stock<span>Tracker</span></div>
+    <div class="logo">Stock<span>Tracker</span></div><span style="font-family:'Noto Serif',Georgia,serif;font-size:13px;color:#c0392b;opacity:.8;margin-left:2px;text-shadow:0 0 6px rgba(192,57,43,.5)" title="印">印</span>
     <div class="logo-tooltip">Designed by BosGeng</div>
   </div>
   <div class="tab-group">
@@ -455,9 +1773,12 @@
     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input class="search-input" id="search-input" type="text" placeholder="Cari emiten..." oninput="filterCards()">
   </div>
-  <button class="icon-btn" onclick="toggleTheme()" title="Toggle dark mode">
-    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-  </button>
+  <div class="theme-btn-wrap">
+    <button class="icon-btn" id="theme-btn" onclick="cycleTheme()" oncontextmenu="resetTheme(event)" title="Klik: ganti tema · Kanan: auto">
+      <span id="theme-icon" style="font-size:16px;line-height:1">🌸</span>
+    </button>
+    <div id="theme-tooltip">朝 Morning · 06:00–16:00</div>
+  </div>
   <button class="icon-btn" onclick="exportData()" title="Export JSON">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
   </button>
@@ -470,7 +1791,7 @@
 <div class="ticker-bar" id="ticker-bar">
   <div class="ticker-live-badge">
     <span class="ticker-live-dot"></span>
-    <span class="ticker-live-label">Live</span>
+    <span class="ticker-live-label" style="font-size:0;letter-spacing:0">Live</span>
   </div>
   <div class="ticker-scroll-outer" id="ticker-scroll-outer">
     <span class="ticker-loading" id="ticker-loading">
@@ -513,10 +1834,10 @@
       <div class="split-right" id="ai-panel">
         <div class="ai-panel-header">
           <div style="display:flex;align-items:center;gap:8px">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" style="color:var(--accent)"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            <span class="ai-panel-title">AI Summary</span>
+            <span style="font-size:16px;line-height:1;color:var(--accent);opacity:.8">神</span>
+            <span class="ai-panel-title">神託 Oracle</span>
           </div>
-          <span class="ai-panel-sub">Pilih emiten untuk dianalisis Groq AI</span>
+          <span class="ai-panel-sub">Pilih emiten untuk dijawab sang oracle</span>
         </div>
         <div class="ai-key-banner" id="ai-key-banner">
           <div class="ai-key-banner-title">
@@ -572,10 +1893,10 @@
   <!-- TAB: ARCHIVE -->
   <div id="tab-inventory" style="display:none">
     <div class="stats-bar">
-      <div class="stat-card" id="sc-active"><div class="stat-num accent" id="s-active">0</div><div class="stat-lbl">Active</div></div>
-      <div class="stat-card" id="sc-hit"><div class="stat-num green" id="s-hit">0</div><div class="stat-lbl">Hit</div></div>
-      <div class="stat-card" id="sc-miss"><div class="stat-num red" id="s-miss">0</div><div class="stat-lbl">Miss</div></div>
-      <div class="stat-card" id="sc-winrate"><div class="stat-num" id="s-winrate">—</div><div class="stat-lbl">Win rate</div></div>
+      <div class="stat-card" id="sc-active"><div class="stat-num accent" id="s-active">0</div><div class="stat-lbl">⛩ Active</div></div>
+      <div class="stat-card" id="sc-hit"><div class="stat-num green" id="s-hit">0</div><div class="stat-lbl">⚔ Hit</div></div>
+      <div class="stat-card" id="sc-miss"><div class="stat-num red" id="s-miss">0</div><div class="stat-lbl">🛡 Miss</div></div>
+      <div class="stat-card" id="sc-winrate"><div class="stat-num" id="s-winrate">—</div><div class="stat-lbl">勝率 Win rate</div></div>
     </div>
     <div class="inv-toolbar">
       <div class="section-title">Riwayat Prediksi</div>
@@ -1003,18 +2324,79 @@ function importData(event){
   r.readAsText(file);
 }
 
-function toggleTheme(){
-  const h=document.documentElement,dark=h.getAttribute('data-theme')==='dark';
-  h.setAttribute('data-theme',dark?'light':'dark');
-  localStorage.setItem('nw_theme',dark?'light':'dark');
-  updateThemeIcon();
+// ============================================================
+// CONCEPT 1: THEME SYSTEM — Time-Based 4 Themes
+// ============================================================
+const THEMES = ['dawn','morning','dusk','night'];
+const THEME_META = {
+  dawn:    { icon:'🌅', label:'夜明け Dawn',    tooltip:'夜明け Dawn · 04:30–06:00',    hours:[4.5, 6]   },
+  morning: { icon:'🌸', label:'朝 Morning',     tooltip:'朝 Morning · 06:00–16:00',     hours:[6,   16]  },
+  dusk:    { icon:'🌆', label:'夕暮れ Dusk',   tooltip:'夕暮れ Dusk · 16:00–17:30',   hours:[16,  17.5] },
+  night:   { icon:'🌙', label:'夜 Night',       tooltip:'夜 Night · 17:30–04:30',       hours:[17.5,28]  },
+};
+
+function getThemeFromTime() {
+  const now = new Date();
+  const h = now.getHours() + now.getMinutes() / 60;
+  if (h >= 4.5  && h < 6)    return 'dawn';
+  if (h >= 6    && h < 16)   return 'morning';
+  if (h >= 16   && h < 17.5) return 'dusk';
+  return 'night';
 }
-function updateThemeIcon(){
-  const dark=document.documentElement.getAttribute('data-theme')==='dark';
-  document.getElementById('theme-icon').innerHTML=dark
-    ?'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
-    :'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+
+function applyTheme(theme, saveToLS) {
+  // Backward compat: map old values
+  if (theme === 'dark')  theme = 'night';
+  if (theme === 'light') theme = 'morning';
+  if (!THEMES.includes(theme)) theme = getThemeFromTime();
+  document.documentElement.setAttribute('data-theme', theme);
+  if (saveToLS) localStorage.setItem('nw_theme', theme);
+  updateThemeIcon(theme);
 }
+
+function cycleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'morning';
+  const idx = THEMES.indexOf(cur);
+  const next = THEMES[(idx + 1) % THEMES.length];
+  applyTheme(next, true);
+  // Flash tooltip briefly
+  const tip = document.getElementById('theme-tooltip');
+  if (tip) {
+    tip.style.display = 'block';
+    clearTimeout(tip._hideTimer);
+    tip._hideTimer = setTimeout(() => { tip.style.display = ''; }, 1800);
+  }
+}
+
+function resetTheme(e) {
+  if (e) e.preventDefault();
+  localStorage.removeItem('nw_theme');
+  const auto = getThemeFromTime();
+  applyTheme(auto, false);
+  const tip = document.getElementById('theme-tooltip');
+  if (tip) {
+    tip.textContent = '自動 Auto';
+    tip.style.display = 'block';
+    clearTimeout(tip._hideTimer);
+    tip._hideTimer = setTimeout(() => {
+      tip.style.display = '';
+      const cur = document.documentElement.getAttribute('data-theme') || 'morning';
+      tip.textContent = THEME_META[cur]?.tooltip || '';
+    }, 1800);
+  }
+}
+
+function updateThemeIcon(theme) {
+  if (!theme) theme = document.documentElement.getAttribute('data-theme') || 'morning';
+  const meta = THEME_META[theme] || THEME_META.morning;
+  const iconEl = document.getElementById('theme-icon');
+  const tipEl  = document.getElementById('theme-tooltip');
+  if (iconEl) iconEl.textContent = meta.icon;
+  if (tipEl)  tipEl.textContent  = meta.tooltip;
+}
+
+// Legacy compat: keep toggleTheme as alias for cycleTheme
+function toggleTheme() { cycleTheme(); }
 
 // ============================================================
 // UTILS
@@ -1271,36 +2653,38 @@ function renderStats(){
     <!-- OVERVIEW -->
     <div class="stats-section">
       <div class="stats-section-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        <span style="font-size:13px;opacity:.6;color:var(--accent)">総覧</span>
         Overview
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-        <div style="text-align:center;padding:12px;background:var(--bg2);border-radius:8px">
+        <div style="text-align:center;padding:12px;background:var(--bg2);border-radius:3px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:2px;left:4px;font-size:10px;font-family:'Noto Serif',Georgia,serif;color:var(--accent);opacity:.35;letter-spacing:.5px">勝率</div>
           <div class="stats-big accent">${winrate}%</div>
           <div class="stats-sub">Win rate keseluruhan</div>
         </div>
-        <div style="text-align:center;padding:12px;background:var(--bg2);border-radius:8px">
+        <div style="text-align:center;padding:12px;background:var(--bg2);border-radius:3px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:2px;left:4px;font-size:10px;font-family:'Noto Serif',Georgia,serif;color:var(--text3);opacity:.4;letter-spacing:.5px">総数</div>
           <div class="stats-big">${total}</div>
           <div class="stats-sub">Total prediksi ditutup</div>
         </div>
       </div>
-      <div class="stats-kv"><span class="stats-k">Hit</span><span class="stats-v green">${hits.length}</span></div>
-      <div class="stats-kv"><span class="stats-k">Miss</span><span class="stats-v red">${misses.length}</span></div>
-      <div class="stats-kv"><span class="stats-k">Aktif sekarang</span><span class="stats-v accent">${state.emitens.length}</span></div>
-      <div class="stats-kv"><span class="stats-k">Perlu review (>6 bln)</span><span class="stats-v" style="color:var(--warn)">${state.emitens.filter(e=>checkHoldingWarn(e)).length}</span></div>
+      <div class="stats-kv"><span class="stats-k">⚔ Hit</span><span class="stats-v green">${hits.length}</span></div>
+      <div class="stats-kv"><span class="stats-k">🛡 Miss</span><span class="stats-v red">${misses.length}</span></div>
+      <div class="stats-kv"><span class="stats-k">⛩ Aktif sekarang</span><span class="stats-v accent">${state.emitens.length}</span></div>
+      <div class="stats-kv"><span class="stats-k">要注意 Perlu review (&gt;6 bln)</span><span class="stats-v" style="color:var(--warn)">${state.emitens.filter(e=>checkHoldingWarn(e)).length}</span></div>
     </div>
 
     <!-- WIN RATE BY TEBAKAN -->
     <div class="stats-section">
       <div class="stats-section-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span style="font-size:13px;opacity:.6;color:var(--accent)">勝敗</span>
         Win Rate per Tebakan
       </div>
-      <div class="stats-kv"><span class="stats-k">▲ Bullish</span><span class="stats-v ${bullTotal?'green':''}"">${bullTotal?pct(bullHits,bullTotal)+'% ('+bullHits+'/'+bullTotal+')':'—'}</span></div>
-      <div class="stats-kv"><span class="stats-k">▼ Bearish</span><span class="stats-v ${bearTotal?'green':''}"">${bearTotal?pct(bearHits,bearTotal)+'% ('+bearHits+'/'+bearTotal+')':'—'}</span></div>
+      <div class="stats-kv"><span class="stats-k">強気 ▲ Bullish</span><span class="stats-v ${bullTotal?'green':''}"">${bullTotal?pct(bullHits,bullTotal)+'% ('+bullHits+'/'+bullTotal+')':'—'}</span></div>
+      <div class="stats-kv"><span class="stats-k">弱気 ▼ Bearish</span><span class="stats-v ${bearTotal?'green':''}"">${bearTotal?pct(bearHits,bearTotal)+'% ('+bearHits+'/'+bearTotal+')':'—'}</span></div>
       <div style="margin-top:14px">
-        <div class="stats-section-title" style="font-size:12px;margin-bottom:8px;border-bottom:none;padding-bottom:0">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <div class="stats-section-title" style="font-size:12px;margin-bottom:8px">
+          <span style="font-size:11px;opacity:.5;color:var(--accent)">時期</span>
           Win Rate per Durasi
         </div>
         ${Object.entries(buckets).map(([b,cnt])=>{
@@ -1313,35 +2697,36 @@ function renderStats(){
     <!-- RETURN ANALYSIS -->
     <div class="stats-section">
       <div class="stats-section-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span style="font-size:13px;opacity:.6;color:var(--accent)">収益</span>
         Analisis Return
       </div>
-      ${withReturn.length===0?'<div class="stats-empty">Belum ada data return (butuh harga awal & akhir)</div>':`
+      ${withReturn.length===0?'<div class="stats-empty" style="font-family:\'Noto Serif\',Georgia,serif;font-style:italic">巻物に記録なし — Belum ada data return (butuh harga awal &amp; akhir)</div>':`
       <div class="stats-kv"><span class="stats-k">Rata-rata return</span><span class="stats-v ${avgReturn>=0?'green':'red'}">${avgReturn!==null?(avgReturn>=0?'+':'')+avgReturn.toFixed(1)+'%':'—'}</span></div>
-      <div class="stats-kv"><span class="stats-k">Return terbaik</span><span class="stats-v return-best">${bestReturn!==null?(bestReturn>=0?'+':'')+bestReturn.toFixed(1)+'%':'—'}</span></div>
-      <div class="stats-kv"><span class="stats-k">Return terburuk</span><span class="stats-v return-worst">${worstReturn!==null?(worstReturn>=0?'+':'')+worstReturn.toFixed(1)+'%':'—'}</span></div>
-      <div class="stats-kv"><span class="stats-k">Prediksi dengan data return</span><span class="stats-v">${withReturn.length}/${total}</span></div>
+      <div class="stats-kv"><span class="stats-k">⚔ Return terbaik</span><span class="stats-v return-best">${bestReturn!==null?(bestReturn>=0?'+':'')+bestReturn.toFixed(1)+'%':'—'}</span></div>
+      <div class="stats-kv"><span class="stats-k">🛡 Return terburuk</span><span class="stats-v return-worst">${worstReturn!==null?(worstReturn>=0?'+':'')+worstReturn.toFixed(1)+'%':'—'}</span></div>
+      <div class="stats-kv"><span class="stats-k">Data return tersedia</span><span class="stats-v">${withReturn.length}/${total}</span></div>
       `}
     </div>
 
     <!-- WIN RATE BY SECTOR -->
     <div class="stats-section" style="grid-column:1/-1">
       <div class="stats-section-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span style="font-size:13px;opacity:.6;color:var(--accent)">家紋</span>
         Win Rate per Sektor
       </div>
-      ${sectors.length===0?'<div class="stats-empty">Belum ada data sektor. Tambahkan sektor saat membuat emiten.</div>':`
+      ${sectors.length===0?'<div class="stats-empty" style="font-family:\'Noto Serif\',Georgia,serif;font-style:italic">氏族なし — Belum ada data sektor. Tambahkan sektor saat membuat emiten.</div>':`
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
         ${sectors.map(([s,d])=>{
           const wr=d.total?Math.round(d.hit/d.total*100):0;
           const col=wr>=60?'var(--green)':wr>=40?'var(--accent)':'var(--red)';
-          return `<div style="background:var(--bg2);border-radius:8px;padding:10px 12px">
+          return `<div style="background:var(--bg2);border-radius:3px;padding:10px 12px;border-left:3px solid ${col};position:relative;overflow:hidden">
+            <div style="position:absolute;top:2px;right:8px;font-size:22px;font-family:'Noto Serif',Georgia,serif;color:${col};opacity:.08;line-height:1;pointer-events:none">家</div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <span style="font-family:sans-serif;font-size:12px;font-weight:600;color:var(--text)">${escHtml(s)}</span>
-              <span style="font-family:sans-serif;font-size:11px;color:var(--text3)">${d.hit}/${d.total}</span>
+              <span style="font-family:'Noto Serif',Georgia,serif;font-size:12px;font-weight:600;color:var(--text)">${escHtml(s)}</span>
+              <span style="font-family:'Noto Serif',Georgia,serif;font-size:11px;color:var(--text3)">${d.hit}/${d.total}</span>
             </div>
             <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${wr}%;background:${col}"></div></div>
-            <div style="font-family:sans-serif;font-size:11px;color:${col};font-weight:600;margin-top:4px">${wr}% win rate</div>
+            <div style="font-family:'Noto Serif',Georgia,serif;font-size:11px;color:${col};font-weight:600;margin-top:4px;font-style:italic">${wr}% win rate</div>
           </div>`;
         }).join('')}
       </div>`}
@@ -1350,27 +2735,27 @@ function renderStats(){
     <!-- FV ACCURACY -->
     <div class="stats-section" style="grid-column:1/-1">
       <div class="stats-section-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span style="font-size:13px;opacity:.6;color:var(--accent)">精度</span>
         Akurasi Model FV <span style="font-weight:400;font-size:11px;color:var(--text3);font-family:sans-serif;margin-left:4px">(seberapa dekat FV ke harga akhir — lebih tinggi = lebih akurat)</span>
       </div>
-      ${(fv1Score===null&&fv2Score===null&&fv3Score===null)?'<div class="stats-empty">Belum ada data (butuh harga akhir di Archive)</div>':`
+      ${(fv1Score===null&&fv2Score===null&&fv3Score===null)?'<div class="stats-empty" style="font-family:\'Noto Serif\',Georgia,serif;font-style:italic">巻物に記録なし — Belum ada data (butuh harga akhir di Archive)</div>':`
       <div class="fv-acc-row">
-        <span class="fv-acc-label">FV1 (BVPS×PBV)</span>
+        <span class="fv-acc-label">FV1 — BVPS×PBV</span>
         <div class="fv-acc-bar"><div class="fv-acc-fill" style="width:${fv1Score!==null?Math.round(fv1Score/maxScore*100):0}%;background:var(--accent)"></div></div>
         <span class="fv-acc-val">${fv1Score!==null?fv1Score.toFixed(1)+'%':'—'} <span style="font-size:10px;color:var(--text3)">(${fvAccData.fv1.length} data)</span></span>
       </div>
       <div class="fv-acc-row">
-        <span class="fv-acc-label">FV2 (NI×PE/Saham)</span>
+        <span class="fv-acc-label">FV2 — NI×PE/Saham</span>
         <div class="fv-acc-bar"><div class="fv-acc-fill" style="width:${fv2Score!==null?Math.round(fv2Score/maxScore*100):0}%;background:var(--accent)"></div></div>
         <span class="fv-acc-val">${fv2Score!==null?fv2Score.toFixed(1)+'%':'—'} <span style="font-size:10px;color:var(--text3)">(${fvAccData.fv2.length} data)</span></span>
       </div>
       <div class="fv-acc-row">
-        <span class="fv-acc-label">FV3 (PE×EPS)</span>
+        <span class="fv-acc-label">FV3 — PE×EPS</span>
         <div class="fv-acc-bar"><div class="fv-acc-fill" style="width:${fv3Score!==null?Math.round(fv3Score/maxScore*100):0}%;background:var(--accent)"></div></div>
         <span class="fv-acc-val">${fv3Score!==null?fv3Score.toFixed(1)+'%':'—'} <span style="font-size:10px;color:var(--text3)">(${fvAccData.fv3.length} data)</span></span>
       </div>
-      <div style="margin-top:10px;font-family:sans-serif;font-size:11px;color:var(--text3);line-height:1.5;background:var(--bg2);border-radius:6px;padding:8px 10px">
-        Skor akurasi = 100% − rata-rata deviasi absolut antara nilai FV dan harga akhir. Model yang paling sering mendekati harga aktual akan mendapat skor tertinggi.
+      <div style="margin-top:10px;font-family:'Noto Serif',Georgia,serif;font-size:11px;color:var(--text3);line-height:1.6;background:var(--bg2);border-radius:3px;padding:9px 12px;border-left:2px solid var(--border2);font-style:italic">
+        ✦ Skor akurasi = 100% − rata-rata deviasi absolut antara nilai FV dan harga akhir. Model yang paling sering mendekati harga aktual akan mendapat skor tertinggi.
       </div>
       `}
     </div>
@@ -1431,10 +2816,10 @@ function renderCards(){
       +'<div class="card-header">'
         +'<div class="card-header-left">'
           +'<div class="ticker">'+escHtml(em.ticker)+'</div>'
-          +'<span class="tebakan-inline '+tebakan+'">'+(tebakan==='bullish'?'🔼 Bullish':'🔽 Bearish')+'</span>'
+          +'<span class="tebakan-inline '+tebakan+'">'+(tebakan==='bullish'?'⚔ 強気':'🛡 弱気')+'</span>'
         +'</div>'
         +'<div class="card-header-right">'
-          +'<span class="badge '+(isWarn?'':'')+(isUnder?'green':isOver?'red':'pending')+'">'+(isWarn?'⚠ ':' ')+(isUnder?'Undervalue':isOver?'Overvalue':'Belum terhitung')+'</span>'
+          +'<span class="badge '+(isWarn?'':'')+(isUnder?'green':isOver?'red':'pending')+'">'+(isWarn?'⚠ ':' ')+(isUnder?'割安':isOver?'高値':'Belum terhitung')+'</span>'
           +'<div class="drag-handle" title="Drag"><svg viewBox="0 0 10 16" width="10" height="16" fill="currentColor"><circle cx="2.5" cy="2.5" r="1.5"/><circle cx="7.5" cy="2.5" r="1.5"/><circle cx="2.5" cy="8" r="1.5"/><circle cx="7.5" cy="8" r="1.5"/><circle cx="2.5" cy="13.5" r="1.5"/><circle cx="7.5" cy="13.5" r="1.5"/></svg></div>'
         +'</div>'
       +'</div>'
@@ -1493,9 +2878,9 @@ function openCardPopup(e, emitenId){
     +'<div class="card-header" style="padding-right:28px">'
       +'<div class="card-header-left">'
         +'<div class="ticker">'+escHtml(em.ticker)+'</div>'
-        +'<span class="tebakan-inline '+tebakan+'">'+(tebakan==='bullish'?'🔼 Bullish':'🔽 Bearish')+'</span>'
+        +'<span class="tebakan-inline '+tebakan+'">'+(tebakan==='bullish'?'⚔ 強気':'🛡 弱気')+'</span>'
       +'</div>'
-      +'<span class="badge '+(isUnder?'green':isOver?'red':'pending')+'">'+(isUnder?'Undervalue':isOver?'Overvalue':'Belum terhitung')+'</span>'
+      +'<span class="badge '+(isUnder?'green':isOver?'red':'pending')+'">'+(isUnder?'割安':isOver?'高値':'Belum terhitung')+'</span>'
     +'</div>'
     +'<div class="meta-row"><span>'+escHtml(last.quarter)+'</span>'+(em.sector?'<span class="meta-dot"></span><span class="sector-badge">'+escHtml(em.sector)+'</span>':'')+'<span class="meta-dot"></span><span>'+em.entries.length+' entry</span>'+(tanggalD?'<span class="meta-dot"></span><span>'+tanggalD+'</span>':'')+'</div>'
     +(isWarn?'<div class="holding-warn-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+getHoldingWarnMessage(em)+'</div>':'')
@@ -1752,7 +3137,7 @@ function renderInventory(){
     return '<tr class="inv-row" onclick="toggleInvExpand(event,\''+inv.id+'\')" data-inv-id="'+inv.id+'">'
       +'<td><div class="inv-ticker">'+escHtml(inv.ticker)+'</div><div class="inv-quarter">'+escHtml(inv.quarter)+'</div></td>'
       +'<td><span style="font-family:sans-serif;font-size:11px;color:var(--text3)">'+(inv.sector||'—')+'</span></td>'
-      +'<td class="col-tebakan"><span class="inv-badge '+teb+'">'+(teb==='bullish'?'🔼 Bullish':'🔽 Bearish')+'</span></td>'
+      +'<td class="col-tebakan"><span class="inv-badge '+teb+'">'+(teb==='bullish'?'⚔ 強気':'🛡 弱気')+'</span></td>'
       +'<td><div class="inv-price-main">'+(hAwal?fmt(hAwal):'—')+'</div>'+(inv.tanggalAwal?'<div class="inv-date-sub">'+fmtDate(inv.tanggalAwal)+'</div>':'')+'</td>'
       +'<td><div class="inv-price-main">'+(inv.hargaAkhir?fmt(inv.hargaAkhir):'—')+'</div>'+(inv.tanggalAkhir?'<div class="inv-date-sub">'+fmtDate(inv.tanggalAkhir)+'</div>':'')+'</td>'
       +'<td style="font-family:sans-serif;font-size:12px">'+fmt(inv.fv1)+'</td>'
@@ -1833,7 +3218,7 @@ function drawShareCard(canvas,inv){
   ctx.fillStyle=accentCol;ctx.fillText(badgeTxt,W-bW-7,27);
   ctx.font='bold 56px Georgia,serif';ctx.fillStyle='#fafaf9';ctx.fillText(inv.ticker,22,92);
   if(inv.sector){ctx.font='12px sans-serif';ctx.fillStyle='#57534e';ctx.fillText(inv.sector,22,110);}
-  ctx.font='13px sans-serif';ctx.fillStyle='#a8a29e';ctx.fillText((isBullish?'▲ Bullish':'▼ Bearish')+'   ·   '+(inv.quarter||''),22,inv.sector?128:114);
+  ctx.font='13px sans-serif';ctx.fillStyle='#a8a29e';ctx.fillText((isBullish?'▲ 強気':'▼ 弱気')+'   ·   '+(inv.quarter||''),22,inv.sector?128:114);
   ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(22,140);ctx.lineTo(W-22,140);ctx.stroke();
   if(returnPct!==null){const sign=returnPct>=0?'+':'';ctx.font='bold 68px Georgia,serif';ctx.fillStyle=returnCol;ctx.fillText(sign+returnPct.toFixed(1)+'%',22,222);ctx.font='11px sans-serif';ctx.fillStyle='#57534e';ctx.fillText('return',24,240);}
   ctx.textAlign='right';const rx=W-24;
@@ -1871,10 +3256,10 @@ function drawActiveCard(canvas,em){
   ctx.fillStyle=c.surface;cardShape();ctx.fill();ctx.strokeStyle=c.border;ctx.lineWidth=1;cardShape();ctx.stroke();ctx.fillStyle=leftBar;ctx.fillRect(0,0,3,H);
   let y=P;
   ctx.font='bold 20px Georgia,serif';ctx.fillStyle=c.text;ctx.fillText(em.ticker,P,y+20);
-  const bLbl=isUnder?'Undervalue':isOver?'Overvalue':'Belum terhitung';const bBg=isUnder?c.greenBg:isOver?c.redBg:c.bg2;const bFg=isUnder?c.greenT:isOver?c.redT:c.text3;
+  const bLbl=isUnder?'割安':isOver?'高値':'Belum terhitung';const bBg=isUnder?c.greenBg:isOver?c.redBg:c.bg2;const bFg=isUnder?c.greenT:isOver?c.redT:c.text3;
   ctx.font='600 11px sans-serif';const bW=ctx.measureText(bLbl).width+20,bH=24,bX=W-P-bW;
   ctx.fillStyle=bBg;rr(bX,y,bW,bH,12);ctx.fill();ctx.fillStyle=bFg;ctx.fillText(bLbl,bX+10,y+16);y+=26+5;
-  const tLbl=iBull?'▲ Bullish':'▼ Bearish';const tBg=iBull?c.greenBg:c.redBg,tFg=iBull?c.greenT:c.redT;
+  const tLbl=iBull?'▲ 強気':'▼ 弱気';const tBg=iBull?c.greenBg:c.redBg,tFg=iBull?c.greenT:c.redT;
   ctx.font='600 11px sans-serif';const tW=ctx.measureText(tLbl).width+16;ctx.fillStyle=tBg;rr(P,y,tW,20,10);ctx.fill();ctx.fillStyle=tFg;ctx.fillText(tLbl,P+8,y+14);y+=20+GAP;
   ctx.font='11px sans-serif';ctx.fillStyle=c.text3;const metaParts=[last.quarter,em.sector,em.entries.length+' entry',...(last.tanggalAwal?[fmtDate(last.tanggalAwal)]:[])].filter(Boolean);ctx.fillText(metaParts.join('   ·   '),P,y+13);y+=18+12;
   ctx.font='11px sans-serif';ctx.fillStyle=c.text3;ctx.fillText('Harga',P,y+22);const lblW=ctx.measureText('Harga').width+8;ctx.font='bold 22px Georgia,serif';ctx.fillStyle=c.text;ctx.fillText(fmtRp(px),P+lblW,y+22);y+=28+8;
@@ -2128,13 +3513,34 @@ function startTickerLoop(){updateQuotaBadge();initTicker(false);if(tickerAutoTim
 // INIT
 // ============================================================
 load();
-document.documentElement.setAttribute('data-theme',localStorage.getItem('nw_theme')||'light');
-updateThemeIcon();
+// CONCEPT 1: Init theme (time-based auto, or saved preference)
+(function initTheme() {
+  const saved = localStorage.getItem('nw_theme');
+  if (saved && ['dawn','morning','dusk','night','dark','light'].includes(saved)) {
+    applyTheme(saved, false);
+  } else {
+    applyTheme(getThemeFromTime(), false);
+  }
+})();
 initApiKeyBanner();
 const sortSel=document.getElementById('inv-sort');if(sortSel)sortSel.value=state.invSort||'newest';
 renderCards();
 updateStats();
 setTimeout(startTickerLoop,800);
+
+// ============================================================
+// CONCEPT 2: INTRO GATE — Init & Sakura
+// Deferred so the second <script> block (which defines
+// window.startIntro / window.skipIntro) has executed first.
+// ============================================================
+window.addEventListener('load', function() {
+  const seen = localStorage.getItem('st_intro_seen');
+  if (seen) {
+    if (typeof window.skipIntro === 'function') window.skipIntro(true);
+    return;
+  }
+  if (typeof window.startIntro === 'function') window.startIntro();
+});
 
 // ============================================================
 // BOOT ANIMATIONS
@@ -2502,30 +3908,320 @@ setTimeout(startTickerLoop,800);
     #ollama-panel { width: calc(100vw - 20px); right: 10px; bottom: 80px; }
     #ollama-fab   { bottom: 16px; right: 16px; }
   }
+
+/* ============================================================
+   CONCEPT 7: GLOBAL ANIMATIONS LIBRARY
+   ============================================================ */
+
+/* 7g. Enso Win-Rate Circle — brushstroke canvas container */
+.winrate-svg {
+  filter: drop-shadow(0 0 6px rgba(90,171,114,.15));
+}
+.winrate-track {
+  stroke: var(--border2) !important;
+  stroke-width: 5 !important;
+}
+.winrate-fill {
+  stroke-width: 5 !important;
+  stroke-linecap: round !important;
+  filter: drop-shadow(0 0 4px currentColor);
+}
+.winrate-label {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+}
+.winrate-sublabel {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-size: 9px !important;
+  letter-spacing: 1.5px !important;
+  opacity: .65;
+}
+
+/* 7h. Toast → Paper Slip Drop */
+.toast {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  border-radius: 3px !important;
+  font-style: italic;
+  letter-spacing: .3px;
+  border-left: 3px solid var(--accent) !important;
+  /* Torn paper top edge */
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+  border-left: 3px solid var(--accent) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2), 2px 0 0 var(--accent) !important;
+}
+/* Override slide direction: come down from top */
+@keyframes paperSlipDrop {
+  from { opacity: 0; transform: translateY(-100%) rotate(-1.2deg); }
+  to   { opacity: 1; transform: translateY(0)    rotate(-0.4deg); }
+}
+.toast {
+  bottom: auto !important;
+  top: 72px !important;
+  right: 24px !important;
+  transform: rotate(-0.4deg) !important;
+  transition: none !important;
+}
+.toast.show {
+  animation: paperSlipDrop .3s cubic-bezier(.22,1,.36,1) forwards !important;
+  opacity: 1 !important;
+  transform: translateY(0) rotate(-0.4deg) !important;
+}
+
+/* 7b. Katana slash card reveal (already in concept 4, polish here) */
+/* Already handled via .anim-card-drop override */
+
+/* 7c. Ink bleed progress bar — enhanced wet ink edge */
+.progress-fill {
+  box-shadow: none;
+  transition: width .6s cubic-bezier(.22,1,.36,1) !important;
+}
+.progress-fill::after {
+  animation: inkBleedPulse 1.8s ease-in-out infinite;
+}
+@keyframes inkBleedPulse {
+  0%,100% { opacity: .7; filter: blur(3px); }
+  50%      { opacity: 1;  filter: blur(4px); }
+}
+
+/* 7d. Scroll unfurl — already on .modal, make backdrop fade match */
+.modal-backdrop {
+  background: rgba(0,0,0,.5) !important;
+  backdrop-filter: blur(2px);
+}
+[data-theme="morning"] .modal-backdrop,
+[data-theme="light"] .modal-backdrop {
+  background: rgba(45,26,14,.35) !important;
+}
+
+/* 7e. Seal stamp effect — global class for reuse */
+.seal-stamp-anim {
+  animation: sealStamp .35s cubic-bezier(.2,1.5,.5,1) both !important;
+}
+
+/* 7f. Paper lift card hover — already in concept 4 */
+
+/* ============================================================
+   CONCEPT 8: STATS TAB — "The War Records" 戦績
+   ============================================================ */
+
+/* Page title override */
+#tab-stats .section-title::before {
+  content: '戦績 ';
+  color: var(--accent);
+  font-family: 'Noto Serif', Georgia, serif;
+  opacity: .8;
+}
+
+/* Stats sections — aged parchment card with corner mon crests */
+.stats-section {
+  border-radius: 3px !important;
+  border-color: var(--border) !important;
+  position: relative;
+  overflow: visible !important;
+}
+/* Corner mon crest top-left */
+.stats-section::before {
+  content: '家';
+  position: absolute;
+  top: -9px; left: -9px;
+  font-size: 13px;
+  color: var(--accent);
+  opacity: .2;
+  font-family: 'Noto Serif', Georgia, serif;
+  pointer-events: none;
+  line-height: 1;
+}
+/* Corner mon crest bottom-right */
+.stats-section::after {
+  content: '家';
+  position: absolute;
+  bottom: -9px; right: -9px;
+  font-size: 13px;
+  color: var(--accent);
+  opacity: .2;
+  font-family: 'Noto Serif', Georgia, serif;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* Section titles — brush-divider with kanji accent */
+.stats-section-title {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  letter-spacing: .4px;
+  padding-bottom: 10px !important;
+  margin-bottom: 12px !important;
+  position: relative;
+  border-bottom: none !important;
+}
+.stats-section-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent 60%);
+  opacity: .4;
+}
+
+/* Stats big numbers */
+.stats-big {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-size: 32px !important;
+  line-height: 1 !important;
+}
+.stats-sub {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-style: italic;
+  font-size: 10px !important;
+  opacity: .7;
+}
+
+/* Key-value rows */
+.stats-kv {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-size: 12px !important;
+}
+.stats-k { font-style: italic; }
+.stats-v { font-size: 13px !important; }
+
+/* Bar charts — ink-fill bars with bamboo track */
+.stats-bar-track {
+  background: var(--bg2) !important;
+  border-radius: 1px !important;
+  height: 7px !important;
+  border: 1px solid var(--border) !important;
+  overflow: visible !important;
+  position: relative;
+}
+.stats-bar-fill {
+  border-radius: 1px !important;
+  position: relative;
+  transition: width .7s cubic-bezier(.22,1,.36,1) !important;
+  /* Ink-fill leading edge */
+  overflow: visible !important;
+}
+.stats-bar-fill::after {
+  content: '';
+  position: absolute;
+  right: -1px; top: -2px;
+  width: 4px; height: 11px;
+  background: inherit;
+  filter: blur(3px);
+  opacity: .85;
+  border-radius: 2px;
+}
+.stats-bar-label {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-size: 11px !important;
+  font-style: italic;
+}
+.stats-bar-val {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-size: 11px !important;
+}
+
+/* Sector grid — small clan banner cards */
+/* (these are generated dynamically in JS — targeted via inline style override via CSS) */
+.stats-section[style*="grid-column:1/-1"] .stats-bar-track {
+  height: 6px !important;
+}
+
+/* FV accuracy section — calligraphy scroll comparison */
+.fv-acc-row {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-size: 12px !important;
+  padding: 10px 0 !important;
+}
+.fv-acc-label {
+  font-style: italic;
+  font-size: 11px !important;
+  min-width: 80px !important;
+}
+.fv-acc-bar {
+  border-radius: 1px !important;
+  height: 9px !important;
+  border: 1px solid var(--border) !important;
+  overflow: visible !important;
+}
+.fv-acc-fill {
+  border-radius: 1px !important;
+  transition: width .8s cubic-bezier(.22,1,.36,1) !important;
+  overflow: visible !important;
+  position: relative;
+}
+.fv-acc-fill::after {
+  content: '';
+  position: absolute;
+  right: -1px; top: -2px;
+  width: 4px; height: 13px;
+  background: inherit;
+  filter: blur(3px);
+  opacity: .85;
+  border-radius: 2px;
+}
+.fv-acc-val {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-size: 12px !important;
+}
+
+/* Win rate stat card in topbar (Archive tab) */
+#sc-winrate {
+  position: relative;
+}
+#sc-winrate::before {
+  content: '勝';
+  position: absolute;
+  bottom: 4px; right: 8px;
+  font-size: 28px;
+  font-family: 'Noto Serif', Georgia, serif;
+  color: var(--accent);
+  opacity: .07;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* Stat cards — parchment style */
+.stat-card {
+  border-radius: 3px !important;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent 70%);
+  opacity: .25;
+  pointer-events: none;
+}
+.stat-lbl {
+  font-family: 'Noto Serif', Georgia, serif !important;
+  font-style: italic;
+  font-size: 10px !important;
+  letter-spacing: .5px;
+}
 </style>
 
 <!-- FAB Button -->
-<button id="ollama-fab" title="Chat dengan AI (Groq · GPT-OSS)" onclick="ollamaToggle()">
-  <!-- Llama SVG icon -->
-  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- Body -->
-    <ellipse cx="32" cy="42" rx="14" ry="16" fill="#fff" opacity=".95"/>
-    <!-- Neck -->
-    <rect x="26" y="22" width="12" height="18" rx="6" fill="#fff" opacity=".95"/>
-    <!-- Head -->
-    <ellipse cx="32" cy="18" rx="9" ry="10" fill="#fff" opacity=".95"/>
-    <!-- Ears -->
-    <ellipse cx="24" cy="10" rx="3.5" ry="6" transform="rotate(-15 24 10)" fill="#fff" opacity=".9"/>
-    <ellipse cx="40" cy="10" rx="3.5" ry="6" transform="rotate(15 40 10)" fill="#fff" opacity=".9"/>
-    <!-- Eyes -->
-    <circle cx="28.5" cy="17" r="1.8" fill="#d97706"/>
-    <circle cx="35.5" cy="17" r="1.8" fill="#d97706"/>
-    <!-- Nose -->
-    <ellipse cx="32" cy="21.5" rx="2.5" ry="1.5" fill="#d97706" opacity=".6"/>
-    <!-- Legs -->
-    <rect x="20" y="54" width="6" height="8" rx="3" fill="#fff" opacity=".85"/>
-    <rect x="28" y="56" width="6" height="6" rx="3" fill="#fff" opacity=".85"/>
-    <rect x="36" y="54" width="6" height="8" rx="3" fill="#fff" opacity=".85"/>
+<button id="ollama-fab" title="Scroll Messenger — Tanya Oracle" onclick="ollamaToggle()">
+  <!-- Torii Gate SVG icon -->
+  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+    <!-- Top curved bar (kasagi) -->
+    <path d="M4 14 Q24 7 44 14" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none" opacity=".95"/>
+    <!-- Second bar (shimagi) -->
+    <line x1="8" y1="20" x2="40" y2="20" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".9"/>
+    <!-- Horizontal tie bar (nuki) -->
+    <line x1="12" y1="30" x2="36" y2="30" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+    <!-- Left pillar -->
+    <line x1="13" y1="20" x2="13" y2="46" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".95"/>
+    <!-- Right pillar -->
+    <line x1="35" y1="20" x2="35" y2="46" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".95"/>
+    <!-- Path glow dots at base -->
+    <circle cx="13" cy="44" r="2" fill="#fff" opacity=".5"/>
+    <circle cx="35" cy="44" r="2" fill="#fff" opacity=".5"/>
   </svg>
 </button>
 
@@ -2535,18 +4231,17 @@ setTimeout(startTickerLoop,800);
   <!-- Header -->
   <div id="ollama-header">
     <div id="ollama-header-icon">
-      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="32" cy="42" rx="14" ry="16" fill="var(--accent)"/>
-        <rect x="26" y="22" width="12" height="18" rx="6" fill="var(--accent)"/>
-        <ellipse cx="32" cy="18" rx="9" ry="10" fill="var(--accent)"/>
-        <ellipse cx="24" cy="10" rx="3.5" ry="6" transform="rotate(-15 24 10)" fill="var(--accent)"/>
-        <ellipse cx="40" cy="10" rx="3.5" ry="6" transform="rotate(15 40 10)" fill="var(--accent)"/>
-        <circle cx="28.5" cy="17" r="1.8" fill="var(--surface)"/>
-        <circle cx="35.5" cy="17" r="1.8" fill="var(--surface)"/>
+      <!-- Torii gate icon -->
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="17" height="17">
+        <path d="M3 12 Q24 5 45 12" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+        <line x1="7" y1="18" x2="41" y2="18" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="11" y1="27" x2="37" y2="27" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" opacity=".7"/>
+        <line x1="12" y1="18" x2="12" y2="46" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>
+        <line x1="36" y1="18" x2="36" y2="46" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>
       </svg>
     </div>
     <div id="ollama-header-title">
-      <strong>Llama AI Assistant</strong>
+      <strong>⛩ Scroll Messenger</strong>
       <span id="ollama-model-label">groq · gpt-oss-120b</span>
     </div>
     <div id="ollama-header-actions">
@@ -2584,14 +4279,15 @@ setTimeout(startTickerLoop,800);
   <!-- Messages -->
   <div id="ollama-messages">
     <div id="ollama-empty">
-      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="32" cy="42" rx="14" ry="16" fill="currentColor"/>
-        <rect x="26" y="22" width="12" height="18" rx="6" fill="currentColor"/>
-        <ellipse cx="32" cy="18" rx="9" ry="10" fill="currentColor"/>
-        <ellipse cx="24" cy="10" rx="3.5" ry="6" transform="rotate(-15 24 10)" fill="currentColor"/>
-        <ellipse cx="40" cy="10" rx="3.5" ry="6" transform="rotate(15 40 10)" fill="currentColor"/>
+      <!-- Torii gate empty state icon -->
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="36" opacity=".35">
+        <path d="M4 18 Q32 8 60 18" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <line x1="8" y1="26" x2="56" y2="26" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <line x1="14" y1="38" x2="50" y2="38" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <line x1="16" y1="26" x2="16" y2="62" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+        <line x1="48" y1="26" x2="48" y2="62" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
       </svg>
-      <p><strong style="color:var(--text2)">Tanya AI</strong><br>Tanyakan apa saja tentang saham,<br>analisis emiten, atau investasi.</p>
+      <p><strong style="color:var(--text2)">⛩ Tanya Oracle</strong><br>Tanyakan apa saja tentang saham,<br>analisis emiten, atau investasi.</p>
     </div>
   </div>
 
@@ -2604,7 +4300,7 @@ setTimeout(startTickerLoop,800);
   </div>
 
   <!-- Disclaimer -->
-  <div id="ollama-disclaimer">Powered by Groq Cloud · GPT-OSS · bukan saran keuangan</div>
+  <div id="ollama-disclaimer">⛩ Powered by Groq Cloud · bukan saran keuangan</div>
 </div>
 
 <script>
@@ -2711,7 +4407,7 @@ setTimeout(startTickerLoop,800);
     const avatar = document.createElement('div');
     avatar.className = 'ollama-avatar';
     if (role === 'bot') {
-      avatar.innerHTML = `<svg viewBox="0 0 64 64" fill="none"><ellipse cx="32" cy="42" rx="14" ry="16" fill="var(--accent)"/><rect x="26" y="22" width="12" height="18" rx="6" fill="var(--accent)"/><ellipse cx="32" cy="18" rx="9" ry="10" fill="var(--accent)"/><ellipse cx="24" cy="10" rx="3.5" ry="6" transform="rotate(-15 24 10)" fill="var(--accent)"/><ellipse cx="40" cy="10" rx="3.5" ry="6" transform="rotate(15 40 10)" fill="var(--accent)"/></svg>`;
+      avatar.innerHTML = `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="13" height="13"><path d="M3 12 Q24 5 45 12" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round" fill="none"/><line x1="7" y1="18" x2="41" y2="18" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/><line x1="11" y1="27" x2="37" y2="27" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" opacity=".7"/><line x1="12" y1="18" x2="12" y2="46" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/><line x1="36" y1="18" x2="36" y2="46" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/></svg>`;
     } else {
       avatar.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="13" height="13"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
     }
@@ -2825,6 +4521,261 @@ setTimeout(startTickerLoop,800);
       document.getElementById('ollama-input').focus();
     }
   };
+})();
+</script>
+
+<!-- ============================================================
+     CONCEPT 2: INTRO GATE ANIMATION — JavaScript
+     ============================================================ -->
+<script>
+(function() {
+
+// ── Sakura petal system ──────────────────────────────────────
+const sakuraCanvas = document.getElementById('sakura-canvas');
+const sakuraCtx = sakuraCanvas ? sakuraCanvas.getContext('2d') : null;
+let sakuraPetals = [];
+let sakuraAnimId = null;
+
+function resizeSakura() {
+  if (!sakuraCanvas) return;
+  sakuraCanvas.width  = window.innerWidth;
+  sakuraCanvas.height = window.innerHeight;
+}
+
+function spawnPetal() {
+  return {
+    x: Math.random() * (sakuraCanvas ? sakuraCanvas.width : window.innerWidth),
+    y: -15,
+    size: 4 + Math.random() * 6,
+    speedY: 0.6 + Math.random() * 1.2,
+    speedX: -0.5 + Math.random() * 1.0,
+    rot: Math.random() * Math.PI * 2,
+    rotSpeed: (-0.02 + Math.random() * 0.04),
+    opacity: 0.15 + Math.random() * 0.25,
+    wobble: Math.random() * Math.PI * 2,
+    wobbleSpeed: 0.01 + Math.random() * 0.02,
+    gustX: 0,
+  };
+}
+
+function drawPetal(ctx, p) {
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.rot);
+  ctx.globalAlpha = p.opacity;
+
+  // Simple oval petal shape
+  const theme = document.documentElement.getAttribute('data-theme') || 'morning';
+  const colors = {
+    dawn:    ['#f5a8a8','#e8dfd0','#f5c878'],
+    morning: ['#f7c5d0','#f5ede4','#e8d5c4'],
+    dusk:    ['#f5a878','#f5c878','#e8913a'],
+    night:   ['#c9a97a','#f5efe6','#e84040'],
+  };
+  const palette = colors[theme] || colors.morning;
+  ctx.fillStyle = palette[Math.floor(p.opacity * 10) % palette.length];
+
+  ctx.beginPath();
+  ctx.ellipse(0, 0, p.size * 0.6, p.size, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function animateSakura() {
+  if (!sakuraCtx || !sakuraCanvas) return;
+
+  // Cap at ~30fps
+  sakuraAnimId = setTimeout(() => {
+    requestAnimationFrame(animateSakura);
+  }, 33);
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    sakuraCtx.clearRect(0, 0, sakuraCanvas.width, sakuraCanvas.height);
+    return;
+  }
+
+  sakuraCtx.clearRect(0, 0, sakuraCanvas.width, sakuraCanvas.height);
+
+  // Maintain 15-25 petals
+  while (sakuraPetals.length < 18) sakuraPetals.push(spawnPetal());
+
+  sakuraPetals = sakuraPetals.filter(p => {
+    p.wobble += p.wobbleSpeed;
+    p.x += p.speedX + Math.sin(p.wobble) * 0.5 + p.gustX;
+    p.y += p.speedY;
+    p.rot += p.rotSpeed;
+    p.gustX *= 0.97; // decay gust
+
+    // Occasional wind gust
+    if (Math.random() < 0.003) p.gustX = (-2 + Math.random() * 4);
+
+    drawPetal(sakuraCtx, p);
+
+    return p.y < sakuraCanvas.height + 20;
+  });
+}
+
+function startSakura() {
+  resizeSakura();
+  if (sakuraCanvas) sakuraCanvas.classList.add('visible');
+  animateSakura();
+}
+
+window.addEventListener('resize', resizeSakura);
+
+// ── Intro sequence ───────────────────────────────────────────
+let introActive = false;
+let introTimers = [];
+
+function introTimeout(fn, ms) {
+  const t = setTimeout(fn, ms);
+  introTimers.push(t);
+  return t;
+}
+
+function clearIntroTimers() {
+  introTimers.forEach(t => clearTimeout(t));
+  introTimers = [];
+}
+
+function getEl(id) { return document.getElementById(id); }
+
+window.startIntro = function() {
+  introActive = true;
+  const overlay = getEl('intro-overlay');
+  if (!overlay) { skipIntro(true); return; }
+
+  // Phase 1: 0.0s – 1.0s — Darkness & Mist
+  introTimeout(() => {
+    overlay.classList.add('phase1');
+    startSakura();
+  }, 100);
+
+  // Phase 2: 1.0s – 3.0s — Torii Gate Draws
+  introTimeout(() => {
+    overlay.classList.add('phase2');
+    // Torii glow starts
+  }, 1000);
+
+  // Phase 3: 2.5s – 3.5s — Text Reveal
+  introTimeout(() => {
+    const kanji = getEl('intro-kanji-large');
+    if (kanji) {
+      kanji.style.transition = 'opacity .8s ease, transform .8s ease';
+      kanji.style.transform = 'translateY(-10px)';
+      kanji.style.opacity = '1';
+    }
+  }, 2500);
+
+  introTimeout(() => {
+    const title = getEl('intro-title');
+    if (title) {
+      title.style.transition = 'opacity .6s ease';
+      title.style.opacity = '1';
+    }
+  }, 3000);
+
+  introTimeout(() => {
+    const sub = getEl('intro-subtitle');
+    if (sub) {
+      sub.style.transition = 'opacity .6s ease';
+      sub.style.opacity = '1';
+    }
+  }, 3300);
+
+  // Phase 4: 3.5s – 5.0s — Gate Doors Open
+  introTimeout(() => {
+    // Show gate panels
+    const gL = getEl('intro-gate-left');
+    const gR = getEl('intro-gate-right');
+    const light = getEl('intro-light-burst');
+    if (gL) { gL.style.transition = 'opacity .2s'; gL.style.opacity = '1'; }
+    if (gR) { gR.style.transition = 'opacity .2s'; gR.style.opacity = '1'; }
+
+    // Seal stamp slam
+    introTimeout(() => {
+      const seal = getEl('intro-seal');
+      if (seal) {
+        seal.style.transition = 'opacity .05s, transform .3s cubic-bezier(.2,1.5,.5,1)';
+        seal.style.opacity = '1';
+        seal.style.transform = 'translate(-50%, -50%) scale(1) rotate(-3deg)';
+      }
+      // Flash and remove seal
+      introTimeout(() => {
+        if (seal) { seal.style.transition = 'opacity .2s'; seal.style.opacity = '0'; }
+      }, 400);
+    }, 200);
+
+    // Open the gate
+    introTimeout(() => {
+      if (gL) {
+        gL.style.transition = 'transform 1.2s cubic-bezier(.4,0,.2,1), opacity .3s';
+        gL.style.transform = 'translateX(-100%)';
+      }
+      if (gR) {
+        gR.style.transition = 'transform 1.2s cubic-bezier(.4,0,.2,1), opacity .3s';
+        gR.style.transform = 'translateX(100%)';
+      }
+      // Light burst
+      if (light) {
+        light.style.transition = 'opacity .5s ease';
+        light.style.opacity = '1';
+      }
+    }, 600);
+  }, 3500);
+
+  // Phase 5: 5.0s – 6.0s — Dashboard Reveal
+  introTimeout(() => {
+    finishIntro();
+  }, 5800);
+};
+
+function finishIntro() {
+  if (!introActive) return;
+  introActive = false;
+  clearIntroTimers();
+
+  const overlay = getEl('intro-overlay');
+  if (!overlay) return;
+
+  overlay.style.transition = 'opacity .8s ease';
+  overlay.style.opacity = '0';
+
+  setTimeout(() => {
+    overlay.classList.add('hidden');
+    // Remove from DOM to free memory
+    overlay.remove();
+    localStorage.setItem('st_intro_seen', '1');
+  }, 800);
+}
+
+window.skipIntro = function(instant) {
+  clearIntroTimers();
+  introActive = false;
+  const overlay = getEl('intro-overlay');
+  if (!overlay) {
+    // Already gone, just make sure sakura runs
+    if (!sakuraAnimId) startSakura();
+    return;
+  }
+
+  if (instant) {
+    overlay.classList.add('hidden');
+    overlay.remove();
+    startSakura();
+    localStorage.setItem('st_intro_seen', '1');
+  } else {
+    overlay.style.transition = 'opacity .4s ease';
+    overlay.style.opacity = '0';
+    setTimeout(() => {
+      overlay.classList.add('hidden');
+      overlay.remove();
+      startSakura();
+      localStorage.setItem('st_intro_seen', '1');
+    }, 400);
+  }
+};
+
 })();
 </script>
 </body>

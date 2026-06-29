@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stock Predictor</title>
+<!-- Markdown renderer -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<!-- KaTeX for math equations -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <style>
   :root {
     --bg:#fafaf9;--bg2:#f5f4f1;--surface:#ffffff;--border:#e7e5e0;--border2:#d6d3cc;
@@ -1817,6 +1823,49 @@ function drawActiveCard(canvas,em){
 }
 
 // ============================================================
+// ============================================================
+// MARKDOWN + MATH HELPERS
+// ============================================================
+// Configure marked: no pedantic, smart breaks
+(function() {
+  if (window.marked) {
+    marked.setOptions({ breaks: true, gfm: true, pedantic: false });
+  }
+})();
+
+// Full markdown render (chatbot — block elements allowed)
+function renderMdFull(text) {
+  if (!text) return '';
+  if (!window.marked) return escHtml(text).replace(/\n/g, '<br>');
+  return marked.parse(String(text));
+}
+
+// Inline markdown render (AI summary — no wrapping <p> tags)
+function renderMdInline(text) {
+  if (!text) return '';
+  if (!window.marked) return escHtml(text);
+  // Use marked then strip outer <p> wrapper for inline usage
+  let html = marked.parse(String(text));
+  html = html.replace(/^<p>(.*)<\/p>\n?$/s, '$1');
+  return html;
+}
+
+// After inserting HTML, render math with KaTeX if available
+function renderMath(el) {
+  if (!window.renderMathInElement || !el) return;
+  try {
+    renderMathInElement(el, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '$',  right: '$',  display: false },
+        { left: '\\[', right: '\\]', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ],
+      throwOnError: false
+    });
+  } catch(e) {}
+}
+
 // AI PANEL
 // ============================================================
 let aiCurrentEmitenId=null;let aiCache={};const AI_CACHE_MS=10*60*1000;
@@ -1852,7 +1901,7 @@ async function aiAnalyze(emitenId,e){
   document.getElementById('ai-loading').style.display='flex';document.getElementById('ai-content').style.display='none';document.getElementById('ai-refresh-btn').disabled=true;
   const last=em.entries[em.entries.length-1];const {fv1,fv2,fv3,avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
   const mosPct=(avg&&last.price)?((avg-last.price)/last.price*100):null;const nd=last.notes?parseNotes(last.notes):null;
-  const prompt=`Kamu adalah analis saham IDX. Analisis emiten berikut.\n\nDATA:\n- Ticker: ${em.ticker}\n- Sektor: ${em.sector||'N/A'}\n- Tebakan: ${(em.tebakan||'bullish').toUpperCase()}\n- Kuartal: ${last.quarter}\n- Harga: Rp ${last.price?Math.round(last.price).toLocaleString('id-ID'):'N/A'}\n- BVPS: ${last.bvps||'N/A'}, PBV: ${last.pbv||'N/A'}x, EPS: ${last.eps||'N/A'}, PE: ${last.pe||'N/A'}x, NI: ${last.ni||'N/A'}T, Saham: ${last.shares||'N/A'}M\n\nFV1: ${fv1?'Rp '+Math.round(fv1).toLocaleString('id-ID'):'N/A'}, FV2: ${fv2?'Rp '+Math.round(fv2).toLocaleString('id-ID'):'N/A'}, FV3: ${fv3?'Rp '+Math.round(fv3).toLocaleString('id-ID'):'N/A'}, FV Avg: ${avg?'Rp '+Math.round(avg).toLocaleString('id-ID'):'N/A'}, MoS: ${mosPct!==null?(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%':'N/A'}\n\nCatatan Positif: ${nd&&nd.plus.length?nd.plus.join('; '):'tidak ada'}\nRisiko: ${nd&&nd.minus.length?nd.minus.join('; '):'tidak ada'}\n\nBalas HANYA JSON tanpa markdown:\n{"verdict":{"label":"BULLISH"|"BEARISH"|"NETRAL","summary":"1-2 kalimat"},"valuation":{"interpretation":"2-3 kalimat tentang FV1/FV2/FV3","mos_interpretation":"1-2 kalimat MoS"},"fundamentals":{"analysis":"2-3 kalimat"},"price_action":{"bullish_scenario":"skenario dan target","bearish_scenario":"risiko downside","key_levels":"level kunci"},"risks":"2-3 risiko","watchlist":["3-4 hal yang dipantau"]}`;
+  const fmtNum=n=>n?Math.round(n).toLocaleString('id-ID'):'N/A';const prompt=`Kamu adalah analis saham IDX. Analisis emiten berikut.\n\nDATA:\n- Ticker: ${em.ticker}\n- Sektor: ${em.sector||'N/A'}\n- Tebakan: ${(em.tebakan||'bullish').toUpperCase()}\n- Kuartal: ${last.quarter}\n- Harga: Rp ${last.price?Math.round(last.price):'N/A'}\n- BVPS: ${last.bvps||'N/A'}, PBV: ${last.pbv||'N/A'}x, EPS: ${last.eps||'N/A'}, PE: ${last.pe||'N/A'}x, NI: ${last.ni||'N/A'}T, Saham: ${last.shares||'N/A'}M\n\nFV1: ${fv1?'Rp '+Math.round(fv1):'N/A'}, FV2: ${fv2?'Rp '+Math.round(fv2):'N/A'}, FV3: ${fv3?'Rp '+Math.round(fv3):'N/A'}, FV Avg: ${avg?'Rp '+Math.round(avg):'N/A'}, MoS: ${mosPct!==null?(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%':'N/A'}\n\nCatatan Positif: ${nd&&nd.plus.length?nd.plus.join('; '):'tidak ada'}\nRisiko: ${nd&&nd.minus.length?nd.minus.join('; '):'tidak ada'}\n\nPENTING: Tulis angka harga sebagai integer tanpa pemisah (contoh: 3000, bukan 3.000 atau 3,000).\nBalas HANYA JSON tanpa markdown:\n{"verdict":{"label":"BULLISH"|"BEARISH"|"NETRAL","summary":"1-2 kalimat"},"valuation":{"interpretation":"2-3 kalimat tentang FV1/FV2/FV3","mos_interpretation":"1-2 kalimat MoS"},"fundamentals":{"analysis":"2-3 kalimat"},"price_action":{"bullish_scenario":"skenario dan target","bearish_scenario":"risiko downside","key_levels":"level kunci"},"risks":"2-3 risiko","watchlist":["3-4 hal yang dipantau"]}`;
   let parsed;
   try{
     const apiKey=localStorage.getItem('nw_groq_key')||'';if(!apiKey)throw new Error('Groq API key belum disimpan.');
@@ -1863,7 +1912,7 @@ async function aiAnalyze(emitenId,e){
     const html=renderAiHtml(parsed,em,{fv1,fv2,fv3,avg,mosPct});aiCache[emitenId]={html,timestamp:Date.now()};renderAiList();showAiContent(html);
   }catch(err){showAiError(err.message);}finally{document.getElementById('ai-refresh-btn').disabled=false;}
 }
-function showAiContent(html){document.getElementById('ai-loading').style.display='none';const c=document.getElementById('ai-content');c.innerHTML=html;c.style.display='block';}
+function showAiContent(html){document.getElementById('ai-loading').style.display='none';const c=document.getElementById('ai-content');c.innerHTML=html;c.style.display='block';renderMath(c);}
 function showAiError(msg){document.getElementById('ai-loading').style.display='none';const c=document.getElementById('ai-content');c.style.display='block';c.innerHTML=`<div style="background:var(--red-bg);border:1px solid var(--red);border-radius:8px;padding:12px 14px;font-family:sans-serif;font-size:12px;color:var(--red-t);line-height:1.6"><strong>Gagal:</strong> ${escHtml(msg)}</div>`;}
 function initApiKeyBanner(){
   const key=localStorage.getItem('nw_groq_key')||'';const banner=document.getElementById('ai-key-banner');const statusEl=document.getElementById('ai-key-status-row');const inputRow=document.getElementById('ai-key-input-row');const input=document.getElementById('ai-key-input');if(!banner)return;
@@ -1875,18 +1924,20 @@ function clearApiKey(){localStorage.removeItem('nw_groq_key');const banner=docum
 function renderAiHtml(d,em,fv){
   const verdictClass=d.verdict.label==='BULLISH'?'bull':d.verdict.label==='BEARISH'?'bear':'neutral';
   const fmtRp=n=>n?'Rp '+Math.round(n).toLocaleString('id-ID'):'—';const mosCls=fv.mosPct>=20?'green':fv.mosPct>=0?'accent':'red';
-  return`<div class="ai-verdict ${verdictClass}"><span class="ai-verdict-label">${d.verdict.label==='BULLISH'?'▲ ':'▼ '}${d.verdict.label}</span>${escHtml(d.verdict.summary)}</div>
+  const html = `<div class="ai-verdict ${verdictClass}"><span class="ai-verdict-label">${d.verdict.label==='BULLISH'?'▲ ':'▼ '}${d.verdict.label}</span>${renderMdInline(d.verdict.summary)}</div>
   <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>Valuasi</div>
   <div style="margin-bottom:10px"><div class="ai-metric-row"><span class="ai-metric-label">FV1</span><span class="ai-metric-val">${fmtRp(fv.fv1)}</span></div><div class="ai-metric-row"><span class="ai-metric-label">FV2</span><span class="ai-metric-val">${fmtRp(fv.fv2)}</span></div><div class="ai-metric-row"><span class="ai-metric-label">FV3</span><span class="ai-metric-val">${fmtRp(fv.fv3)}</span></div><div class="ai-metric-row" style="border-top:1.5px solid var(--border);margin-top:4px;padding-top:8px"><span class="ai-metric-label" style="font-weight:600">FV Avg</span><span class="ai-metric-val accent">${fmtRp(fv.avg)}</span></div>${fv.mosPct!==null?`<div class="ai-metric-row"><span class="ai-metric-label">MoS</span><span class="ai-metric-val ${mosCls}">${fv.mosPct>=0?'+':''}${fv.mosPct.toFixed(1)}%</span></div>`:''}</div>
-  <div class="ai-prose"><p>${escHtml(d.valuation.interpretation)}</p><p>${escHtml(d.valuation.mos_interpretation)}</p></div></div>
-  <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>Fundamental</div><div class="ai-prose"><p>${escHtml(d.fundamentals.analysis)}</p></div></div>
+  <div class="ai-prose">${renderMdInline(d.valuation.interpretation)}<br>${renderMdInline(d.valuation.mos_interpretation)}</div></div>
+  <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>Fundamental</div><div class="ai-prose">${renderMdInline(d.fundamentals.analysis)}</div></div>
   <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Price Action</div>
-  <div class="ai-scenario bull"><div class="ai-scenario-label">▲ Bullish</div><p>${escHtml(d.price_action.bullish_scenario)}</p></div>
-  <div class="ai-scenario bear"><div class="ai-scenario-label">▼ Bearish</div><p>${escHtml(d.price_action.bearish_scenario)}</p></div>
-  <div style="background:var(--bg2);border-radius:6px;padding:9px 11px;font-family:sans-serif;font-size:12px;color:var(--text2);margin-top:6px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);margin-bottom:5px">Key Levels</div>${escHtml(d.price_action.key_levels)}</div></div>
-  <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>Risiko</div><div class="ai-prose"><p>${escHtml(d.risks)}</p></div></div>
+  <div class="ai-scenario bull"><div class="ai-scenario-label">▲ Bullish</div>${renderMdInline(d.price_action.bullish_scenario)}</div>
+  <div class="ai-scenario bear"><div class="ai-scenario-label">▼ Bearish</div>${renderMdInline(d.price_action.bearish_scenario)}</div>
+  <div style="background:var(--bg2);border-radius:6px;padding:9px 11px;font-family:sans-serif;font-size:12px;color:var(--text2);margin-top:6px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);margin-bottom:5px">Key Levels</div>${renderMdInline(d.price_action.key_levels)}</div></div>
+  <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>Risiko</div><div class="ai-prose">${renderMdInline(d.risks)}</div></div>
   <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Watchlist</div>
   <div style="display:flex;flex-wrap:wrap;gap:4px">${(d.watchlist||[]).map((w,i)=>`<span class="ai-tag ${i%3===0?'accent':i%3===1?'green':'red'}">${escHtml(w)}</span>`).join('')}</div></div>`;
+  // Render math after building HTML (will be applied when inserted into DOM via showAiContent)
+  return html;
 }
 
 // Patch renderCards and updateStats
@@ -2227,6 +2278,17 @@ setTimeout(startTickerLoop,800);
   #ollama-empty p { color: var(--text3); margin: 0; line-height: 1.5; }
 
   /* Error bubble */
+  /* Markdown styling inside chatbot bubble */
+  .ollama-bubble.bot p { margin: 0 0 6px 0; }
+  .ollama-bubble.bot p:last-child { margin-bottom: 0; }
+  .ollama-bubble.bot ul, .ollama-bubble.bot ol { margin: 4px 0; padding-left: 18px; }
+  .ollama-bubble.bot li { margin: 2px 0; }
+  .ollama-bubble.bot strong { font-weight: 700; color: var(--text); }
+  .ollama-bubble.bot em { font-style: italic; }
+  .ollama-bubble.bot code { font-family: monospace; font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 4px; }
+  .ollama-bubble.bot pre { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px; overflow-x: auto; margin: 6px 0; }
+  .ollama-bubble.bot pre code { background: none; border: none; padding: 0; font-size: 11px; }
+  .ollama-bubble.bot h1,.ollama-bubble.bot h2,.ollama-bubble.bot h3 { font-size: 13px; font-weight: 700; margin: 6px 0 4px; }
   .ollama-error {
     background: var(--red-bg) !important;
     border-color: var(--red) !important;
@@ -2506,7 +2568,7 @@ setTimeout(startTickerLoop,800);
     }
 
     const bubble = document.createElement('div');
-    bubble.className = 'ollama-bubble';
+    bubble.className = 'ollama-bubble' + (role === 'bot' ? ' bot' : '');
     if (streaming) bubble.innerHTML = '<div class="ollama-typing"><span></span><span></span><span></span></div>';
     else bubble.textContent = text;
 
@@ -2553,7 +2615,9 @@ setTimeout(startTickerLoop,800);
           model:    getModel(),
           messages: ollamaHistory,
           stream:   true,
-          max_tokens: 1024
+          max_tokens: 1024,
+          // Sembunyikan reasoning <think> block untuk model Qwen3
+          ...(getModel().startsWith('qwen/') && { reasoning_format: 'hidden' })
         })
       });
 
@@ -2569,6 +2633,11 @@ setTimeout(startTickerLoop,800);
       let fullText  = '';
       botBubble.innerHTML = '';
 
+      // Strip <think>...</think> sebagai safety net (kalau reasoning_format belum cukup)
+      function stripThink(text) {
+        return text.replace(/<think>[\s\S]*?<\/think>/gi, '').trimStart();
+      }
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -2582,13 +2651,21 @@ setTimeout(startTickerLoop,800);
             const json  = JSON.parse(trimmed.slice(6));
             const token = json?.choices?.[0]?.delta?.content || '';
             fullText += token;
-            botBubble.textContent = fullText;
+            // Tampilkan plain text saat streaming (agar tidak glitch mid-markdown)
+            botBubble.textContent = stripThink(fullText);
             document.getElementById('ollama-messages').scrollTop = 99999;
           } catch (_) {}
         }
       }
 
-      ollamaHistory.push({ role: 'assistant', content: fullText });
+      // Setelah streaming selesai: render markdown + math
+      const cleanText = stripThink(fullText);
+      botBubble.innerHTML = renderMdFull(cleanText);
+      renderMath(botBubble);
+      document.getElementById('ollama-messages').scrollTop = 99999;
+
+      // Simpan ke history tanpa <think> block
+      ollamaHistory.push({ role: 'assistant', content: cleanText });
 
     } catch (err) {
       botBubble.textContent = '⚠ ' + err.message;

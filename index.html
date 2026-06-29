@@ -421,19 +421,17 @@
      ============================================================ */
   @keyframes fadeSlideDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeSlideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes scanIn{from{opacity:0;clip-path:inset(0 100% 0 0)}to{opacity:1;clip-path:inset(0 0% 0 0)}}
   @keyframes cardDrop{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
   @keyframes pricePulseGreen{0%,100%{text-shadow:none}40%{text-shadow:0 0 10px rgba(22,163,74,.7),0 0 20px rgba(22,163,74,.3)}}
   @keyframes pricePulseRed{0%,100%{text-shadow:none}40%{text-shadow:0 0 10px rgba(220,38,38,.7),0 0 20px rgba(220,38,38,.3)}}
 
-  .topbar{animation:fadeSlideDown .5s cubic-bezier(.22,1,.36,1) both}
-  .ticker-bar{animation:scanIn .7s .35s cubic-bezier(.22,1,.36,1) both}
-  .stat-card{opacity:0;animation:fadeSlideUp .5s cubic-bezier(.22,1,.36,1) forwards}
-  .emiten-card-anim{opacity:0;animation:cardDrop .45s cubic-bezier(.22,1,.36,1) forwards}
+  .anim-fade-down{animation:fadeSlideDown .5s cubic-bezier(.22,1,.36,1) both}
+  .anim-fade-up{opacity:0;animation:fadeSlideUp .5s cubic-bezier(.22,1,.36,1) forwards}
+  .anim-card-drop{opacity:0;animation:cardDrop .45s cubic-bezier(.22,1,.36,1) forwards}
   .price-pulse-up{animation:pricePulseGreen .8s ease}
   .price-pulse-down{animation:pricePulseRed .8s ease}
 
-  .winrate-track{fill:none;stroke:var(--border);stroke-width:6}
+  .winrate-track{fill:none;stroke:var(--border2);stroke-width:6}
   .winrate-fill{fill:none;stroke:var(--green);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 1.4s cubic-bezier(.22,1,.36,1);transform:rotate(-90deg);transform-origin:50% 50%}
   .winrate-fill.red{stroke:var(--red)}
   .winrate-label{font-family:Georgia,serif;font-size:26px;font-weight:700;fill:var(--text)}
@@ -442,7 +440,7 @@
 </head>
 <body>
 
-<div class="topbar">
+<div class="topbar anim-fade-down">
   <div class="logo-wrap">
     <div class="logo">Stock<span>Tracker</span></div>
     <div class="logo-tooltip">Designed by BosGeng</div>
@@ -574,10 +572,10 @@
   <!-- TAB: ARCHIVE -->
   <div id="tab-inventory" style="display:none">
     <div class="stats-bar">
-      <div class="stat-card" style="animation-delay:.5s"><div class="stat-num accent" id="s-active">0</div><div class="stat-lbl">Active</div></div>
-      <div class="stat-card" style="animation-delay:.65s"><div class="stat-num green" id="s-hit">0</div><div class="stat-lbl">Hit</div></div>
-      <div class="stat-card" style="animation-delay:.8s"><div class="stat-num red" id="s-miss">0</div><div class="stat-lbl">Miss</div></div>
-      <div class="stat-card" style="animation-delay:.95s"><div class="stat-num" id="s-winrate">—</div><div class="stat-lbl">Win rate</div></div>
+      <div class="stat-card" id="sc-active"><div class="stat-num accent" id="s-active">0</div><div class="stat-lbl">Active</div></div>
+      <div class="stat-card" id="sc-hit"><div class="stat-num green" id="s-hit">0</div><div class="stat-lbl">Hit</div></div>
+      <div class="stat-card" id="sc-miss"><div class="stat-num red" id="s-miss">0</div><div class="stat-lbl">Miss</div></div>
+      <div class="stat-card" id="sc-winrate"><div class="stat-num" id="s-winrate">—</div><div class="stat-lbl">Win rate</div></div>
     </div>
     <div class="inv-toolbar">
       <div class="section-title">Riwayat Prediksi</div>
@@ -1426,7 +1424,7 @@ function renderCards(){
     const tebakan=em.tebakan||'bullish';
     const tanggalD=last.tanggalAwal?fmtDate(last.tanggalAwal):null;
 
-    html+='<div class="emiten-card emiten-card-anim '+cardClass+'" id="card-'+em.id+'" style="animation-delay:'+(filtered.indexOf(em)*0.07).toFixed(2)+'s" draggable="true"'
+    html+='<div class="emiten-card anim-card-drop '+cardClass+'" id="card-'+em.id+'" style="animation-delay:'+(filtered.indexOf(em)*0.08).toFixed(2)+'s" draggable="true"'
       +' onclick="openCardPopup(event,\''+em.id+'\')"'
       +' ondragstart="onDragStart(event,\''+em.id+'\')" ondragend="onDragEnd(event,\''+em.id+'\')"'
       +' ondragover="onDragOver(event,\''+em.id+'\')" ondragleave="onDragLeave(event,\''+em.id+'\')" ondrop="onDrop(event,\''+em.id+'\')">'
@@ -2137,6 +2135,36 @@ const sortSel=document.getElementById('inv-sort');if(sortSel)sortSel.value=state
 renderCards();
 updateStats();
 setTimeout(startTickerLoop,800);
+
+// ============================================================
+// BOOT ANIMATIONS
+// ============================================================
+(function bootAnimate(){
+  // Stat cards staggered fade up
+  ['sc-active','sc-hit','sc-miss','sc-winrate'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.style.opacity='0';
+    setTimeout(()=>{
+      el.classList.add('anim-fade-up');
+      el.style.animationDelay='0s';
+    },500+i*150);
+  });
+
+  // Emiten cards staggered drop — re-run after renderCards settles
+  setTimeout(()=>{
+    document.querySelectorAll('.emiten-card-anim').forEach((el,i)=>{
+      el.style.opacity='0';
+      el.style.animationDelay='0s';
+      setTimeout(()=>{
+        el.style.animationDelay='0s';
+        el.classList.remove('anim-card-drop');
+        void el.offsetWidth;
+        el.classList.add('anim-card-drop');
+      },i*80);
+    });
+  },200);
+})();
 </script>
 
 <!-- ============================================================

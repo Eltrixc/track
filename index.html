@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StockTracker by BosGeng</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <!-- Markdown renderer -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <!-- KaTeX for math equations -->
@@ -327,8 +326,9 @@
   .ticker-track{display:inline-flex;align-items:center;white-space:nowrap;gap:0;animation:tickerScroll 40s linear infinite;will-change:transform}
   .ticker-track:hover{animation-play-state:paused}
   @keyframes tickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-  .ticker-item{display:inline-flex;align-items:center;gap:5px;padding:0 16px;font-family:sans-serif;font-size:12px;border-right:1px solid var(--border);height:36px;cursor:default}
-  .ticker-item:hover{background:var(--bg2)}
+  .ticker-item{display:inline-flex;align-items:center;gap:5px;padding:0 16px;font-family:sans-serif;font-size:12px;border-right:1px solid var(--border);height:36px;cursor:pointer}
+  .ticker-item:hover{background:var(--accent-bg)}
+  .emiten-card.card-highlight{box-shadow:0 0 0 2.5px var(--accent),0 6px 24px rgba(0,0,0,.13)!important;transform:translateY(-2px);border-left-color:var(--accent)!important;transition:box-shadow .2s,transform .2s}
   .ticker-sym{font-weight:700;color:var(--text);font-size:11px;letter-spacing:.2px}
   .ticker-price{color:var(--text2);font-size:11.5px}
   .ticker-chg{font-size:10px;font-weight:600;padding:1px 5px;border-radius:4px}
@@ -1379,7 +1379,7 @@ function renderCards(){
       +'</div>'
       +(isWarn?'<div class="holding-warn-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+getHoldingWarnMessage(em)+'</div>':'')
       +'<div class="fv-section">'
-        +'<div class="price-main"><span class="price-label">Harga</span><span class="price-val">Rp '+(last.price?Math.round(last.price).toLocaleString('id-ID'):'—')+'</span></div>'
+        +'<div class="price-main"><span class="price-label">Harga</span><span class="price-val live-price-val">Rp '+(last.price?Math.round(last.price).toLocaleString('id-ID'):'—')+'</span></div>'
         +'<div class="fv-row"><span class="fv-label">FV1 — BVPS × PBV</span><span class="fv-vals"><span class="fv-num">'+fmt(fv1)+'</span>'+discStr(fv1)+'</span></div>'
         +'<div class="fv-row"><span class="fv-label">FV2 — (NI × PE) ÷ Saham</span><span class="fv-vals"><span class="fv-num">'+fmt(fv2)+'</span>'+discStr(fv2)+'</span></div>'
         +'<div class="fv-row"><span class="fv-label">FV3 — PE × EPS</span><span class="fv-vals"><span class="fv-num">'+fmt(fv3)+'</span>'+discStr(fv3)+'</span></div>'
@@ -1394,6 +1394,7 @@ function renderCards(){
   html+='<div class="add-card" onclick="openAddModal()"><svg viewBox="0 0 24 24" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Tambah emiten baru</div>';
   if(!filtered.length&&!state.emitens.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><p>Belum ada emiten aktif.</p><span>Klik "Tambah emiten" untuk mulai screening.</span></div>'+html;}
   else grid.innerHTML=html;
+  if(window.livePriceMap)updateCardLivePrices();
 }
 function filterCards(){renderCards();}
 
@@ -1987,8 +1988,47 @@ function renderTickerBar(items){
   const track=document.getElementById('ticker-track'),loading=document.getElementById('ticker-loading');if(!track||!loading)return;
   const valid=items.filter(i=>i&&i.price!=null);
   if(valid.length===0){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Belum ada data harga tersedia</span>';track.style.display='none';return;}
-  const makeItems=()=>valid.map(item=>{const pct=item.pct;const chgCls=pct>0?'up':pct<0?'dn':'flat';const arrow=pct>0?'▲':pct<0?'▼':'—';const pctStr=pct!=null?(pct>0?'+':'')+pct.toFixed(2)+'%':'';return'<div class="ticker-item"><span class="ticker-sym">'+item.symbol+'</span><span class="ticker-price">'+fmtTickerPrice(item.price)+'</span>'+(pctStr?'<span class="ticker-chg '+chgCls+'">'+arrow+' '+pctStr+'</span>':'')+'</div>';}).join('');
+  // Store live prices globally
+  window.livePriceMap={};valid.forEach(i=>{window.livePriceMap[i.symbol.toUpperCase()]=i;});
+  // Update prices on existing cards
+  updateCardLivePrices();
+  const makeItems=()=>valid.map(item=>{const pct=item.pct;const chgCls=pct>0?'up':pct<0?'dn':'flat';const arrow=pct>0?'▲':pct<0?'▼':'—';const pctStr=pct!=null?(pct>0?'+':'')+pct.toFixed(2)+'%':'';return'<div class="ticker-item" onclick="highlightCardByTicker(\''+item.symbol+'\')"><span class="ticker-sym">'+item.symbol+'</span><span class="ticker-price">'+fmtTickerPrice(item.price)+'</span>'+(pctStr?'<span class="ticker-chg '+chgCls+'">'+arrow+' '+pctStr+'</span>':'')+'</div>';}).join('');
   track.innerHTML=makeItems()+makeItems();track.style.display='inline-flex';track.style.animationDuration=Math.max(20,valid.length*6)+'s';loading.style.display='none';
+}
+function updateCardLivePrices(){
+  if(!window.livePriceMap||!state.emitens)return;
+  state.emitens.forEach(em=>{
+    const live=window.livePriceMap[em.ticker.toUpperCase()];
+    if(!live)return;
+    const card=document.getElementById('card-'+em.id);
+    if(!card)return;
+    const priceEl=card.querySelector('.live-price-val');
+    if(priceEl){
+      const pct=live.pct;
+      const chgCls=pct>0?'color:var(--green)':pct<0?'color:var(--red)':'color:var(--text3)';
+      const arrow=pct>0?'▲':pct<0?'▼':'';
+      const pctStr=pct!=null?(pct>0?'+':'')+pct.toFixed(2)+'%':'';
+      priceEl.innerHTML='Rp '+Math.round(live.price).toLocaleString('id-ID')+(pctStr?'<span style="font-size:11px;font-family:sans-serif;margin-left:6px;'+chgCls+'">'+arrow+' '+pctStr+'</span>':'');
+    }
+  });
+}
+function highlightCardByTicker(sym){
+  // Switch to Prediksi Aktif tab if not already
+  const predTab=document.querySelector('.tab-btn[onclick*="active"]')||document.querySelector('.tab-btn');
+  document.querySelectorAll('.emiten-card').forEach(c=>c.classList.remove('card-highlight'));
+  const em=state.emitens.find(e=>e.ticker.toUpperCase()===sym.toUpperCase());
+  if(!em)return;
+  const card=document.getElementById('card-'+em.id);
+  if(!card){
+    // Try switching tab first
+    const tabs=document.querySelectorAll('.tab-btn');
+    tabs.forEach(t=>{if(t.textContent.includes('Aktif')||t.textContent.includes('Prediksi'))t.click();});
+    setTimeout(()=>highlightCardByTicker(sym),150);
+    return;
+  }
+  card.classList.add('card-highlight');
+  card.scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(()=>card.classList.remove('card-highlight'),2500);
 }
 async function initTicker(forceRefresh){
   const loading=document.getElementById('ticker-loading'),track=document.getElementById('ticker-track');

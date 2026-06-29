@@ -30,7 +30,7 @@
   --red:#e05050;--red-bg:#1f0a0a;--red-t:#f5a8a8;
   --warn:#e8913a;--warn-bg:#1e1a10;--warn-border:#a05010;--warn-t:#f5c878;
   --shadow:0 1px 3px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.3);
-  --theme-name:"夜明け Dawn";
+  --theme-name:"Dawn";
 }
 
 /* 🌸 Morning — 朝 Asa [06:00–16:00] */
@@ -42,7 +42,7 @@
   --red:#8b0000;--red-bg:#fdf0f0;--red-t:#6b1010;
   --warn:#a0520a;--warn-bg:#fef9ee;--warn-border:#d4891a;--warn-t:#7a3c06;
   --shadow:0 1px 3px rgba(45,26,14,.08),0 1px 2px rgba(45,26,14,.05);
-  --theme-name:"朝 Morning";
+  --theme-name:"Morning";
 }
 
 /* 🌆 Dusk — 夕暮れ Yugure [16:00–17:30] */
@@ -54,7 +54,7 @@
   --red:#e05050;--red-bg:#200a0a;--red-t:#f5a8a8;
   --warn:#e8913a;--warn-bg:#2a1808;--warn-border:#a05010;--warn-t:#f5c878;
   --shadow:0 1px 3px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.35);
-  --theme-name:"夕暮れ Dusk";
+  --theme-name:"Dusk";
 }
 
 /* 🌙 Night — 夜 Yoru [17:30–04:30] */
@@ -66,7 +66,7 @@
   --red:#ef4444;--red-bg:#1f0505;--red-t:#fecaca;
   --warn:#e84040;--warn-bg:#1f0808;--warn-border:#8b0000;--warn-t:#f5a0a0;
   --shadow:0 1px 3px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.4);
-  --theme-name:"夜 Night";
+  --theme-name:"Night";
 }
 
 /* Legacy dark/light support — map to night/morning */
@@ -1735,9 +1735,7 @@ body { transition: background .3s, color .3s; }
 
   <!-- Text reveal -->
   <div id="intro-text-wrap">
-    <div id="intro-kanji-large">侍</div>
     <div id="intro-title">StockTracker</div>
-    <div id="intro-subtitle">市場の道へようこそ</div>
   </div>
 
   <!-- Gate door panels -->
@@ -1760,7 +1758,7 @@ body { transition: background .3s, color .3s; }
 
 <div class="topbar anim-fade-down">
   <div class="logo-wrap">
-    <div class="logo">Stock<span>Tracker</span></div><span style="font-family:'Noto Serif',Georgia,serif;font-size:13px;color:#c0392b;opacity:.8;margin-left:2px;text-shadow:0 0 6px rgba(192,57,43,.5)" title="印">印</span>
+    <div class="logo">Stock<span>Tracker</span></div><span style="font-family:'Noto Serif',Georgia,serif;font-size:13px;color:#c0392b;opacity:.8;margin-left:2px;text-shadow:0 0 6px rgba(192,57,43,.5)" title="印"></span>
     <div class="logo-tooltip">Designed by BosGeng</div>
   </div>
   <div class="tab-group">
@@ -2680,8 +2678,8 @@ function renderStats(){
         <span style="font-size:13px;opacity:.6;color:var(--accent)">勝敗</span>
         Win Rate per Tebakan
       </div>
-      <div class="stats-kv"><span class="stats-k">強気 ▲ Bullish</span><span class="stats-v ${bullTotal?'green':''}"">${bullTotal?pct(bullHits,bullTotal)+'% ('+bullHits+'/'+bullTotal+')':'—'}</span></div>
-      <div class="stats-kv"><span class="stats-k">弱気 ▼ Bearish</span><span class="stats-v ${bearTotal?'green':''}"">${bearTotal?pct(bearHits,bearTotal)+'% ('+bearHits+'/'+bearTotal+')':'—'}</span></div>
+      <div class="stats-kv"><span class="stats-k"> ▲ Bullish</span><span class="stats-v ${bullTotal?'green':''}"">${bullTotal?pct(bullHits,bullTotal)+'% ('+bullHits+'/'+bullTotal+')':'—'}</span></div>
+      <div class="stats-kv"><span class="stats-k"> ▼ Bearish</span><span class="stats-v ${bearTotal?'green':''}"">${bearTotal?pct(bearHits,bearTotal)+'% ('+bearHits+'/'+bearTotal+')':'—'}</span></div>
       <div style="margin-top:14px">
         <div class="stats-section-title" style="font-size:12px;margin-bottom:8px">
           <span style="font-size:11px;opacity:.5;color:var(--accent)">時期</span>

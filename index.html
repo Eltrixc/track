@@ -1856,7 +1856,7 @@ async function aiAnalyze(emitenId,e){
   let parsed;
   try{
     const apiKey=localStorage.getItem('nw_groq_key')||'';if(!apiKey)throw new Error('Groq API key belum disimpan.');
-    const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:1400,temperature:0.4,messages:[{role:'user',content:prompt}]})});
+    const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:'openai/gpt-oss-120b',max_tokens:1400,temperature:0.4,messages:[{role:'user',content:prompt}]})});
     if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.error?.message||'API error '+resp.status);}
     const data=await resp.json();const raw=data.choices?.[0]?.message?.content||'';if(!raw)throw new Error('Respons kosong.');
     try{const clean=raw.replace(/^```[\w]*\n?/,'').replace(/\n?```$/,'').trim();parsed=JSON.parse(clean);}catch{throw new Error('Format respons tidak valid.');}
@@ -2294,7 +2294,7 @@ setTimeout(startTickerLoop,800);
 </style>
 
 <!-- FAB Button -->
-<button id="ollama-fab" title="Chat dengan AI (Groq · Llama)" onclick="ollamaToggle()">
+<button id="ollama-fab" title="Chat dengan AI (Groq · GPT-OSS)" onclick="ollamaToggle()">
   <!-- Llama SVG icon -->
   <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
     <!-- Body -->
@@ -2336,7 +2336,7 @@ setTimeout(startTickerLoop,800);
     </div>
     <div id="ollama-header-title">
       <strong>Llama AI Assistant</strong>
-      <span id="ollama-model-label">groq · llama-3.3-70b</span>
+      <span id="ollama-model-label">groq · gpt-oss-120b</span>
     </div>
     <div id="ollama-header-actions">
       <button class="ollama-icon-btn" title="Hapus riwayat" onclick="ollamaClearHistory()">
@@ -2362,11 +2362,9 @@ setTimeout(startTickerLoop,800);
     <div class="ollama-field">
       <label>Model</label>
       <select id="ollama-model-input" style="font-family:sans-serif;font-size:12px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);outline:none;cursor:pointer;transition:border-color .15s">
-        <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (terbaik)</option>
-        <option value="llama3-8b-8192">llama3-8b-8192 (lebih cepat)</option>
-        <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (paling cepat)</option>
-        <option value="mixtral-8x7b-32768">mixtral-8x7b-32768</option>
-        <option value="gemma2-9b-it">gemma2-9b-it</option>
+        <option value="openai/gpt-oss-120b">gpt-oss-120b (terbaik, setara o4-mini)</option>
+        <option value="qwen/qwen3.6-27b">qwen3.6-27b (cerdas + reasoning)</option>
+        <option value="openai/gpt-oss-20b">gpt-oss-20b (cepat, hemat)</option>
       </select>
     </div>
     <button id="ollama-settings-save" onclick="ollamaSaveSettings()">Simpan</button>
@@ -2382,7 +2380,7 @@ setTimeout(startTickerLoop,800);
         <ellipse cx="24" cy="10" rx="3.5" ry="6" transform="rotate(-15 24 10)" fill="currentColor"/>
         <ellipse cx="40" cy="10" rx="3.5" ry="6" transform="rotate(15 40 10)" fill="currentColor"/>
       </svg>
-      <p><strong style="color:var(--text2)">Tanya Llama AI</strong><br>Tanyakan apa saja tentang saham,<br>analisis emiten, atau investasi.</p>
+      <p><strong style="color:var(--text2)">Tanya AI</strong><br>Tanyakan apa saja tentang saham,<br>analisis emiten, atau investasi.</p>
     </div>
   </div>
 
@@ -2395,7 +2393,7 @@ setTimeout(startTickerLoop,800);
   </div>
 
   <!-- Disclaimer -->
-  <div id="ollama-disclaimer">Powered by Groq Cloud · Llama · bukan saran keuangan</div>
+  <div id="ollama-disclaimer">Powered by Groq Cloud · GPT-OSS · bukan saran keuangan</div>
 </div>
 
 <script>
@@ -2411,11 +2409,11 @@ setTimeout(startTickerLoop,800);
   let ollamaSettingsOpen = false;
 
   function getKey()   { return localStorage.getItem(LS_KEY)   || ''; }
-  function getModel() { return localStorage.getItem(LS_MODEL) || 'llama-3.3-70b-versatile'; }
+  function getModel() { return localStorage.getItem(LS_MODEL) || 'openai/gpt-oss-120b'; }
 
   function updateModelLabel() {
     const model = getModel();
-    const shortModel = model.replace('llama-','').replace('-versatile','').replace('-instant','');
+    const shortModel = model.replace('openai/','').replace('qwen/','').replace('-versatile','').replace('-instant','');
     document.getElementById('ollama-model-label').textContent = 'groq · ' + shortModel;
     document.getElementById('ollama-url-input').value   = getKey();
     document.getElementById('ollama-model-input').value = model;

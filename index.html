@@ -2743,7 +2743,7 @@ setTimeout(startTickerLoop,800);
     </div>
     <div id="ollama-header-title">
       <strong>Oracle AI</strong>
-      <span id="ollama-model-label">agentrouter · claude-3.5-sonnet</span>
+      <span id="ollama-model-label">agentrouter · claude-opus-4-6</span>
     </div>
     <div id="ollama-header-actions">
       <button class="ollama-icon-btn" title="Hapus riwayat" onclick="ollamaClearHistory()">
@@ -2769,12 +2769,11 @@ setTimeout(startTickerLoop,800);
     <div class="ollama-field">
       <label>Model</label>
       <select id="ollama-model-input" style="font-family:sans-serif;font-size:12px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);outline:none;cursor:pointer;transition:border-color .15s">
-        <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (cerdas, recommended)</option>
-        <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku (cepat, hemat)</option>
-        <option value="gpt-4o">GPT-4o (OpenAI, powerful)</option>
-        <option value="gpt-4o-mini">GPT-4o Mini (OpenAI, cepat)</option>
-        <option value="deepseek-chat">DeepSeek Chat (reasoning)</option>
-        <option value="glm-4-plus">GLM-4-Plus (gratis, Zhipu AI)</option>
+        <option value="claude-opus-4-6">claude-opus-4-6 (Claude, murah · $2/$10 per 1M)</option>
+        <option value="claude-opus-4-7">claude-opus-4-7 (Claude, powerful · $8/$40 per 1M)</option>
+        <option value="claude-opus-4-8">claude-opus-4-8 (Claude, terbaru · $8/$40 per 1M)</option>
+        <option value="gpt-5.5">gpt-5.5 (OpenAI · $4/$8 per 1M)</option>
+        <option value="glm-5.2">glm-5.2 (Zhipu AI, hemat · $3/$4.5 per 1M)</option>
       </select>
     </div>
     <button id="ollama-settings-save" onclick="ollamaSaveSettings()">Simpan</button>
@@ -2820,19 +2819,11 @@ setTimeout(startTickerLoop,800);
   let ollamaSettingsOpen = false;
 
   function getKey()   { return localStorage.getItem(LS_KEY)   || ''; }
-  function getModel() { return localStorage.getItem(LS_MODEL) || 'claude-3-5-sonnet-20241022'; }
+  function getModel() { return localStorage.getItem(LS_MODEL) || 'claude-opus-4-6'; }
 
   function updateModelLabel() {
     const model = getModel();
-    const shortModel = model
-      .replace('claude-3-5-sonnet-20241022','claude-3.5-sonnet')
-      .replace('claude-3-5-haiku-20241022','claude-3.5-haiku')
-      .replace('claude-sonnet-4-5-20250929','claude-sonnet-4.5')
-      .replace('claude-haiku-4-5-20251001','claude-haiku-4.5')
-      .replace('gpt-4o-mini','gpt-4o-mini')
-      .replace('deepseek-chat','deepseek')
-      .replace('glm-4-plus','glm-4-plus');
-    document.getElementById('ollama-model-label').textContent = 'agentrouter · ' + shortModel;
+    document.getElementById('ollama-model-label').textContent = 'agentrouter · ' + model;
     document.getElementById('ollama-url-input').value   = getKey();
     document.getElementById('ollama-model-input').value = model;
     // If no API key set, auto-open settings
@@ -3050,7 +3041,7 @@ setTimeout(startTickerLoop,800);
     if(!canvas)return;
     const ctx=canvas.getContext('2d');
     let W,H,petals=[];
-    const MAX_PETALS=20;
+    const MAX_PETALS=50;
     const COLORS=['rgba(255,183,197,',  'rgba(255,161,182,', 'rgba(255,200,210,', 'rgba(250,170,188,'];
 
     function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}

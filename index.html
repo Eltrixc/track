@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StockTracker by BosGeng</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <!-- Markdown renderer -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <!-- KaTeX for math equations -->
@@ -119,7 +120,7 @@
 
   .fv-section{display:flex;flex-direction:column;gap:4px}
   .price-main{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
-  .price-label{font-family:sans-serif;font-size:11px;color:var(--text3)}
+  .price-label{font-family:sans-serif;font-size:11px;color:var(--text3);min-width:62px}
   .price-val{font-family:Georgia,serif;font-size:22px;font-weight:700;color:var(--text)}
   .fv-row{display:flex;align-items:center;justify-content:space-between;font-family:sans-serif;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)}
   .fv-row:last-child{border-bottom:none}
@@ -1379,7 +1380,8 @@ function renderCards(){
       +'</div>'
       +(isWarn?'<div class="holding-warn-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+getHoldingWarnMessage(em)+'</div>':'')
       +'<div class="fv-section">'
-        +'<div class="price-main"><span class="price-label">Harga</span><span class="price-val live-price-val">Rp '+(last.price?Math.round(last.price).toLocaleString('id-ID'):'—')+'</span></div>'
+        +'<div class="price-main"><span class="price-label">Harga Awal</span><span class="price-val" style="font-size:16px;color:var(--text2)">Rp '+(last.price?Math.round(last.price).toLocaleString('id-ID'):'—')+'</span></div>'
+        +'<div class="price-main" style="margin-top:2px"><span class="price-label">Harga Live</span><span class="price-val live-price-val" data-base-price="'+(last.price||0)+'">—</span></div>'
         +'<div class="fv-row"><span class="fv-label">FV1 — BVPS × PBV</span><span class="fv-vals"><span class="fv-num">'+fmt(fv1)+'</span>'+discStr(fv1)+'</span></div>'
         +'<div class="fv-row"><span class="fv-label">FV2 — (NI × PE) ÷ Saham</span><span class="fv-vals"><span class="fv-num">'+fmt(fv2)+'</span>'+discStr(fv2)+'</span></div>'
         +'<div class="fv-row"><span class="fv-label">FV3 — PE × EPS</span><span class="fv-vals"><span class="fv-num">'+fmt(fv3)+'</span>'+discStr(fv3)+'</span></div>'
@@ -2003,13 +2005,15 @@ function updateCardLivePrices(){
     const card=document.getElementById('card-'+em.id);
     if(!card)return;
     const priceEl=card.querySelector('.live-price-val');
-    if(priceEl){
-      const pct=live.pct;
-      const chgCls=pct>0?'color:var(--green)':pct<0?'color:var(--red)':'color:var(--text3)';
-      const arrow=pct>0?'▲':pct<0?'▼':'';
-      const pctStr=pct!=null?(pct>0?'+':'')+pct.toFixed(2)+'%':'';
-      priceEl.innerHTML='Rp '+Math.round(live.price).toLocaleString('id-ID')+(pctStr?'<span style="font-size:11px;font-family:sans-serif;margin-left:6px;'+chgCls+'">'+arrow+' '+pctStr+'</span>':'');
-    }
+    if(!priceEl)return;
+    const basePrice=parseFloat(priceEl.getAttribute('data-base-price'))||0;
+    const livePrice=live.price;
+    const pct=basePrice>0?((livePrice-basePrice)/basePrice*100):null;
+    const chgColor=pct===null?'var(--text3)':pct>0?'var(--green)':pct<0?'var(--red)':'var(--text3)';
+    const arrow=pct===null?'':pct>0?'▲':pct<0?'▼':'';
+    const pctStr=pct!==null?(pct>0?'+':'')+pct.toFixed(2)+'%':'';
+    priceEl.innerHTML='<span style="color:var(--text)">Rp '+Math.round(livePrice).toLocaleString('id-ID')+'</span>'
+      +(pctStr?'<span style="font-size:11px;font-family:sans-serif;margin-left:6px;font-weight:600;color:'+chgColor+'">'+arrow+' '+pctStr+'</span>':'');
   });
 }
 function highlightCardByTicker(sym){

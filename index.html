@@ -415,6 +415,29 @@
     .modal{padding:16px;width:95%}.ticker-live-label{display:none}.cyclical-warning{font-size:11px;padding:6px 14px}
     .split-layout{grid-template-columns:1fr}.split-right{position:static;max-height:none}.card-popup{max-width:100%;border-radius:10px}
   }
+
+  /* ============================================================
+     ANIMATIONS
+     ============================================================ */
+  @keyframes fadeSlideDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeSlideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes scanIn{from{opacity:0;clip-path:inset(0 100% 0 0)}to{opacity:1;clip-path:inset(0 0% 0 0)}}
+  @keyframes cardDrop{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+  @keyframes pricePulseGreen{0%,100%{text-shadow:none}40%{text-shadow:0 0 10px rgba(22,163,74,.7),0 0 20px rgba(22,163,74,.3)}}
+  @keyframes pricePulseRed{0%,100%{text-shadow:none}40%{text-shadow:0 0 10px rgba(220,38,38,.7),0 0 20px rgba(220,38,38,.3)}}
+
+  .topbar{animation:fadeSlideDown .5s cubic-bezier(.22,1,.36,1) both}
+  .ticker-bar{animation:scanIn .7s .35s cubic-bezier(.22,1,.36,1) both}
+  .stat-card{opacity:0;animation:fadeSlideUp .5s cubic-bezier(.22,1,.36,1) forwards}
+  .emiten-card-anim{opacity:0;animation:cardDrop .45s cubic-bezier(.22,1,.36,1) forwards}
+  .price-pulse-up{animation:pricePulseGreen .8s ease}
+  .price-pulse-down{animation:pricePulseRed .8s ease}
+
+  .winrate-track{fill:none;stroke:var(--border);stroke-width:6}
+  .winrate-fill{fill:none;stroke:var(--green);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 1.4s cubic-bezier(.22,1,.36,1);transform:rotate(-90deg);transform-origin:50% 50%}
+  .winrate-fill.red{stroke:var(--red)}
+  .winrate-label{font-family:Georgia,serif;font-size:26px;font-weight:700;fill:var(--text)}
+  .winrate-sublabel{font-family:sans-serif;font-size:10px;fill:var(--text3);letter-spacing:.5px;text-transform:uppercase}
 </style>
 </head>
 <body>
@@ -551,10 +574,10 @@
   <!-- TAB: ARCHIVE -->
   <div id="tab-inventory" style="display:none">
     <div class="stats-bar">
-      <div class="stat-card"><div class="stat-num accent" id="s-active">0</div><div class="stat-lbl">Active</div></div>
-      <div class="stat-card"><div class="stat-num green" id="s-hit">0</div><div class="stat-lbl">Hit</div></div>
-      <div class="stat-card"><div class="stat-num red" id="s-miss">0</div><div class="stat-lbl">Miss</div></div>
-      <div class="stat-card"><div class="stat-num" id="s-winrate">—</div><div class="stat-lbl">Win rate</div></div>
+      <div class="stat-card" style="animation-delay:.5s"><div class="stat-num accent" id="s-active">0</div><div class="stat-lbl">Active</div></div>
+      <div class="stat-card" style="animation-delay:.65s"><div class="stat-num green" id="s-hit">0</div><div class="stat-lbl">Hit</div></div>
+      <div class="stat-card" style="animation-delay:.8s"><div class="stat-num red" id="s-miss">0</div><div class="stat-lbl">Miss</div></div>
+      <div class="stat-card" style="animation-delay:.95s"><div class="stat-num" id="s-winrate">—</div><div class="stat-lbl">Win rate</div></div>
     </div>
     <div class="inv-toolbar">
       <div class="section-title">Riwayat Prediksi</div>
@@ -1115,14 +1138,59 @@ function switchTab(tab){
   if(tab==='inventory')renderInventory();
   if(tab==='stats')renderStats();
 }
+function countUp(el,target,suffix,duration){
+  if(!el)return;
+  if(target===null||isNaN(target)){el.textContent='—';return;}
+  const start=Date.now();const from=0;
+  const tick=()=>{
+    const p=Math.min(1,(Date.now()-start)/duration);
+    const val=Math.round(from+(target-from)*p);
+    el.textContent=val+(suffix||'');
+    if(p<1)requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function updateWinrateRadial(pct){
+  let svg=document.getElementById('winrate-radial-svg');
+  const container=document.getElementById('s-winrate');
+  if(!container)return;
+  if(!svg){
+    const r=38,cx=50,cy=50,circ=2*Math.PI*r;
+    svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('id','winrate-radial-svg');
+    svg.setAttribute('width','100');svg.setAttribute('height','100');
+    svg.setAttribute('viewBox','0 0 100 100');
+    svg.classList.add('winrate-svg');
+    svg.innerHTML=`<circle class="winrate-track" cx="${cx}" cy="${cy}" r="${r}"/>
+      <circle class="winrate-fill${pct!==null&&pct<50?' red':''}" id="winrate-arc" cx="${cx}" cy="${cy}" r="${r}" stroke-dasharray="${circ}" stroke-dashoffset="${circ}"/>
+      <text class="winrate-label" x="50" y="54" text-anchor="middle" id="winrate-text">${pct!==null?pct+'%':'—'}</text>
+      <text class="winrate-sublabel" x="50" y="67" text-anchor="middle">WIN RATE</text>`;
+    container.innerHTML='';
+    container.appendChild(svg);
+    // Remove win-rate stat-lbl since it's now in SVG
+    const lbl=container.parentElement.querySelector('.stat-lbl');
+    if(lbl)lbl.style.display='none';
+  } else {
+    const arc=document.getElementById('winrate-arc');
+    const txt=document.getElementById('winrate-text');
+    if(arc){arc.className.baseVal=arc.className.baseVal.replace(' red','');if(pct!==null&&pct<50)arc.className.baseVal+=' red';}
+    if(txt)txt.textContent=pct!==null?pct+'%':'—';
+  }
+  const arc=document.getElementById('winrate-arc');
+  if(arc&&pct!==null){
+    const r=38,circ=2*Math.PI*r;
+    setTimeout(()=>{arc.style.strokeDashoffset=circ-(circ*pct/100);},50);
+  }
+}
 function updateStats(){
   const hits=state.inventory.filter(i=>i.result==='hit').length;
   const misses=state.inventory.filter(i=>i.result==='miss').length;
   const total=hits+misses;
-  document.getElementById('s-active').textContent=state.emitens.length;
-  document.getElementById('s-hit').textContent=hits;
-  document.getElementById('s-miss').textContent=misses;
-  document.getElementById('s-winrate').textContent=total?Math.round(hits/total*100)+'%':'—';
+  const winPct=total?Math.round(hits/total*100):null;
+  countUp(document.getElementById('s-active'),state.emitens.length,'',400);
+  countUp(document.getElementById('s-hit'),hits,'',500);
+  countUp(document.getElementById('s-miss'),misses,'',500);
+  updateWinrateRadial(winPct);
   document.getElementById('badge-active').textContent=state.emitens.length;
   document.getElementById('badge-inv').textContent=state.inventory.length;
   const hint=document.getElementById('drag-hint');if(hint)hint.style.display=state.emitens.length>=2?'':'none';
@@ -1358,7 +1426,7 @@ function renderCards(){
     const tebakan=em.tebakan||'bullish';
     const tanggalD=last.tanggalAwal?fmtDate(last.tanggalAwal):null;
 
-    html+='<div class="emiten-card '+cardClass+'" id="card-'+em.id+'" draggable="true"'
+    html+='<div class="emiten-card emiten-card-anim '+cardClass+'" id="card-'+em.id+'" style="animation-delay:'+(filtered.indexOf(em)*0.07).toFixed(2)+'s" draggable="true"'
       +' onclick="openCardPopup(event,\''+em.id+'\')"'
       +' ondragstart="onDragStart(event,\''+em.id+'\')" ondragend="onDragEnd(event,\''+em.id+'\')"'
       +' ondragover="onDragOver(event,\''+em.id+'\')" ondragleave="onDragLeave(event,\''+em.id+'\')" ondrop="onDrop(event,\''+em.id+'\')">'
@@ -2012,8 +2080,16 @@ function updateCardLivePrices(){
     const chgColor=pct===null?'var(--text3)':pct>0?'var(--green)':pct<0?'var(--red)':'var(--text3)';
     const arrow=pct===null?'':pct>0?'▲':pct<0?'▼':'';
     const pctStr=pct!==null?(pct>0?'+':'')+pct.toFixed(2)+'%':'';
+    const prevText=priceEl.textContent;
+    const newText='Rp '+Math.round(livePrice).toLocaleString('id-ID');
     priceEl.innerHTML='<span style="color:var(--text)">Rp '+Math.round(livePrice).toLocaleString('id-ID')+'</span>'
       +(pctStr?'<span style="font-size:11px;font-family:sans-serif;margin-left:6px;font-weight:600;color:'+chgColor+'">'+arrow+' '+pctStr+'</span>':'');
+    // Pulse on change
+    if(prevText&&!prevText.includes(newText.replace('Rp ',''))){
+      priceEl.classList.remove('price-pulse-up','price-pulse-down');
+      void priceEl.offsetWidth;
+      priceEl.classList.add(pct>=0?'price-pulse-up':'price-pulse-down');
+    }
   });
 }
 function highlightCardByTicker(sym){

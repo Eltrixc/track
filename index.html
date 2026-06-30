@@ -477,37 +477,58 @@
   /* ============================================================
      ⛩️ INTRO GATE OVERLAY
      ============================================================ */
-  #intro-gate{position:fixed;inset:0;z-index:10000;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
-  #intro-mist{position:absolute;inset:0;pointer-events:none}
-  .intro-mist-left,.intro-mist-right{position:absolute;top:0;bottom:0;width:40%;opacity:0;background:radial-gradient(ellipse at center,rgba(100,80,60,.3),transparent 70%);filter:blur(30px);animation:mistDrift 2s ease-in forwards}
-  .intro-mist-left{left:-10%;animation-delay:.2s}
-  .intro-mist-right{right:-10%;animation-delay:.4s}
-  @keyframes mistDrift{to{opacity:1;transform:translateX(10%)}}
+  /* Container — flex column, torii + text stacked, gate doors absolute on top */
+  #intro-gate{position:fixed;inset:0;z-index:10000;background:#0a0500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;overflow:hidden}
 
-  #torii-gate{position:relative;z-index:2}
-  #torii-svg{filter:drop-shadow(0 0 20px rgba(192,57,43,.6))}
-  #torii-svg path,#torii-svg rect,#torii-svg line{stroke-dasharray:600;stroke-dashoffset:600;animation:drawGate 1.5s ease forwards;animation-delay:1s}
+  /* Ambient mist */
+  #intro-mist{position:absolute;inset:0;pointer-events:none}
+  .intro-mist-left,.intro-mist-right{position:absolute;top:0;bottom:0;width:40%;opacity:0;background:radial-gradient(ellipse at center,rgba(100,60,30,.35),transparent 70%);filter:blur(30px);animation:mistDrift 2.5s ease-in forwards}
+  .intro-mist-left{left:-10%;animation-delay:.3s}
+  .intro-mist-right{right:-10%;animation-delay:.6s}
+  @keyframes mistDrift{to{opacity:1;transform:translateX(8%)}}
+
+  /* Torii SVG — paths start invisible, draw-start class triggers animation */
+  #torii-gate{position:relative;z-index:2;flex-shrink:0}
+  #torii-svg{filter:drop-shadow(0 0 24px rgba(192,57,43,.7))}
+  #torii-svg path,#torii-svg rect,#torii-svg line{stroke-dasharray:600;stroke-dashoffset:600}
+  #torii-gate.draw-start #torii-svg path,
+  #torii-gate.draw-start #torii-svg rect,
+  #torii-gate.draw-start #torii-svg line{animation:drawGate 1.8s ease forwards}
   @keyframes drawGate{to{stroke-dashoffset:0}}
 
-  #intro-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:3;pointer-events:none;margin-top:-60px}
-  #intro-kanji{font-family:'Noto Serif',serif;font-size:80px;color:#c0392b;opacity:0;text-shadow:0 0 30px rgba(192,57,43,.8);animation:fadeInGlow .8s ease forwards;animation-delay:2.5s;line-height:1}
-  #intro-title{font-family:'Noto Serif',Georgia,serif;font-size:28px;font-weight:700;color:#f5e6d0;opacity:0;letter-spacing:3px;text-shadow:0 2px 12px rgba(0,0,0,.6);animation:fadeInGlow .6s ease forwards;animation-delay:3s;margin-top:8px}
-  #intro-subtitle{font-family:'Noto Serif',serif;font-size:14px;color:rgba(245,230,208,.6);opacity:0;animation:fadeInGlow .6s ease forwards;animation-delay:3.3s;margin-top:6px;letter-spacing:2px}
-  @keyframes fadeInGlow{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  /* Text block — normal flex child, sits BELOW torii (no overlap) */
+  #intro-text{position:relative;z-index:3;text-align:center;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:8px}
+  #intro-kanji{font-family:'Noto Serif',serif;font-size:64px;color:#c0392b;opacity:0;text-shadow:0 0 30px rgba(192,57,43,.8);line-height:1}
+  #intro-title{font-family:'Noto Serif',Georgia,serif;font-size:28px;font-weight:700;color:#f5e6d0;opacity:0;letter-spacing:4px;text-shadow:0 2px 14px rgba(0,0,0,.7)}
+  #intro-subtitle{font-family:'Noto Serif',serif;font-size:13px;color:rgba(245,230,208,.55);opacity:0;letter-spacing:3px}
+  /* Text reveal triggered by JS adding .reveal class */
+  #intro-kanji.reveal{animation:fadeInGlow .8s ease forwards}
+  #intro-title.reveal{animation:fadeInGlow .6s ease forwards}
+  #intro-subtitle.reveal{animation:fadeInGlow .6s ease forwards}
+  @keyframes fadeInGlow{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-  #gate-left,#gate-right{position:absolute;top:0;bottom:0;width:50%;background:linear-gradient(to bottom,#2d1000,#1a0800);z-index:4;display:flex;align-items:center;justify-content:center;opacity:0;border:1px solid #5a3010;transition:transform 1.2s cubic-bezier(.77,0,.175,1),opacity .1s}
-  #gate-left{left:0;transform-origin:left center}
-  #gate-right{right:0;transform-origin:right center}
-  #gate-left.open{transform:translateX(-110%)}
-  #gate-right.open{transform:translateX(110%)}
-  .gate-wood-line{position:absolute;top:0;bottom:0;width:3px;background:rgba(245,230,208,.1)}
+  /* Gate doors — START CLOSED (no opacity:0, no transform) */
+  #gate-left,#gate-right{position:absolute;top:0;bottom:0;width:50%;background:linear-gradient(160deg,#2a0e00,#1a0800 60%,#0d0400);z-index:4;border:1px solid #5a2e10;transition:transform 1.4s cubic-bezier(.77,0,.18,1)}
+  #gate-left{left:0;transform-origin:left center;border-right:2px solid #7a3e18}
+  #gate-right{right:0;transform-origin:right center;border-left:2px solid #7a3e18}
+  #gate-left.open{transform:translateX(-101%)}
+  #gate-right.open{transform:translateX(101%)}
+  /* Wood grain lines on doors */
+  .gate-wood-line{position:absolute;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,transparent,rgba(245,210,160,.07) 30%,rgba(245,210,160,.07) 70%,transparent)}
   .gate-wood-line:nth-child(1){left:25%}.gate-wood-line:nth-child(2){left:50%}.gate-wood-line:nth-child(3){left:75%}
+  /* Subtle horizontal grain */
+  #gate-left::before,#gate-right::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(to bottom,transparent,transparent 40px,rgba(0,0,0,.08) 40px,rgba(0,0,0,.08) 41px);pointer-events:none}
+  /* Center line glow when closed */
+  #gate-left::after{content:'';position:absolute;right:-2px;top:0;bottom:0;width:4px;background:linear-gradient(to right,transparent,rgba(192,80,20,.4),transparent)}
+  #gate-right::after{content:'';position:absolute;left:-2px;top:0;bottom:0;width:4px;background:linear-gradient(to left,transparent,rgba(192,80,20,.4),transparent)}
 
-  #intro-stamp{position:absolute;z-index:5;font-size:80px;opacity:0;transform:scale(2.5) rotate(-10deg);color:#c0392b;text-shadow:0 0 40px rgba(192,57,43,.9);transition:opacity .15s,transform .25s cubic-bezier(.34,1.3,.64,1);pointer-events:none}
-  #intro-stamp.slam{opacity:1;transform:scale(1) rotate(-5deg)}
+  /* Seal stamp */
+  #intro-stamp{position:absolute;top:50%;left:50%;z-index:5;font-size:80px;opacity:0;transform:translate(-50%,-50%) scale(2.5) rotate(-10deg);color:#c0392b;text-shadow:0 0 40px rgba(192,57,43,.9);transition:opacity .15s,transform .28s cubic-bezier(.34,1.3,.64,1);pointer-events:none}
+  #intro-stamp.slam{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-5deg)}
 
-  #intro-skip{position:fixed;bottom:32px;right:32px;z-index:10001;font-family:sans-serif;font-size:12px;color:rgba(245,230,208,.5);background:rgba(0,0,0,.4);border:1px solid rgba(245,230,208,.2);border-radius:6px;padding:6px 14px;cursor:pointer;transition:color .2s,border-color .2s}
-  #intro-skip:hover{color:rgba(245,230,208,.9);border-color:rgba(245,230,208,.5)}
+  /* Skip button */
+  #intro-skip{position:fixed;bottom:28px;right:28px;z-index:10001;font-family:sans-serif;font-size:11px;color:rgba(245,230,208,.4);background:rgba(0,0,0,.35);border:1px solid rgba(245,230,208,.15);border-radius:6px;padding:5px 13px;cursor:pointer;transition:color .2s,border-color .2s}
+  #intro-skip:hover{color:rgba(245,230,208,.85);border-color:rgba(245,230,208,.4)}
 
   /* ============================================================
      🎨 STATS & SECTION TITLES SAMURAI STYLE
@@ -555,7 +576,7 @@
     <div class="intro-mist-left"></div>
     <div class="intro-mist-right"></div>
   </div>
-  <!-- Torii SVG gate -->
+  <!-- Torii SVG gate — flex child #1 -->
   <div id="torii-gate">
     <svg id="torii-svg" viewBox="0 0 240 200" width="280" height="233" fill="none" xmlns="http://www.w3.org/2000/svg">
       <!-- Left pillar -->
@@ -572,13 +593,13 @@
       <line x1="10" y1="54" x2="230" y2="54" stroke="#f5a0a0" stroke-width="1.5" stroke-dasharray="4,3"/>
     </svg>
   </div>
-  <!-- Text reveal -->
+  <!-- Text reveal — flex child #2, naturally below torii, no overlap -->
   <div id="intro-text">
     <div id="intro-kanji">⚔</div>
     <div id="intro-title">StockTracker</div>
     <div id="intro-subtitle">Welcome to the Market</div>
   </div>
-  <!-- Gate doors that swing open -->
+  <!-- Gate doors that slide open -->
   <div id="gate-left"><div class="gate-wood-line"></div><div class="gate-wood-line"></div><div class="gate-wood-line"></div></div>
   <div id="gate-right"><div class="gate-wood-line"></div><div class="gate-wood-line"></div><div class="gate-wood-line"></div></div>
   <!-- Seal stamp flash -->
@@ -592,7 +613,7 @@
 
 <div class="topbar anim-fade-down">
   <div class="logo-wrap">
-    <div class="logo">⚔ Stock<span>Tracker</span></div>
+    <div class="logo">Stock<span>Tracker</span></div>
     <div class="logo-tooltip">Samurai's Market Oracle · by BosGeng</div>
   </div>
   <div class="tab-group">
@@ -2743,7 +2764,7 @@ setTimeout(startTickerLoop,800);
     </div>
     <div id="ollama-header-title">
       <strong>Oracle AI</strong>
-      <span id="ollama-model-label">agentrouter · claude-opus-4-6</span>
+      <span id="ollama-model-label">nvidia · deepseek-ai/deepseek-v4-pro</span>
     </div>
     <div id="ollama-header-actions">
       <button class="ollama-icon-btn" title="Hapus riwayat" onclick="ollamaClearHistory()">
@@ -2760,20 +2781,20 @@ setTimeout(startTickerLoop,800);
 
   <!-- Settings -->
   <div id="ollama-settings">
-    <div class="ollama-settings-title">⚙ Pengaturan AgentRouter</div>
+    <div class="ollama-settings-title">⚙ Pengaturan NVIDIA NIM</div>
     <div class="ollama-field">
-      <label>AgentRouter API Key</label>
-      <input type="password" id="ollama-url-input" placeholder="sk-••••••••••••••••••••••" />
-      <span style="font-size:10px;color:var(--text3);margin-top:2px">Daftar gratis di <a href="https://agentrouter.org/register" target="_blank" style="color:var(--accent)">agentrouter.org/register</a> · API key di <a href="https://agentrouter.org/console/token" target="_blank" style="color:var(--accent)">console/token</a></span>
+      <label>NVIDIA API Key</label>
+      <input type="password" id="ollama-url-input" placeholder="nvapi-••••••••••••••••••••••" />
+      <span style="font-size:10px;color:var(--text3);margin-top:2px">Dapatkan API key di <a href="https://integrate.api.nvidia.com" target="_blank" style="color:var(--accent)">integrate.api.nvidia.com</a> · Login &rarr; Get API Key</span>
     </div>
     <div class="ollama-field">
       <label>Model</label>
       <select id="ollama-model-input" style="font-family:sans-serif;font-size:12px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);outline:none;cursor:pointer;transition:border-color .15s">
-        <option value="claude-opus-4-6">claude-opus-4-6 (Claude, murah · $2/$10 per 1M)</option>
-        <option value="claude-opus-4-7">claude-opus-4-7 (Claude, powerful · $8/$40 per 1M)</option>
-        <option value="claude-opus-4-8">claude-opus-4-8 (Claude, terbaru · $8/$40 per 1M)</option>
-        <option value="gpt-5.5">gpt-5.5 (OpenAI · $4/$8 per 1M)</option>
-        <option value="glm-5.2">glm-5.2 (Zhipu AI, hemat · $3/$4.5 per 1M)</option>
+        <option value="deepseek-ai/deepseek-v4-pro">deepseek-ai/deepseek-v4-pro (DeepSeek · Terbaru & powerful)</option>
+        <option value="deepseek-ai/deepseek-r1">deepseek-ai/deepseek-r1 (DeepSeek · Reasoning model)</option>
+        <option value="deepseek-ai/deepseek-r1-0528">deepseek-ai/deepseek-r1-0528 (DeepSeek · R1 terbaru)</option>
+        <option value="meta/llama-3.3-70b-instruct">meta/llama-3.3-70b-instruct (Meta Llama · Cepat & hemat)</option>
+        <option value="mistralai/mistral-large-2-instruct">mistralai/mistral-large-2-instruct (Mistral · Bahasa baik)</option>
       </select>
     </div>
     <button id="ollama-settings-save" onclick="ollamaSaveSettings()">Simpan</button>
@@ -2803,7 +2824,7 @@ setTimeout(startTickerLoop,800);
   </div>
 
   <!-- Disclaimer -->
-  <div id="ollama-disclaimer">Powered by AgentRouter · Claude / GPT / Gemini · bukan saran keuangan</div>
+  <div id="ollama-disclaimer">Powered by NVIDIA NIM · DeepSeek V4 Pro · bukan saran keuangan</div>
 </div>
 
 <script>
@@ -2811,7 +2832,7 @@ setTimeout(startTickerLoop,800);
   // ── State ──
   const LS_KEY   = 'agentrouter_api_key_v1';
   const LS_MODEL = 'agentrouter_model_v1';
-  const GROQ_URL = 'https://agentrouter.org/v1/chat/completions';
+  const GROQ_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
   let ollamaHistory   = [];
   let ollamaStreaming  = false;
@@ -2819,11 +2840,11 @@ setTimeout(startTickerLoop,800);
   let ollamaSettingsOpen = false;
 
   function getKey()   { return localStorage.getItem(LS_KEY)   || ''; }
-  function getModel() { return localStorage.getItem(LS_MODEL) || 'claude-opus-4-6'; }
+  function getModel() { return localStorage.getItem(LS_MODEL) || 'deepseek-ai/deepseek-v4-pro'; }
 
   function updateModelLabel() {
     const model = getModel();
-    document.getElementById('ollama-model-label').textContent = 'agentrouter · ' + model;
+    document.getElementById('ollama-model-label').textContent = 'nvidia · ' + model;
     document.getElementById('ollama-url-input').value   = getKey();
     document.getElementById('ollama-model-input').value = model;
     // If no API key set, auto-open settings
@@ -2963,8 +2984,8 @@ setTimeout(startTickerLoop,800);
           messages: ollamaHistory,
           stream:   true,
           max_tokens: 1024,
-          // Sembunyikan reasoning <think> block untuk model DeepSeek/Qwen
-          ...((getModel().startsWith('deepseek') || getModel().startsWith('qwen')) && { reasoning_format: 'hidden' })
+          // Sembunyikan reasoning <think> block untuk model DeepSeek di NVIDIA
+          ...((getModel().startsWith('deepseek') || getModel().startsWith('qwen')) && { extra_body: { chat_template_kwargs: { thinking: false } } })
         })
       });
 
@@ -3041,7 +3062,7 @@ setTimeout(startTickerLoop,800);
     if(!canvas)return;
     const ctx=canvas.getContext('2d');
     let W,H,petals=[];
-    const MAX_PETALS=50;
+    const MAX_PETALS=20;
     const COLORS=['rgba(255,183,197,',  'rgba(255,161,182,', 'rgba(255,200,210,', 'rgba(250,170,188,'];
 
     function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
@@ -3119,46 +3140,60 @@ setTimeout(startTickerLoop,800);
     const gate=document.getElementById('intro-gate');
     if(!gate)return;
 
-    // Phase 4: Gate doors slam shut first (appear), then open
-    const gL=document.getElementById('gate-left');
-    const gR=document.getElementById('gate-right');
+    const gL    = document.getElementById('gate-left');
+    const gR    = document.getElementById('gate-right');
+    const torii = document.getElementById('torii-gate');
 
-    // Show gate doors at 3.2s
+    // ── Phase 1: t=600ms — gate doors start sliding open ──
     setTimeout(()=>{
-      if(gL)gL.style.opacity='1';
-      if(gR)gR.style.opacity='1';
-    },3200);
+      if(gL) gL.classList.add('open');
+      if(gR) gR.classList.add('open');
+    }, 600);
 
-    // Stamp flash at 3.8s
+    // ── Phase 2: t=1400ms — torii SVG starts drawing itself (as doors reveal it) ──
+    setTimeout(()=>{
+      if(torii) torii.classList.add('draw-start');
+    }, 1400);
+
+    // ── Phase 3: text reveals below torii, staggered ──
+    // ⚔ kanji at t=2900ms
+    setTimeout(()=>{
+      const el=document.getElementById('intro-kanji');
+      if(el) el.classList.add('reveal');
+    }, 2900);
+    // "StockTracker" at t=3200ms
+    setTimeout(()=>{
+      const el=document.getElementById('intro-title');
+      if(el) el.classList.add('reveal');
+    }, 3200);
+    // Subtitle at t=3500ms
+    setTimeout(()=>{
+      const el=document.getElementById('intro-subtitle');
+      if(el) el.classList.add('reveal');
+    }, 3500);
+
+    // ── Phase 4: t=4200ms — stamp flash ──
     setTimeout(()=>{
       const stamp=document.getElementById('intro-stamp');
       if(stamp){stamp.classList.add('slam');setTimeout(()=>{stamp.style.opacity='0';},500);}
-    },3800);
+    }, 4200);
 
-    // Open gates at 4.2s
+    // ── Phase 5: t=5400ms — fade out & remove ──
     setTimeout(()=>{
-      if(gL)gL.classList.add('open');
-      if(gR)gR.classList.add('open');
-    },4200);
-
-    // Fade out and remove at 6.0s
-    setTimeout(()=>{
-      gate.style.transition='opacity .6s';
+      gate.style.transition='opacity .7s';
       gate.style.opacity='0';
-      setTimeout(()=>{gate.remove();},650);
-    },5800);
+      setTimeout(()=>{gate.remove();},720);
+    }, 5400);
   }
 
   /* ── INIT ── */
-  const introSeen=localStorage.getItem('st_intro_seen');
   const gate=document.getElementById('intro-gate');
 
-  if(introSeen==='1'||window.innerWidth<480){
-    // Skip intro on repeat visits or small screens
+  if(window.innerWidth<480){
+    // Skip intro on small screens only
     if(gate)gate.remove();
     initSakura();
   }else{
-    localStorage.setItem('st_intro_seen','1');
     initSakura();
     runIntro();
   }

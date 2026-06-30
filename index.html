@@ -473,7 +473,7 @@
   /* ============================================================
      🌸 SAKURA CANVAS (persistent background petal rain)
      ============================================================ */
-  #sakura-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;opacity:.35}
+  #sakura-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;opacity:.75}
 
   /* ============================================================
      ⛩️ INTRO GATE OVERLAY
@@ -661,7 +661,7 @@
 
 <div class="cyclical-warning" id="cyclical-warning">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-  <span><strong>Catatan akurasi model:</strong> Pendekatan valuasi berbasis fundamental (PBV, PE, EPS) mungkin kurang akurat untuk <strong>sektor siklikal</strong> (komoditas, properti, otomotif).</span>
+  <span><strong>Catatan akurasi model:</strong> Pendekatan valuasi berbasis fundamental (PBV, PE, EPS) mungkin kurang akurat untuk memprediksi pergerakan harga saham yang tergolong ke dalam<strong>sektor siklikal</strong> (komoditas, properti, otomotif).</span>
   <button class="cyclical-dismiss" onclick="document.getElementById('cyclical-warning').style.display='none'">&#x2715;</button>
 </div>
 
@@ -1025,7 +1025,7 @@
 
 <div class="toast" id="toast"></div>
 <div class="mos-tooltip" id="mos-tooltip">
-  <strong>📐 Margin of Safety (MoS)</strong>
+  <strong>Margin of Safety (MoS)</strong>
   <div style="margin-top:6px">Selisih antara Fair Value dan harga beli:</div>
   <div style="margin:7px 0;padding:6px 8px;background:var(--bg2);border-radius:5px;font-size:10.5px;text-align:center;font-family:Georgia,serif">MoS = (FV Avg − Harga) / Harga × 100%</div>
   <div style="color:var(--green-t)">✔ Positif → beli di bawah FV (ada bantal keamanan)</div>
@@ -2242,14 +2242,14 @@ CATATAN INVESTOR:
 - Risiko: ${nd&&nd.minus.length?nd.minus.join('; '):'tidak ada'}
 
 INSTRUKSI PENTING:
-1. Tulis angka harga sebagai integer tanpa pemisah ribuan (contoh: 3000 bukan 3.000)
+1. Tulis angka harga sebagai integer dengan pemisah ribuan (contoh: 3.000)
 2. Sesuaikan kedalaman analisis dengan data yang tersedia
 3. Jika data terbatas, fokus pada apa yang bisa disimpulkan
 4. Verdict harus konsisten dengan data — jangan bullish jika MoS negatif besar tanpa katalis kuat
 5. Variasikan cara penyampaian — jangan selalu pakai struktur yang sama
 
 Balas HANYA JSON tanpa markdown, tanpa komentar apapun:
-{"verdict":{"label":"BULLISH"|"BEARISH"|"NETRAL","summary":"2-3 kalimat padat yang langsung ke inti analisis"},"valuation":{"interpretation":"2-4 kalimat tentang apa arti FV1/FV2/FV3 untuk emiten ini secara spesifik","mos_interpretation":"1-2 kalimat tentang kualitas MoS saat ini"},"fundamentals":{"analysis":"2-3 kalimat yang menyoroti poin terkuat dan terlemah dari fundamental"},"price_action":{"bullish_scenario":"skenario realistis jika thesis benar, sertakan estimasi target harga","bearish_scenario":"risiko dan level stop-loss yang perlu diwaspadai","key_levels":"support dan resistance kunci dalam format yang ringkas"},"risks":"Sebutkan 2-4 risiko terspesifik untuk emiten ini (bukan risiko generik)","watchlist":["3-5 indikator atau event konkret yang harus dipantau investor"]}`;
+{"verdict":{"label":"BULLISH"|"BEARISH"|"NETRAL","summary":"2-3 kalimat padat yang langsung ke inti analisis"},"valuation":{"mos_interpretation":"1-2 kalimat tentang kualitas MoS saat ini"},"fundamentals":{"analysis":"2-3 kalimat yang menyoroti poin terkuat dan terlemah dari fundamental"},"price_action":{"bullish_scenario":"skenario realistis jika thesis benar, sertakan estimasi target harga","bearish_scenario":"risiko dan level stop-loss yang perlu diwaspadai","key_levels":"support dan resistance kunci dalam format yang ringkas"},"risks":"Sebutkan 2-4 risiko terspesifik untuk emiten ini (bukan risiko generik)","watchlist":["3-5 indikator atau event konkret yang harus dipantau investor"]}`;
 
   return prompt;
 }
@@ -3233,7 +3233,7 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
         model: currentModel,
         messages: messages,
         stream: true,
-        max_tokens: isReasoningModel ? 2048 : 1500,
+        max_tokens: isReasoningModel ? 10000 : 1500,
         temperature: isReasoningModel ? 0.6 : 0.7,
       };
 

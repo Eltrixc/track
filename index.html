@@ -33,16 +33,16 @@
     --bg-scrim:#1a1e28;--bg-scrim-opacity:.35;
   }
   [data-theme="morning"] {
-    /* Morning — 06:00–16:00 · Sky blue + Morning sun */
-    --bg:#e8f4fc;--bg2:#d4eaf8;--surface:#dcedf8;--border:#b0d4ec;--border2:#7ab4d8;
-    --text:#1a3a50;--text2:#2e6080;--text3:#5a90b0;
-    --accent:#e8922a;--accent-bg:#fff4e0;--accent-t:#a05c0a;
-    --green:#2e7d4f;--green-bg:#eaf7f0;--green-t:#1a5c38;
-    --red:#c0392b;--red-bg:#fdecea;--red-t:#8b1a10;
-    --warn:#c07820;--warn-bg:#fff8e8;--warn-border:#e8b84a;--warn-t:#7a4a08;
-    --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
-    --sky-gradient:linear-gradient(180deg,#a8d0ec 0%,#cdb98c 55%,#e0c9a0 100%);
-    --bg-scrim:#a0824e;--bg-scrim-opacity:.32;
+    /* Morning — 06:00–16:00 · Soft cream + Muted sun (low-glare cards) */
+    --bg:#f1ecdf;--bg2:#e8e0cf;--surface:#f6f1e6;--border:#ddd3b8;--border2:#c7b896;
+    --text:#46402f;--text2:#766c52;--text3:#a3987a;
+    --accent:#d2934a;--accent-bg:#f3e6d0;--accent-t:#8c5a1f;
+    --green:#5e8d63;--green-bg:#ecf2e8;--green-t:#3a5e3e;
+    --red:#bd6a58;--red-bg:#f7e9e4;--red-t:#8a4232;
+    --warn:#bd9148;--warn-bg:#f7eed9;--warn-border:#d9c08a;--warn-t:#7c5a1e;
+    --radius:8px;--shadow:0 1px 3px rgba(70,60,30,.08),0 1px 2px rgba(70,60,30,.05);
+    --sky-gradient:linear-gradient(180deg,#cfd9d0 0%,#d8c9a8 55%,#e3cead 100%);
+    --bg-scrim:#8c7c5a;--bg-scrim-opacity:.22;
   }
   [data-theme="dusk"] {
     /* Dusk — 16:00–17:30 · Orange sunset + Subtle black */
@@ -146,8 +146,8 @@
   .emiten-card.overvalue::before{background:linear-gradient(to bottom,var(--red),transparent 80%)}
   .emiten-card.undervalue{border-left-color:var(--green)}
   .emiten-card.undervalue::before{background:linear-gradient(to bottom,var(--green),transparent 80%)}
-  .emiten-card.holding-warn{border-left-color:var(--warn)!important}
-  .emiten-card.holding-warn::before{background:linear-gradient(to bottom,var(--warn),transparent 80%)!important}
+  .emiten-card.holding-warn,.emiten-card.live-warn{border-left-color:var(--warn)!important}
+  .emiten-card.holding-warn::before,.emiten-card.live-warn::before{background:linear-gradient(to bottom,var(--warn),transparent 80%)!important}
   .emiten-card.dragging{opacity:.3;box-shadow:none;border-style:dashed}
   .emiten-card.drag-over{border-color:var(--accent)!important;box-shadow:0 0 0 2px var(--accent),var(--shadow);background:var(--accent-bg)}
 
@@ -189,10 +189,16 @@
   .disc-pill.neg{background:var(--red-bg);color:var(--red-t)}
 
   .progress-wrap{display:flex;flex-direction:column;gap:4px}
-  .progress-label{font-family:sans-serif;font-size:10px;color:var(--text3);display:flex;justify-content:space-between}
+  .progress-label{font-family:sans-serif;font-size:10px;color:var(--text3);display:flex;justify-content:space-between;align-items:center}
   .progress-bar{height:5px;background:var(--bg2);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
   .progress-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.22,1,.36,1);position:relative}
   .progress-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:8px;background:rgba(255,255,255,.3);filter:blur(3px);border-radius:3px}
+
+  .progress-label-left{display:flex;align-items:center;gap:5px}
+  .live-pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 var(--green);animation:tickerPulse 1.5s infinite;flex-shrink:0}
+  .live-pulse-dot.over{background:var(--red);animation:tickerPulseRed 1.5s infinite}
+  @keyframes tickerPulseRed{0%{box-shadow:0 0 0 0 rgba(204,80,80,.55)}70%{box-shadow:0 0 0 5px rgba(204,80,80,0)}100%{box-shadow:0 0 0 0 rgba(204,80,80,0)}}
+  .live-progress-wrap{display:none}
 
   .notes-box{font-family:sans-serif;font-size:12px;color:var(--text2);background:var(--bg2);border-radius:6px;padding:8px 10px;line-height:1.5;min-height:32px;word-break:break-word}
   .notes-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
@@ -1724,6 +1730,8 @@ function renderCards(){
         +(mosPct!==null?'<div class="fv-row"><span class="fv-label" style="font-weight:600;color:var(--text2)">Margin of Safety <button class="mos-info-btn" onclick="event.stopPropagation();toggleMosTooltip(event,this)">i</button></span><span class="fv-vals"><span class="fv-num" style="font-size:13px;color:'+(mosPct>=0?'var(--green-t)':'var(--red-t)')+'">'+(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%</span></span></div>':'')
       +'</div>'
       +(avg&&last.price?'<div class="progress-wrap"><div class="progress-label"><span>Harga vs FV avg ('+fmt(avg)+')</span><span>'+progress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%;background:'+pColor+'"></div></div></div>':'')
+      +(avg?'<div class="progress-wrap live-progress-wrap" id="liveprog-'+em.id+'" data-fv-avg="'+avg+'"><div class="progress-label"><span class="progress-label-left"><span class="live-pulse-dot" id="livedot-'+em.id+'"></span>Harga Live vs FV avg</span><span id="liveprogpct-'+em.id+'">—</span></div><div class="progress-bar"><div class="progress-fill" id="liveprogfill-'+em.id+'" style="width:0%"></div></div></div>':'')
+      +'<div id="livewarn-'+em.id+'"></div>'
       +(last.notes?'<div class="notes-box">'+formatNotes(last.notes)+'</div>':'')
       +'<div class="card-popup-hint">🔍 Klik untuk detail &amp; aksi</div>'
       +'</div>';
@@ -1746,7 +1754,10 @@ function openCardPopup(e, emitenId){
   const {fv1,fv2,fv3,avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
   const isUnder=avg&&last.price<avg,isOver=avg&&last.price>=avg;
   const isWarn=checkHoldingWarn(em);
-  const cardClass=isWarn?'holding-warn-popup':isUnder?'undervalue':isOver?'overvalue':'';
+  const liveData=window.livePriceMap?window.livePriceMap[em.ticker.toUpperCase()]:null;
+  const livePrice=liveData?liveData.price:null;
+  const isLiveOver=avg&&livePrice?livePrice>avg:false;
+  const cardClass=(isWarn||isLiveOver)?'holding-warn-popup':isUnder?'undervalue':isOver?'overvalue':'';
   const tebakan=em.tebakan||'bullish';
   const tanggalD=last.tanggalAwal?fmtDate(last.tanggalAwal):null;
   const pColor=isUnder?'var(--green)':'var(--red)';
@@ -1777,6 +1788,12 @@ function openCardPopup(e, emitenId){
       +(mosPct!==null?'<div class="fv-row"><span class="fv-label" style="font-weight:600;color:var(--text2)">Margin of Safety <button class="mos-info-btn" onclick="event.stopPropagation();toggleMosTooltip(event,this)">i</button></span><span class="fv-vals"><span class="fv-num" style="font-size:13px;color:'+(mosPct>=0?'var(--green-t)':'var(--red-t)')+'">'+(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%</span></span></div>':'')
     +'</div>'
     +(avg&&last.price?'<div class="progress-wrap"><div class="progress-label"><span>Harga vs FV avg ('+fmt(avg)+')</span><span>'+progress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%;background:'+pColor+'"></div></div></div>':'')
+    +(avg&&livePrice?(()=>{
+        const liveProgress=Math.min(100,Math.round(livePrice/avg*100));
+        const liveColor=isLiveOver?'var(--red)':'var(--green)';
+        return '<div class="progress-wrap"><div class="progress-label"><span class="progress-label-left"><span class="live-pulse-dot'+(isLiveOver?' over':'')+'"></span>Harga Live vs FV avg</span><span>'+liveProgress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+liveProgress+'%;background:'+liveColor+'"></div></div></div>'
+          +(isLiveOver?'<div class="holding-warn-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Harga live (Rp '+Math.round(livePrice).toLocaleString('id-ID')+') sudah melewati FV avg (Rp '+Math.round(avg).toLocaleString('id-ID')+'). Pertimbangkan ambil profit atau re-evaluasi thesis.</div>':'');
+      })():'')
     +'<div style="border-top:1px solid var(--border);padding-top:10px">'
       +'<div class="expand-section-label">Data Fundamental</div>'
       +'<div class="expand-kv-grid">'
@@ -2556,6 +2573,30 @@ function updateCardLivePrices(){
       priceEl.classList.remove('price-pulse-up','price-pulse-down');
       void priceEl.offsetWidth;
       priceEl.classList.add(pct>=0?'price-pulse-up':'price-pulse-down');
+    }
+
+    // Harga Live vs FV avg progress bar + overvalue warning
+    const liveProg=document.getElementById('liveprog-'+em.id);
+    if(liveProg){
+      const avg=parseFloat(liveProg.getAttribute('data-fv-avg'))||0;
+      const fill=document.getElementById('liveprogfill-'+em.id);
+      const pctEl=document.getElementById('liveprogpct-'+em.id);
+      const dot=document.getElementById('livedot-'+em.id);
+      const warnSlot=document.getElementById('livewarn-'+em.id);
+      if(avg>0){
+        const liveProgress=Math.min(100,Math.round(livePrice/avg*100));
+        const isLiveOver=livePrice>avg;
+        liveProg.style.display='flex';
+        if(fill){fill.style.width=liveProgress+'%';fill.style.background=isLiveOver?'var(--red)':'var(--green)';}
+        if(pctEl)pctEl.textContent=liveProgress+'%';
+        if(dot)dot.classList.toggle('over',isLiveOver);
+        card.classList.toggle('live-warn',isLiveOver);
+        if(warnSlot){
+          warnSlot.innerHTML=isLiveOver
+            ?'<div class="holding-warn-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Harga live (Rp '+Math.round(livePrice).toLocaleString('id-ID')+') sudah melewati FV avg (Rp '+Math.round(avg).toLocaleString('id-ID')+'). Pertimbangkan ambil profit atau re-evaluasi thesis.</div>'
+            :'';
+        }
+      }
     }
   });
 }

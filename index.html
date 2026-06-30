@@ -2164,6 +2164,95 @@ function renderAiList(){
 }
 function aiBack(){document.getElementById('ai-result-wrap').style.display='none';document.getElementById('ai-emiten-list').style.display='';aiCurrentEmitenId=null;document.querySelectorAll('.ai-emiten-item').forEach(el=>el.classList.remove('active'));}
 function aiRefresh(){if(!aiCurrentEmitenId)return;delete aiCache[aiCurrentEmitenId];renderAiList();aiAnalyze(aiCurrentEmitenId);}
+// ── AI Persona & Prompt Variation System ──
+const AI_PERSONAS = [
+  {
+    name: 'value_investor',
+    systemPrompt: `Kamu adalah analis saham senior IDX dengan spesialisasi value investing ala Benjamin Graham. Kamu sangat detail dalam menilai margin of safety, kualitas neraca, dan earning power. Gaya analisismu: konservatif, berbasis data, skeptis terhadap hype. Gunakan istilah teknis investasi yang tepat.`,
+    tone: 'konservatif dan berbasis data',
+  },
+  {
+    name: 'growth_analyst',
+    systemPrompt: `Kamu adalah analis pertumbuhan (growth analyst) saham IDX dengan 10 tahun pengalaman. Fokusmu adalah potensi pertumbuhan EPS jangka menengah, momentum bisnis, dan posisi kompetitif perusahaan di sektornya. Gaya analisismu: forward-looking, fokus pada katalis, dan berani menyoroti potensi upside maupun downside.`,
+    tone: 'forward-looking dan berorientasi katalis',
+  },
+  {
+    name: 'quant_analyst',
+    systemPrompt: `Kamu adalah quant analyst IDX yang menggabungkan analisis fundamental dengan perspektif teknikal. Kamu sangat presisi dalam membaca metrik valuasi (PBV, PE, EPS) dan menghubungkannya dengan level harga kunci. Gaya analisismu: terstruktur, quantitative, dan selalu menyertakan level harga spesifik sebagai referensi.`,
+    tone: 'kuantitatif dan terstruktur',
+  },
+  {
+    name: 'contrarian',
+    systemPrompt: `Kamu adalah analis kontrarian berpengalaman di pasar saham Indonesia. Kamu suka melihat sisi yang berbeda dari konsensus pasar, mempertanyakan asumsi umum, dan mencari risiko tersembunyi atau value yang diabaikan orang lain. Gaya analisismu: kritis, independent, dan tidak takut memberikan perspektif yang berlawanan dengan tren.`,
+    tone: 'kritis dan kontrarian',
+  },
+];
+
+function getAiPersona(emitenId) {
+  // Rotate persona based on emiten ID hash so same emiten gets same persona per session but varies on refresh
+  const refreshSeed = Math.floor(Date.now() / 3600000); // changes every hour
+  const hash = (emitenId + refreshSeed).split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+  return AI_PERSONAS[hash % AI_PERSONAS.length];
+}
+
+function buildAiPrompt(em, last, fv1, fv2, fv3, avg, mosPct, nd, persona) {
+  // Entry history context
+  const historyCtx = em.entries.length > 1 ? em.entries.slice(-3).map((e,i,arr)=>{
+    const {avg:ha}=calcFV(e.bvps,e.pbv,e.ni,e.pe,e.shares,e.eps);
+    return `  ${e.quarter}: Harga Rp ${e.price||'N/A'}, FV Avg ${ha?'Rp '+Math.round(ha):'N/A'}, EPS ${e.eps||'N/A'}, NI ${e.ni||'N/A'}T`;
+  }).join('\n') : null;
+
+  // Valuation signal
+  const valuationSignal = avg && last.price
+    ? (last.price < avg * 0.85 ? 'SIGNIFIKAN_UNDERVALUE' : last.price < avg ? 'UNDERVALUE' : last.price < avg * 1.15 ? 'FAIR_VALUE' : 'OVERVALUE')
+    : 'BELUM_TERHITUNG';
+
+  // MoS quality tier
+  const mosTier = mosPct === null ? 'N/A' : mosPct >= 30 ? 'DEEP_VALUE' : mosPct >= 15 ? 'ATTRACTIVE' : mosPct >= 0 ? 'FAIR' : mosPct >= -15 ? 'SLIGHT_PREMIUM' : 'OVERVALUED';
+
+  // Holding duration context
+  const holdingMonths = em.entries[0]?.tanggalAwal
+    ? Math.floor((Date.now() - new Date(em.entries[0].tanggalAwal+'T00:00:00').getTime()) / (30*24*3600*1000))
+    : null;
+
+  const prompt = `KONTEKS: Kamu menganalisis emiten IDX dengan gaya ${persona.tone}.
+
+DATA EMITEN:
+- Ticker: ${em.ticker} | Sektor: ${em.sector||'N/A'} | Tebakan: ${(em.tebakan||'bullish').toUpperCase()}
+- Kuartal: ${last.quarter} | Harga: Rp ${last.price?Math.round(last.price):'N/A'}
+- Lama dipegang: ${holdingMonths!==null?holdingMonths+' bulan':'N/A'}
+- Jumlah entry data: ${em.entries.length} kuartal
+
+FUNDAMENTAL (kuartal terakhir):
+- BVPS: ${last.bvps||'N/A'} | PBV: ${last.pbv||'N/A'}x | EPS: ${last.eps||'N/A'} | PE: ${last.pe||'N/A'}x
+- Net Income: ${last.ni||'N/A'}T | Saham Beredar: ${last.shares||'N/A'}M
+
+VALUASI:
+- FV1 (BVPS×PBV): ${fv1?'Rp '+Math.round(fv1):'N/A'}
+- FV2 ((NI×PE)÷Saham): ${fv2?'Rp '+Math.round(fv2):'N/A'}
+- FV3 (PE×EPS): ${fv3?'Rp '+Math.round(fv3):'N/A'}
+- FV Rata-rata: ${avg?'Rp '+Math.round(avg):'N/A'}
+- Margin of Safety: ${mosPct!==null?(mosPct>=0?'+':'')+mosPct.toFixed(1)+'% ('+mosTier+')':'N/A'}
+- Status Valuasi: ${valuationSignal}
+
+${historyCtx?`TREN HISTORIS (3 kuartal terakhir):\n${historyCtx}\n`:''}
+CATATAN INVESTOR:
+- Positif: ${nd&&nd.plus.length?nd.plus.join('; '):'tidak ada'}
+- Risiko: ${nd&&nd.minus.length?nd.minus.join('; '):'tidak ada'}
+
+INSTRUKSI PENTING:
+1. Tulis angka harga sebagai integer tanpa pemisah ribuan (contoh: 3000 bukan 3.000)
+2. Sesuaikan kedalaman analisis dengan data yang tersedia
+3. Jika data terbatas, fokus pada apa yang bisa disimpulkan
+4. Verdict harus konsisten dengan data — jangan bullish jika MoS negatif besar tanpa katalis kuat
+5. Variasikan cara penyampaian — jangan selalu pakai struktur yang sama
+
+Balas HANYA JSON tanpa markdown, tanpa komentar apapun:
+{"verdict":{"label":"BULLISH"|"BEARISH"|"NETRAL","summary":"2-3 kalimat padat yang langsung ke inti analisis"},"valuation":{"interpretation":"2-4 kalimat tentang apa arti FV1/FV2/FV3 untuk emiten ini secara spesifik","mos_interpretation":"1-2 kalimat tentang kualitas MoS saat ini"},"fundamentals":{"analysis":"2-3 kalimat yang menyoroti poin terkuat dan terlemah dari fundamental"},"price_action":{"bullish_scenario":"skenario realistis jika thesis benar, sertakan estimasi target harga","bearish_scenario":"risiko dan level stop-loss yang perlu diwaspadai","key_levels":"support dan resistance kunci dalam format yang ringkas"},"risks":"Sebutkan 2-4 risiko terspesifik untuk emiten ini (bukan risiko generik)","watchlist":["3-5 indikator atau event konkret yang harus dipantau investor"]}`;
+
+  return prompt;
+}
+
 async function aiAnalyze(emitenId,e){
   if(e)e.stopPropagation();const em=state.emitens.find(x=>x.id===emitenId);if(!em)return;
   aiCurrentEmitenId=emitenId;
@@ -2174,15 +2263,33 @@ async function aiAnalyze(emitenId,e){
   document.getElementById('ai-loading').style.display='flex';document.getElementById('ai-content').style.display='none';document.getElementById('ai-refresh-btn').disabled=true;
   const last=em.entries[em.entries.length-1];const {fv1,fv2,fv3,avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
   const mosPct=(avg&&last.price)?((avg-last.price)/last.price*100):null;const nd=last.notes?parseNotes(last.notes):null;
-  const fmtNum=n=>n?Math.round(n).toLocaleString('id-ID'):'N/A';const prompt=`Kamu adalah analis saham IDX. Analisis emiten berikut.\n\nDATA:\n- Ticker: ${em.ticker}\n- Sektor: ${em.sector||'N/A'}\n- Tebakan: ${(em.tebakan||'bullish').toUpperCase()}\n- Kuartal: ${last.quarter}\n- Harga: Rp ${last.price?Math.round(last.price):'N/A'}\n- BVPS: ${last.bvps||'N/A'}, PBV: ${last.pbv||'N/A'}x, EPS: ${last.eps||'N/A'}, PE: ${last.pe||'N/A'}x, NI: ${last.ni||'N/A'}T, Saham: ${last.shares||'N/A'}M\n\nFV1: ${fv1?'Rp '+Math.round(fv1):'N/A'}, FV2: ${fv2?'Rp '+Math.round(fv2):'N/A'}, FV3: ${fv3?'Rp '+Math.round(fv3):'N/A'}, FV Avg: ${avg?'Rp '+Math.round(avg):'N/A'}, MoS: ${mosPct!==null?(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%':'N/A'}\n\nCatatan Positif: ${nd&&nd.plus.length?nd.plus.join('; '):'tidak ada'}\nRisiko: ${nd&&nd.minus.length?nd.minus.join('; '):'tidak ada'}\n\nPENTING: Tulis angka harga sebagai integer tanpa pemisah (contoh: 3000, bukan 3.000 atau 3,000).\nBalas HANYA JSON tanpa markdown:\n{"verdict":{"label":"BULLISH"|"BEARISH"|"NETRAL","summary":"1-2 kalimat"},"valuation":{"interpretation":"2-3 kalimat tentang FV1/FV2/FV3","mos_interpretation":"1-2 kalimat MoS"},"fundamentals":{"analysis":"2-3 kalimat"},"price_action":{"bullish_scenario":"skenario dan target","bearish_scenario":"risiko downside","key_levels":"level kunci"},"risks":"2-3 risiko","watchlist":["3-4 hal yang dipantau"]}`;
+  const persona=getAiPersona(emitenId);
+  const prompt=buildAiPrompt(em,last,fv1,fv2,fv3,avg,mosPct,nd,persona);
+
+  // Dynamic temperature: higher variance for refresh/contrarian, lower for precise valuations
+  const hasRichData = !!(last.bvps && last.eps && last.ni && last.pe);
+  const temperature = persona.name === 'contrarian' ? 0.75 : hasRichData ? 0.55 : 0.65;
+
   let parsed;
   try{
     const apiKey=localStorage.getItem('openrouter_api_key_v1')||'';if(!apiKey)throw new Error('OpenRouter API key belum disimpan.');
-    const resp=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey,'HTTP-Referer':window.location.href,'X-Title':'StockTracker'},body:JSON.stringify({model:'deepseek/deepseek-chat-v3-0324',max_tokens:1400,temperature:0.4,messages:[{role:'user',content:prompt}]})});
+    // Use saved chatbot model if available, else fallback to deepseek
+    const savedModel=localStorage.getItem('openrouter_model_v1')||'deepseek/deepseek-chat-v3-0324';
+    const resp=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey,'HTTP-Referer':window.location.href,'X-Title':'StockTracker'},body:JSON.stringify({
+      model: savedModel,
+      max_tokens:1600,
+      temperature: temperature,
+      messages:[
+        {role:'system',content: persona.systemPrompt},
+        {role:'user',content:prompt}
+      ]
+    })});
     if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.error?.message||'API error '+resp.status);}
     const data=await resp.json();const raw=data.choices?.[0]?.message?.content||'';if(!raw)throw new Error('Respons kosong.');
-    try{const clean=raw.replace(/^```[\w]*\n?/,'').replace(/\n?```$/,'').trim();parsed=JSON.parse(clean);}catch{throw new Error('Format respons tidak valid.');}
-    const html=renderAiHtml(parsed,em,{fv1,fv2,fv3,avg,mosPct});aiCache[emitenId]={html,timestamp:Date.now()};renderAiList();showAiContent(html);
+    // Strip think tags (for R1 models), then parse JSON
+    const stripped=raw.replace(/<think>[\s\S]*?<\/think>/gi,'').trim();
+    try{const clean=stripped.replace(/^```[\w]*\n?/,'').replace(/\n?```$/,'').trim();parsed=JSON.parse(clean);}catch{throw new Error('Format respons tidak valid.');}
+    const html=renderAiHtml(parsed,em,{fv1,fv2,fv3,avg,mosPct},persona);aiCache[emitenId]={html,timestamp:Date.now()};renderAiList();showAiContent(html);
   }catch(err){showAiError(err.message);}finally{document.getElementById('ai-refresh-btn').disabled=false;}
 }
 function showAiContent(html){document.getElementById('ai-loading').style.display='none';const c=document.getElementById('ai-content');c.innerHTML=html;c.style.display='block';renderMath(c);}
@@ -2194,10 +2301,13 @@ function initApiKeyBanner(){
 }
 function saveApiKey(){const input=document.getElementById('ai-key-input');const val=(input?.value||'').trim();if(!val){showToast('Masukkan API key.');return;}if(!val.startsWith('sk-or-')){showToast('Format key tidak valid (harus diawali sk-or-)');return;}localStorage.setItem('openrouter_api_key_v1',val);showToast('OpenRouter API key disimpan.');initApiKeyBanner();}
 function clearApiKey(){localStorage.removeItem('openrouter_api_key_v1');const banner=document.getElementById('ai-key-banner');if(banner)banner.style.display='';initApiKeyBanner();showToast('API key dihapus.');}
-function renderAiHtml(d,em,fv){
+function renderAiHtml(d,em,fv,persona){
   const verdictClass=d.verdict.label==='BULLISH'?'bull':d.verdict.label==='BEARISH'?'bear':'neutral';
   const fmtRp=n=>n?'Rp '+Math.round(n).toLocaleString('id-ID'):'—';const mosCls=fv.mosPct>=20?'green':fv.mosPct>=0?'accent':'red';
-  const html = `<div class="ai-verdict ${verdictClass}"><span class="ai-verdict-label">${d.verdict.label==='BULLISH'?'▲ ':'▼ '}${d.verdict.label}</span>${renderMdInline(d.verdict.summary)}</div>
+  const personaIcons={'value_investor':'📊','growth_analyst':'🚀','quant_analyst':'🔢','contrarian':'🔄'};
+  const personaLabels={'value_investor':'Value Investor','growth_analyst':'Growth Analyst','quant_analyst':'Quant Analyst','contrarian':'Contrarian'};
+  const personaBadge=persona?`<div style="font-family:sans-serif;font-size:10px;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:5px;padding:5px 8px;background:var(--bg2);border-radius:5px;border:1px solid var(--border)"><span>${personaIcons[persona.name]||'🤖'}</span><span>Perspektif: <strong style="color:var(--text2)">${personaLabels[persona.name]||persona.name}</strong></span><span style="margin-left:auto;font-style:italic">${persona.tone}</span></div>`:'';
+  const html = `${personaBadge}<div class="ai-verdict ${verdictClass}"><span class="ai-verdict-label">${d.verdict.label==='BULLISH'?'▲ ':'▼ '}${d.verdict.label}</span>${renderMdInline(d.verdict.summary)}</div>
   <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>Valuasi</div>
   <div style="margin-bottom:10px"><div class="ai-metric-row"><span class="ai-metric-label">FV1</span><span class="ai-metric-val">${fmtRp(fv.fv1)}</span></div><div class="ai-metric-row"><span class="ai-metric-label">FV2</span><span class="ai-metric-val">${fmtRp(fv.fv2)}</span></div><div class="ai-metric-row"><span class="ai-metric-label">FV3</span><span class="ai-metric-val">${fmtRp(fv.fv3)}</span></div><div class="ai-metric-row" style="border-top:1.5px solid var(--border);margin-top:4px;padding-top:8px"><span class="ai-metric-label" style="font-weight:600">FV Avg</span><span class="ai-metric-val accent">${fmtRp(fv.avg)}</span></div>${fv.mosPct!==null?`<div class="ai-metric-row"><span class="ai-metric-label">MoS</span><span class="ai-metric-val ${mosCls}">${fv.mosPct>=0?'+':''}${fv.mosPct.toFixed(1)}%</span></div>`:''}</div>
   <div class="ai-prose">${renderMdInline(d.valuation.interpretation)}<br>${renderMdInline(d.valuation.mos_interpretation)}</div></div>
@@ -2789,13 +2899,78 @@ setTimeout(startTickerLoop,800);
     <div class="ollama-field">
       <label>Model</label>
       <select id="ollama-model-input" style="font-family:sans-serif;font-size:12px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);outline:none;cursor:pointer;transition:border-color .15s">
-        <option value="deepseek/deepseek-chat-v3-0324">deepseek/deepseek-chat-v3-0324 (DeepSeek V3 · Powerful & hemat)</option>
-        <option value="deepseek/deepseek-r1">deepseek/deepseek-r1 (DeepSeek R1 · Reasoning model)</option>
-        <option value="deepseek/deepseek-r1-0528">deepseek/deepseek-r1-0528 (DeepSeek R1 · Versi terbaru)</option>
-        <option value="google/gemini-2.5-flash">google/gemini-2.5-flash (Gemini Flash · Cepat & gratis)</option>
-        <option value="meta-llama/llama-3.3-70b-instruct">meta-llama/llama-3.3-70b-instruct (Llama 70B · Gratis)</option>
-        <option value="openai/gpt-4o">openai/gpt-4o (GPT-4o · Premium)</option>
-        <option value="anthropic/claude-sonnet-4-5">anthropic/claude-sonnet-4-5 (Claude Sonnet · Premium)</option>
+        <optgroup label="⭐ DeepSeek — Recommended">
+          <option value="deepseek/deepseek-chat-v3-0324">DeepSeek V3 0324 · Powerful &amp; hemat (FREE)</option>
+          <option value="deepseek/deepseek-chat">DeepSeek V3 · Stabil &amp; cepat (FREE)</option>
+          <option value="deepseek/deepseek-r1">DeepSeek R1 · Reasoning 671B (FREE)</option>
+          <option value="deepseek/deepseek-r1-0528">DeepSeek R1 0528 · Terbaru (FREE)</option>
+          <option value="deepseek/deepseek-r1-distill-llama-70b">DeepSeek R1 Distill Llama 70B · Ringan (FREE)</option>
+          <option value="deepseek/deepseek-r1-distill-qwen-32b">DeepSeek R1 Distill Qwen 32B (FREE)</option>
+        </optgroup>
+        <optgroup label="🔵 Google Gemini">
+          <option value="google/gemini-2.5-flash">Gemini 2.5 Flash · Cepat &amp; gratis (FREE)</option>
+          <option value="google/gemini-2.5-flash-thinking">Gemini 2.5 Flash Thinking · Reasoning (FREE)</option>
+          <option value="google/gemini-2.5-pro">Gemini 2.5 Pro · Flagship Gemini (PAID)</option>
+          <option value="google/gemini-2.0-flash-001">Gemini 2.0 Flash · Multimodal (FREE)</option>
+          <option value="google/gemini-flash-1.5">Gemini 1.5 Flash · Konteks panjang (FREE)</option>
+          <option value="google/gemini-pro-1.5">Gemini 1.5 Pro · Kualitas tinggi (PAID)</option>
+        </optgroup>
+        <optgroup label="🦙 Meta Llama">
+          <option value="meta-llama/llama-3.3-70b-instruct">Llama 3.3 70B Instruct (FREE)</option>
+          <option value="meta-llama/llama-3.1-405b-instruct">Llama 3.1 405B · Terbesar Llama (PAID)</option>
+          <option value="meta-llama/llama-3.1-70b-instruct">Llama 3.1 70B Instruct (FREE)</option>
+          <option value="meta-llama/llama-3.1-8b-instruct">Llama 3.1 8B · Ringan &amp; cepat (FREE)</option>
+          <option value="meta-llama/llama-4-maverick">Llama 4 Maverick · Generasi terbaru (FREE)</option>
+          <option value="meta-llama/llama-4-scout">Llama 4 Scout · Efisien (FREE)</option>
+        </optgroup>
+        <optgroup label="🤖 OpenAI — GPT">
+          <option value="openai/gpt-4o">GPT-4o · Flagship OpenAI (PAID)</option>
+          <option value="openai/gpt-4o-mini">GPT-4o Mini · Hemat &amp; cepat (PAID)</option>
+          <option value="openai/gpt-4-turbo">GPT-4 Turbo · Kualitas tinggi (PAID)</option>
+          <option value="openai/o1">O1 · Advanced reasoning (PAID)</option>
+          <option value="openai/o1-mini">O1 Mini · Reasoning ringan (PAID)</option>
+          <option value="openai/o3-mini">O3 Mini · Reasoning terbaru (PAID)</option>
+          <option value="openai/gpt-3.5-turbo">GPT-3.5 Turbo · Sangat hemat (PAID)</option>
+        </optgroup>
+        <optgroup label="🟣 Anthropic Claude">
+          <option value="anthropic/claude-sonnet-4-5">Claude Sonnet 4.5 · Seimbang (PAID)</option>
+          <option value="anthropic/claude-opus-4">Claude Opus 4 · Terbaik Anthropic (PAID)</option>
+          <option value="anthropic/claude-3-5-haiku">Claude 3.5 Haiku · Cepat &amp; hemat (PAID)</option>
+          <option value="anthropic/claude-3-opus">Claude 3 Opus · Flagship lama (PAID)</option>
+        </optgroup>
+        <optgroup label="🔴 Mistral AI">
+          <option value="mistralai/mistral-large">Mistral Large · Flagship (PAID)</option>
+          <option value="mistralai/mistral-medium">Mistral Medium · Seimbang (PAID)</option>
+          <option value="mistralai/mistral-small">Mistral Small · Hemat (FREE)</option>
+          <option value="mistralai/mistral-7b-instruct">Mistral 7B · Gratis &amp; cepat (FREE)</option>
+          <option value="mistralai/mixtral-8x7b-instruct">Mixtral 8x7B · MoE model (FREE)</option>
+          <option value="mistralai/mixtral-8x22b-instruct">Mixtral 8x22B · MoE besar (FREE)</option>
+          <option value="mistralai/codestral-mamba">Codestral · Spesialis kode (FREE)</option>
+        </optgroup>
+        <optgroup label="🟤 Qwen (Alibaba)">
+          <option value="qwen/qwen-2.5-72b-instruct">Qwen 2.5 72B · Kuat &amp; gratis (FREE)</option>
+          <option value="qwen/qwen-2.5-7b-instruct">Qwen 2.5 7B · Ringan (FREE)</option>
+          <option value="qwen/qwen-2-72b-instruct">Qwen 2 72B (FREE)</option>
+          <option value="qwen/qwq-32b">QwQ 32B · Reasoning model (FREE)</option>
+          <option value="qwen/qwen-2.5-coder-32b-instruct">Qwen 2.5 Coder 32B · Spesialis kode (FREE)</option>
+        </optgroup>
+        <optgroup label="🟡 Cohere">
+          <option value="cohere/command-r-plus">Command R+ · Flagship Cohere (PAID)</option>
+          <option value="cohere/command-r">Command R · Seimbang (PAID)</option>
+          <option value="cohere/command">Command · Hemat (PAID)</option>
+        </optgroup>
+        <optgroup label="⚡ Perplexity">
+          <option value="perplexity/llama-3.1-sonar-large-128k-online">Sonar Large Online · Search-enabled (PAID)</option>
+          <option value="perplexity/llama-3.1-sonar-small-128k-online">Sonar Small Online · Hemat (PAID)</option>
+        </optgroup>
+        <optgroup label="🔶 Microsoft Phi &amp; Others">
+          <option value="microsoft/phi-4">Phi-4 · Kecil tapi kuat (FREE)</option>
+          <option value="microsoft/phi-3-medium-128k-instruct">Phi-3 Medium 128K (FREE)</option>
+          <option value="microsoft/wizardlm-2-8x22b">WizardLM 2 8x22B (FREE)</option>
+          <option value="nousresearch/nous-hermes-2-mixtral-8x7b-dpo">Nous Hermes 2 Mixtral (FREE)</option>
+          <option value="01-ai/yi-large">Yi Large · 01.AI (PAID)</option>
+          <option value="x-ai/grok-beta">Grok Beta · xAI (PAID)</option>
+        </optgroup>
       </select>
     </div>
     <button id="ollama-settings-save" onclick="ollamaSaveSettings()">Simpan</button>
@@ -2812,7 +2987,13 @@ setTimeout(startTickerLoop,800);
         <path d="M6 22 Q32 10 58 22" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"/>
         <rect x="6" y="18" width="52" height="8" rx="2" fill="currentColor"/>
       </svg>
-      <p><strong style="color:var(--text2)">Oracle AI</strong><br>Tanyakan apa saja tentang saham,<br>analisis emiten, atau investasi.</p>
+      <p><strong style="color:var(--text2)">Oracle AI</strong><br>Tanyakan apa saja tentang saham,<br>analisis emiten, atau strategi investasi.</p>
+      <div style="pointer-events:all;display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:4px">
+        <button onclick="ollamaQuickPrompt('Jelaskan cara membaca margin of safety dan kapan waktu yang tepat untuk beli saham')" style="font-size:10px;padding:4px 9px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent-t)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">📐 Cara baca MoS</button>
+        <button onclick="ollamaQuickPrompt('Bedakan value investing vs growth investing, mana yang lebih cocok untuk pasar IDX?')" style="font-size:10px;padding:4px 9px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent-t)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">⚖️ Value vs Growth</button>
+        <button onclick="ollamaQuickPrompt('Sektor apa yang biasanya defensif saat ekonomi melambat di Indonesia?')" style="font-size:10px;padding:4px 9px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent-t)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">🛡️ Sektor defensif</button>
+        <button onclick="ollamaQuickPrompt('Analisis portfolio saya berdasarkan data yang kamu punya')" style="font-size:10px;padding:4px 9px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent-t)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">📋 Analisis portfolio saya</button>
+      </div>
     </div>
   </div>
 
@@ -2825,7 +3006,7 @@ setTimeout(startTickerLoop,800);
   </div>
 
   <!-- Disclaimer -->
-  <div id="ollama-disclaimer">Powered by OpenRouter · DeepSeek / Gemini / GPT-4o · bukan saran keuangan</div>
+  <div id="ollama-disclaimer">Powered by OpenRouter · 40+ Model AI · Bukan saran keuangan — DYOR</div>
 </div>
 
 <script>
@@ -2843,9 +3024,74 @@ setTimeout(startTickerLoop,800);
   function getKey()   { return localStorage.getItem(LS_KEY)   || ''; }
   function getModel() { return localStorage.getItem(LS_MODEL) || 'deepseek/deepseek-chat-v3-0324'; }
 
+  // ── Build system prompt with portfolio context ──
+  function buildSystemPrompt() {
+    let portfolioCtx = '';
+    try {
+      const st = JSON.parse(localStorage.getItem('nw_state') || '{}');
+      const emitens = st.emitens || [];
+      if (emitens.length > 0) {
+        portfolioCtx = '\n\nPORTFOLIO PENGGUNA (data aktif):\n' + emitens.map(em => {
+          const last = em.entries && em.entries[em.entries.length - 1];
+          if (!last) return `- ${em.ticker}: (no data)`;
+          const bvps=last.bvps||0,pbv=last.pbv||0,ni=last.ni||0,pe=last.pe||0,sh=last.shares||0,eps=last.eps||0;
+          const fv1=bvps&&pbv?bvps*pbv:null,fv2=ni&&pe&&sh?ni*pe/sh*1000000:null,fv3=eps&&pe?eps*pe:null;
+          const vals=[fv1,fv2,fv3].filter(Boolean);
+          const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+          const mosPct=avg&&last.price?((avg-last.price)/last.price*100):null;
+          return `- ${em.ticker} (${em.sector||'N/A'}): Harga Rp${last.price?Math.round(last.price):'N/A'}, FV Avg ${avg?'Rp'+Math.round(avg):'N/A'}, MoS ${mosPct!==null?(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%':'N/A'}, ${em.tebakan||'bullish'}`;
+        }).join('\n');
+      }
+    } catch(_) {}
+
+    const now = new Date();
+    const timeStr = now.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'short', timeStyle: 'short' });
+
+    return `Kamu adalah Oracle AI — asisten investasi saham Indonesia (IDX) yang cerdas, informatif, dan berpengalaman. Kamu memiliki kepribadian yang tegas tapi ramah, seperti mentor investasi berpengalaman.
+
+PANDUAN RESPONS:
+- Variasikan gaya penulisan: kadang pakai poin-poin, kadang paragraf naratif, kadang campuran
+- Jangan selalu mulai dengan template yang sama — sesuaikan dengan pertanyaan
+- Untuk analisis cepat: langsung ke inti, tanpa basa-basi
+- Untuk pertanyaan mendalam: strukturkan dengan jelas tapi natural
+- Gunakan angka konkret bila relevan, bukan cuma persentase abstrak
+- Boleh berpendapat dan memberi stance yang jelas, tapi tetap paparkan risiko
+- Gunakan bahasa Indonesia yang natural dan mudah dipahami investor retail
+- Sesekali gunakan analogi atau metafora untuk menjelaskan konsep kompleks
+
+KEAHLIAN UTAMA:
+- Analisis fundamental saham IDX (PBV, PE, EPS, BVPS, margin of safety)
+- Valuasi saham dengan metode FV1/FV2/FV3
+- Strategi value investing dan growth investing
+- Manajemen risiko dan portfolio
+- Siklus bisnis dan analisis sektoral IDX
+- Laporan keuangan dan interpretasinya
+
+BATASAN:
+- Bukan saran keuangan resmi — selalu ingatkan untuk DYOR
+- Jika ditanya hal di luar investasi/keuangan, boleh membantu tapi fokuskan pada konteks keuangan jika relevan
+
+Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
+  }
+
+  // ── Quick prompt helper ──
+  window.ollamaQuickPrompt = function(text) {
+    const input = document.getElementById('ollama-input');
+    if (input) {
+      input.value = text;
+      input.focus();
+      ollamaAutoResize(input);
+    }
+  };
+
+  function getModelShortLabel(model) {
+    const parts = model.split('/');
+    return parts[parts.length - 1] || model;
+  }
+
   function updateModelLabel() {
     const model = getModel();
-    document.getElementById('ollama-model-label').textContent = 'openrouter · ' + model;
+    document.getElementById('ollama-model-label').textContent = 'openrouter · ' + getModelShortLabel(model);
     document.getElementById('ollama-url-input').value   = getKey();
     document.getElementById('ollama-model-input').value = model;
     // If no API key set, auto-open settings
@@ -2973,23 +3219,37 @@ setTimeout(startTickerLoop,800);
     const botBubble = appendBubble('bot', '', true);
     ollamaStreaming  = true;
 
+    const currentModel = getModel();
+    const isReasoningModel = currentModel.includes('r1') || currentModel.includes('thinking') || currentModel.includes('o1') || currentModel.includes('o3') || currentModel.includes('qwq');
+
     try {
+      const messages = [
+        { role: 'system', content: buildSystemPrompt() },
+        ...ollamaHistory
+      ];
+
+      const body = {
+        model: currentModel,
+        messages: messages,
+        stream: true,
+        max_tokens: isReasoningModel ? 2048 : 1500,
+        temperature: isReasoningModel ? 0.6 : 0.7,
+      };
+
+      // Hide chain-of-thought for R1/thinking models
+      if (isReasoningModel) {
+        body.reasoning = { exclude: true };
+      }
+
       const res = await fetch(GROQ_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + getKey(),
           'HTTP-Referer': window.location.href,
-          'X-Title': 'StockTracker'
+          'X-Title': 'StockTracker Oracle AI'
         },
-        body: JSON.stringify({
-          model:    getModel(),
-          messages: ollamaHistory,
-          stream:   true,
-          max_tokens: 1024,
-          // Untuk model DeepSeek R1 di OpenRouter: sembunyikan chain-of-thought
-          ...((getModel().includes('r1') || getModel().includes('thinking')) && { reasoning: { exclude: true } })
-        })
+        body: JSON.stringify(body)
       });
 
       if (!res.ok) {

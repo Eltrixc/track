@@ -194,10 +194,8 @@
   .progress-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.22,1,.36,1);position:relative}
   .progress-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:8px;background:rgba(255,255,255,.3);filter:blur(3px);border-radius:3px}
 
-  .progress-label-left{display:flex;align-items:center;gap:5px}
-  .live-pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 var(--green);animation:tickerPulse 1.5s infinite;flex-shrink:0}
-  .live-pulse-dot.over{background:var(--red);animation:tickerPulseRed 1.5s infinite}
-  @keyframes tickerPulseRed{0%{box-shadow:0 0 0 0 rgba(204,80,80,.55)}70%{box-shadow:0 0 0 5px rgba(204,80,80,0)}100%{box-shadow:0 0 0 0 rgba(204,80,80,0)}}
+  @keyframes fillPulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .live-fill-pulse{animation:fillPulse 1.6s ease-in-out infinite}
   .live-progress-wrap{display:none}
 
   .notes-box{font-family:sans-serif;font-size:12px;color:var(--text2);background:var(--bg2);border-radius:6px;padding:8px 10px;line-height:1.5;min-height:32px;word-break:break-word}
@@ -1730,7 +1728,7 @@ function renderCards(){
         +(mosPct!==null?'<div class="fv-row"><span class="fv-label" style="font-weight:600;color:var(--text2)">Margin of Safety <button class="mos-info-btn" onclick="event.stopPropagation();toggleMosTooltip(event,this)">i</button></span><span class="fv-vals"><span class="fv-num" style="font-size:13px;color:'+(mosPct>=0?'var(--green-t)':'var(--red-t)')+'">'+(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%</span></span></div>':'')
       +'</div>'
       +(avg&&last.price?'<div class="progress-wrap"><div class="progress-label"><span>Harga vs FV avg ('+fmt(avg)+')</span><span>'+progress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%;background:'+pColor+'"></div></div></div>':'')
-      +(avg?'<div class="progress-wrap live-progress-wrap" id="liveprog-'+em.id+'" data-fv-avg="'+avg+'"><div class="progress-label"><span class="progress-label-left"><span class="live-pulse-dot" id="livedot-'+em.id+'"></span>Harga Live vs FV avg</span><span id="liveprogpct-'+em.id+'">—</span></div><div class="progress-bar"><div class="progress-fill" id="liveprogfill-'+em.id+'" style="width:0%"></div></div></div>':'')
+      +(avg?'<div class="progress-wrap live-progress-wrap" id="liveprog-'+em.id+'" data-fv-avg="'+avg+'"><div class="progress-label"><span>Harga Live vs FV avg ('+fmt(avg)+')</span><span id="liveprogpct-'+em.id+'">—</span></div><div class="progress-bar"><div class="progress-fill live-fill-pulse" id="liveprogfill-'+em.id+'" style="width:0%"></div></div></div>':'')
       +'<div id="livewarn-'+em.id+'"></div>'
       +(last.notes?'<div class="notes-box">'+formatNotes(last.notes)+'</div>':'')
       +'<div class="card-popup-hint">🔍 Klik untuk detail &amp; aksi</div>'
@@ -1791,7 +1789,7 @@ function openCardPopup(e, emitenId){
     +(avg&&livePrice?(()=>{
         const liveProgress=Math.min(100,Math.round(livePrice/avg*100));
         const liveColor=isLiveOver?'var(--red)':'var(--green)';
-        return '<div class="progress-wrap"><div class="progress-label"><span class="progress-label-left"><span class="live-pulse-dot'+(isLiveOver?' over':'')+'"></span>Harga Live vs FV avg</span><span>'+liveProgress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+liveProgress+'%;background:'+liveColor+'"></div></div></div>'
+        return '<div class="progress-wrap"><div class="progress-label"><span>Harga Live vs FV avg ('+fmt(avg)+')</span><span>'+liveProgress+'%</span></div><div class="progress-bar"><div class="progress-fill live-fill-pulse" style="width:'+liveProgress+'%;background:'+liveColor+'"></div></div></div>'
           +(isLiveOver?'<div class="holding-warn-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Harga live (Rp '+Math.round(livePrice).toLocaleString('id-ID')+') sudah melewati FV avg (Rp '+Math.round(avg).toLocaleString('id-ID')+'). Pertimbangkan ambil profit atau re-evaluasi thesis.</div>':'');
       })():'')
     +'<div style="border-top:1px solid var(--border);padding-top:10px">'
@@ -2581,7 +2579,6 @@ function updateCardLivePrices(){
       const avg=parseFloat(liveProg.getAttribute('data-fv-avg'))||0;
       const fill=document.getElementById('liveprogfill-'+em.id);
       const pctEl=document.getElementById('liveprogpct-'+em.id);
-      const dot=document.getElementById('livedot-'+em.id);
       const warnSlot=document.getElementById('livewarn-'+em.id);
       if(avg>0){
         const liveProgress=Math.min(100,Math.round(livePrice/avg*100));
@@ -2589,7 +2586,6 @@ function updateCardLivePrices(){
         liveProg.style.display='flex';
         if(fill){fill.style.width=liveProgress+'%';fill.style.background=isLiveOver?'var(--red)':'var(--green)';}
         if(pctEl)pctEl.textContent=liveProgress+'%';
-        if(dot)dot.classList.toggle('over',isLiveOver);
         card.classList.toggle('live-warn',isLiveOver);
         if(warnSlot){
           warnSlot.innerHTML=isLiveOver

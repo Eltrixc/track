@@ -1223,10 +1223,10 @@ function importData(event){
 // ============================================================
 const THEMES = ['dawn','morning','dusk','night'];
 const THEME_META = {
-  dawn:    {icon:'🌫️', label:'Dawn',    tip:'Dawn · Misty grey & Dark blue · 04:30–06:00'},
-  morning: {icon:'☀️', label:'Morning', tip:'Morning · Sky blue & Morning sun · 06:00–16:00'},
-  dusk:    {icon:'🌅', label:'Dusk',    tip:'Dusk · Orange sunset & Subtle black · 16:00–17:30'},
-  night:   {icon:'🌌', label:'Night',   tip:'Night · Dark space & Lacquer red · 17:30–04:30'},
+  dawn:    {icon:'🌫️', label:'Dawn',    tip:'Dawn'},
+  morning: {icon:'☀️', label:'Morning', tip:'Morning'},
+  dusk:    {icon:'🌅', label:'Dusk',    tip:'Dusk'},
+  night:   {icon:'🌌', label:'Night',   tip:'Night'},
 };
 function getThemeFromTime(){
   const h=new Date().getHours(),m=new Date().getMinutes(),t=h*60+m;
@@ -3592,7 +3592,7 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
         t:Math.random()*1000
       }),
     };
-    const COUNTS={dawn:6,morning:35,dusk:28,night:90};
+    const COUNTS={dawn:10,morning:35,dusk:28,night:200};
 
     function rebuild(theme){
       if(!FACTORIES[theme])theme='night';

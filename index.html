@@ -29,6 +29,8 @@
     --red:#cc5050;--red-bg:#221010;--red-t:#f5a8a8;
     --warn:#7a9cc0;--warn-bg:#1a2438;--warn-border:#2e5a8c;--warn-t:#a8c8e8;
     --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.35),0 1px 2px rgba(0,0,0,.25);
+    --sky-gradient:linear-gradient(180deg,#1a1e30 0%,#2e3450 35%,#5a4a68 65%,#8a6478 100%);
+    --bg-scrim:#1a1e28;--bg-scrim-opacity:.35;
   }
   [data-theme="morning"] {
     /* Morning — 06:00–16:00 · Sky blue + Morning sun */
@@ -39,6 +41,8 @@
     --red:#c0392b;--red-bg:#fdecea;--red-t:#8b1a10;
     --warn:#c07820;--warn-bg:#fff8e8;--warn-border:#e8b84a;--warn-t:#7a4a08;
     --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+    --sky-gradient:linear-gradient(180deg,#a8d0ec 0%,#cdb98c 55%,#e0c9a0 100%);
+    --bg-scrim:#a0824e;--bg-scrim-opacity:.32;
   }
   [data-theme="dusk"] {
     /* Dusk — 16:00–17:30 · Orange sunset + Subtle black */
@@ -49,6 +53,8 @@
     --red:#cc5050;--red-bg:#200c08;--red-t:#f5a8a8;
     --warn:#e06c1a;--warn-bg:#281408;--warn-border:#604020;--warn-t:#f5b06a;
     --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.4);
+    --sky-gradient:linear-gradient(180deg,#1a0e10 0%,#5a2c1e 40%,#c0601f 75%,#e0a050 100%);
+    --bg-scrim:#0e0a06;--bg-scrim-opacity:.35;
   }
   [data-theme="night"] {
     /* Night — 17:30–04:30 · Dark space + Lacquer red */
@@ -59,9 +65,22 @@
     --red:#cc5050;--red-bg:#1e0808;--red-t:#f5a8a8;
     --warn:#c0282a;--warn-bg:#1e0808;--warn-border:#502020;--warn-t:#f0a0a0;
     --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.6),0 1px 2px rgba(0,0,0,.5);
+    --sky-gradient:linear-gradient(180deg,#020206 0%,#0a0a1c 30%,#1e1840 60%,#3c2244 82%,#5a2a3a 100%);
+    --bg-scrim:#080810;--bg-scrim-opacity:.22;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
+  body{font-family:Georgia,'Times New Roman',serif;background:transparent;color:var(--text);min-height:100vh;transition:color .3s}
+
+  /* ============================================================
+     🎴 THEME BACKGROUND ART — pixel art scene + CSS sky gradient
+     ============================================================ */
+  #theme-bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:var(--bg)}
+  #theme-bg-sky{position:absolute;inset:0;background:var(--sky-gradient);transition:background 1.2s ease}
+  #theme-bg-art{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:100%;min-width:1200px;height:auto;image-rendering:pixelated;image-rendering:-moz-crisp-edges;image-rendering:crisp-edges;opacity:0;transition:opacity 1s ease;display:block}
+  #theme-bg-art.loaded{opacity:.65}
+  #theme-bg-scrim{position:absolute;inset:0;background:var(--bg-scrim,var(--bg));opacity:var(--bg-scrim-opacity,.35);transition:opacity 1s ease,background 1.2s ease}
+  #theme-ambient-canvas{position:absolute;inset:0;width:100%;height:100%}
+  @media (prefers-reduced-motion:reduce){#theme-bg-art{transition:none}}
 
   /* ============================================================
      ⛩️ SAMURAI WAR BANNER — TOPBAR
@@ -569,6 +588,12 @@
 </style>
 </head>
 <body>
+<div id="theme-bg" aria-hidden="true">
+  <div id="theme-bg-sky"></div>
+  <img id="theme-bg-art" alt="" src="" onload="this.classList.add('loaded')">
+  <canvas id="theme-ambient-canvas"></canvas>
+  <div id="theme-bg-scrim"></div>
+</div>
 
 <!-- ⛩️ INTRO GATE OVERLAY -->
 <div id="intro-gate">
@@ -1210,9 +1235,28 @@ function getThemeFromTime(){
   if(t>=960&&t<1050) return 'dusk';    // 16:00–17:30
   return 'night';
 }
+// Path file background art per tema — ganti sesuai nama file yang lo simpan
+const THEME_BG_ART={
+  dawn:    'assets/bg-dawn.png',
+  morning: 'assets/bg-morning.png',
+  dusk:    'assets/bg-dusk.png',
+  night:   'assets/bg-night.png',
+};
 function applyTheme(name){
   document.documentElement.setAttribute('data-theme',name);
   updateThemeIcon(name);
+  updateThemeBgArt(name);
+  if(window.updateThemeAmbient)window.updateThemeAmbient(name);
+}
+function updateThemeBgArt(name){
+  const img=document.getElementById('theme-bg-art');
+  if(!img)return;
+  const src=THEME_BG_ART[name];
+  if(!src)return;
+  if(img.getAttribute('data-current')===src)return; // sudah tampil, skip reload
+  img.classList.remove('loaded');
+  img.setAttribute('data-current',src);
+  img.src=src;
 }
 function cycleTheme(){
   const cur=document.documentElement.getAttribute('data-theme')||'night';
@@ -3504,6 +3548,119 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
     requestAnimationFrame(t=>{lastT=t;tick(t);});
   }
 
+  /* ── THEME AMBIENT PARTICLES (beda tiap tema, sakura tetap jalan terpisah) ── */
+  function initThemeAmbient(){
+    const canvas=document.getElementById('theme-ambient-canvas');
+    if(!canvas)return;
+    const ctx=canvas.getContext('2d');
+    let W,H,particles=[],currentTheme=null;
+
+    function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+    window.addEventListener('resize',resize);resize();
+
+    const FACTORIES={
+      dawn:()=>({ // kabut lembut melayang horizontal
+        x:Math.random()*W,y:H*0.35+Math.random()*H*0.55,
+        r:Math.random()*160+110,
+        speedX:Math.random()*0.12+0.04,
+        opacity:Math.random()*.07+.035,
+        t:Math.random()*1000
+      }),
+      morning:()=>({ // debu/serbuk cahaya mengambang naik
+        x:Math.random()*W,y:Math.random()*H,
+        r:Math.random()*1.8+.8,
+        speedY:-(Math.random()*.25+.08),
+        speedX:(Math.random()-.5)*.2,
+        opacity:Math.random()*.45+.2,
+        twinkleSpeed:Math.random()*.03+.012,
+        t:Math.random()*1000
+      }),
+      dusk:()=>({ // bara/kunang-kunang naik berkelip
+        x:Math.random()*W,y:H*0.55+Math.random()*H*0.5,
+        r:Math.random()*2.2+1.3,
+        speedY:-(Math.random()*.45+.18),
+        speedX:(Math.random()-.5)*.3,
+        opacity:Math.random()*.7+.3,
+        flickerSpeed:Math.random()*.045+.02,
+        t:Math.random()*1000
+      }),
+      night:()=>({ // bintang berkelip, posisi tetap
+        x:Math.random()*W,y:Math.random()*H*0.62,
+        r:Math.random()*1.2+.4,
+        twinkleSpeed:Math.random()*.018+.006,
+        baseOpacity:Math.random()*.6+.3,
+        t:Math.random()*1000
+      }),
+    };
+    const COUNTS={dawn:6,morning:35,dusk:28,night:90};
+
+    function rebuild(theme){
+      if(!FACTORIES[theme])theme='night';
+      currentTheme=theme;
+      const factory=FACTORIES[theme];
+      const n=COUNTS[theme]||40;
+      particles=Array.from({length:n},factory);
+    }
+    window.updateThemeAmbient=rebuild;
+
+    function drawDawn(p){
+      const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);
+      g.addColorStop(0,'rgba(222,228,242,'+p.opacity+')');
+      g.addColorStop(1,'rgba(222,228,242,0)');
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+    }
+    function drawMorning(p){
+      const a=p.opacity*(0.5+0.5*Math.sin(p.t*p.twinkleSpeed));
+      ctx.fillStyle='rgba(255,248,222,'+a+')';
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+    }
+    function drawDusk(p){
+      const a=p.opacity*(0.6+0.4*Math.sin(p.t*p.flickerSpeed));
+      ctx.fillStyle='rgba(255,148,58,'+a+')';
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(255,198,118,'+(a*.4)+')';
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r*2.2,0,Math.PI*2);ctx.fill();
+    }
+    function drawNight(p){
+      const a=p.baseOpacity*(0.4+0.6*Math.sin(p.t*p.twinkleSpeed));
+      ctx.fillStyle='rgba(255,255,255,'+a+')';
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+    }
+
+    let lastT=0,running=true;
+    function tick(now){
+      if(!running)return;
+      const dt=Math.min(now-lastT,50);lastT=now;
+      if(dt>29)requestAnimationFrame(tick);
+      else setTimeout(()=>requestAnimationFrame(tick),33-dt);
+
+      if(window.matchMedia('(prefers-reduced-motion:reduce)').matches){
+        ctx.clearRect(0,0,W,H);return;
+      }
+      ctx.clearRect(0,0,W,H);
+      particles.forEach((p,i)=>{
+        p.t+=dt*.06;
+        if(currentTheme==='dawn'){
+          p.x+=p.speedX;
+          if(p.x-p.r>W)p.x=-p.r;
+          drawDawn(p);
+        }else if(currentTheme==='morning'){
+          p.y+=p.speedY;p.x+=p.speedX;
+          if(p.y<-10){p.y=H+10;p.x=Math.random()*W;}
+          drawMorning(p);
+        }else if(currentTheme==='dusk'){
+          p.y+=p.speedY;p.x+=p.speedX;
+          if(p.y<-10)particles[i]=Object.assign(FACTORIES.dusk(),{y:H+10,x:Math.random()*W});
+          drawDusk(p);
+        }else{
+          drawNight(p);
+        }
+      });
+    }
+    requestAnimationFrame(t=>{lastT=t;tick(t);});
+    rebuild(document.documentElement.getAttribute('data-theme')||'night');
+  }
+
   /* ── INTRO GATE SEQUENCE ── */
   function skipIntro(){
     const gate=document.getElementById('intro-gate');
@@ -3568,8 +3725,10 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
     // Skip intro on small screens only
     if(gate)gate.remove();
     initSakura();
+    initThemeAmbient();
   }else{
     initSakura();
+    initThemeAmbient();
     runIntro();
   }
 })();

@@ -2763,7 +2763,7 @@ setTimeout(startTickerLoop,800);
     </div>
     <div id="ollama-header-title">
       <strong>Oracle AI</strong>
-      <span id="ollama-model-label">nvidia · deepseek-ai/deepseek-v4-pro</span>
+      <span id="ollama-model-label">openrouter · deepseek/deepseek-chat-v3-0324</span>
     </div>
     <div id="ollama-header-actions">
       <button class="ollama-icon-btn" title="Hapus riwayat" onclick="ollamaClearHistory()">
@@ -2780,20 +2780,22 @@ setTimeout(startTickerLoop,800);
 
   <!-- Settings -->
   <div id="ollama-settings">
-    <div class="ollama-settings-title">⚙ Pengaturan NVIDIA NIM</div>
+    <div class="ollama-settings-title">⚙ Pengaturan OpenRouter</div>
     <div class="ollama-field">
-      <label>NVIDIA API Key</label>
-      <input type="password" id="ollama-url-input" placeholder="nvapi-••••••••••••••••••••••" />
-      <span style="font-size:10px;color:var(--text3);margin-top:2px">Dapatkan API key di <a href="https://integrate.api.nvidia.com" target="_blank" style="color:var(--accent)">integrate.api.nvidia.com</a> · Login &rarr; Get API Key</span>
+      <label>OpenRouter API Key</label>
+      <input type="password" id="ollama-url-input" placeholder="sk-or-••••••••••••••••••••••" />
+      <span style="font-size:10px;color:var(--text3);margin-top:2px">Daftar gratis di <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--accent)">openrouter.ai/keys</a> · banyak model gratis tersedia</span>
     </div>
     <div class="ollama-field">
       <label>Model</label>
       <select id="ollama-model-input" style="font-family:sans-serif;font-size:12px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);outline:none;cursor:pointer;transition:border-color .15s">
-        <option value="deepseek-ai/deepseek-v4-pro">deepseek-ai/deepseek-v4-pro (DeepSeek · Terbaru & powerful)</option>
-        <option value="deepseek-ai/deepseek-r1">deepseek-ai/deepseek-r1 (DeepSeek · Reasoning model)</option>
-        <option value="deepseek-ai/deepseek-r1-0528">deepseek-ai/deepseek-r1-0528 (DeepSeek · R1 terbaru)</option>
-        <option value="meta/llama-3.3-70b-instruct">meta/llama-3.3-70b-instruct (Meta Llama · Cepat & hemat)</option>
-        <option value="mistralai/mistral-large-2-instruct">mistralai/mistral-large-2-instruct (Mistral · Bahasa baik)</option>
+        <option value="deepseek/deepseek-chat-v3-0324">deepseek/deepseek-chat-v3-0324 (DeepSeek V3 · Powerful & hemat)</option>
+        <option value="deepseek/deepseek-r1">deepseek/deepseek-r1 (DeepSeek R1 · Reasoning model)</option>
+        <option value="deepseek/deepseek-r1-0528">deepseek/deepseek-r1-0528 (DeepSeek R1 · Versi terbaru)</option>
+        <option value="google/gemini-2.5-flash">google/gemini-2.5-flash (Gemini Flash · Cepat & gratis)</option>
+        <option value="meta-llama/llama-3.3-70b-instruct">meta-llama/llama-3.3-70b-instruct (Llama 70B · Gratis)</option>
+        <option value="openai/gpt-4o">openai/gpt-4o (GPT-4o · Premium)</option>
+        <option value="anthropic/claude-sonnet-4-5">anthropic/claude-sonnet-4-5 (Claude Sonnet · Premium)</option>
       </select>
     </div>
     <button id="ollama-settings-save" onclick="ollamaSaveSettings()">Simpan</button>
@@ -2823,15 +2825,15 @@ setTimeout(startTickerLoop,800);
   </div>
 
   <!-- Disclaimer -->
-  <div id="ollama-disclaimer">Powered by NVIDIA NIM · DeepSeek V4 Pro · bukan saran keuangan</div>
+  <div id="ollama-disclaimer">Powered by OpenRouter · DeepSeek / Gemini / GPT-4o · bukan saran keuangan</div>
 </div>
 
 <script>
 (function(){
   // ── State ──
-  const LS_KEY   = 'agentrouter_api_key_v1';
-  const LS_MODEL = 'agentrouter_model_v1';
-  const GROQ_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
+  const LS_KEY   = 'openrouter_api_key_v1';
+  const LS_MODEL = 'openrouter_model_v1';
+  const GROQ_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
   let ollamaHistory   = [];
   let ollamaStreaming  = false;
@@ -2839,11 +2841,11 @@ setTimeout(startTickerLoop,800);
   let ollamaSettingsOpen = false;
 
   function getKey()   { return localStorage.getItem(LS_KEY)   || ''; }
-  function getModel() { return localStorage.getItem(LS_MODEL) || 'deepseek-ai/deepseek-v4-pro'; }
+  function getModel() { return localStorage.getItem(LS_MODEL) || 'deepseek/deepseek-chat-v3-0324'; }
 
   function updateModelLabel() {
     const model = getModel();
-    document.getElementById('ollama-model-label').textContent = 'nvidia · ' + model;
+    document.getElementById('ollama-model-label').textContent = 'openrouter · ' + model;
     document.getElementById('ollama-url-input').value   = getKey();
     document.getElementById('ollama-model-input').value = model;
     // If no API key set, auto-open settings
@@ -2976,15 +2978,17 @@ setTimeout(startTickerLoop,800);
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + getKey()
+          'Authorization': 'Bearer ' + getKey(),
+          'HTTP-Referer': window.location.href,
+          'X-Title': 'StockTracker'
         },
         body: JSON.stringify({
           model:    getModel(),
           messages: ollamaHistory,
           stream:   true,
           max_tokens: 1024,
-          // Sembunyikan reasoning <think> block untuk model DeepSeek di NVIDIA
-          ...((getModel().startsWith('deepseek') || getModel().startsWith('qwen')) && { extra_body: { chat_template_kwargs: { thinking: false } } })
+          // Untuk model DeepSeek R1 di OpenRouter: sembunyikan chain-of-thought
+          ...((getModel().includes('r1') || getModel().includes('thinking')) && { reasoning: { exclude: true } })
         })
       });
 

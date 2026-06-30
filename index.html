@@ -3233,7 +3233,7 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
         model: currentModel,
         messages: messages,
         stream: true,
-        max_tokens: isReasoningModel ? 10000 : 1500,
+        max_tokens: isReasoningModel ? 2048 : 1500,
         temperature: isReasoningModel ? 0.6 : 0.7,
       };
 

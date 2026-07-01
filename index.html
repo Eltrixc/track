@@ -1747,7 +1747,6 @@ function onDrop(e,id){e.preventDefault();e.stopPropagation();if(!dragSrcId||drag
 // ============================================================
 const PLANNER_STOCK_WARN_PCT = 25;   // warning kalau 1 emiten > sekian % dari total investasi
 const PLANNER_SECTOR_WARN_PCT = 40;  // warning kalau 1 sektor > sekian % dari total investasi
-const PLANNER_REBALANCE_PP = 5;      // selisih (percentage point) target vs aktual buat trigger saran rebalance
 
 function getPlannerPos(id){
   if(!state.planner) state.planner={totalCapital:0,positions:{}};
@@ -2224,7 +2223,7 @@ function renderPlanner(){
     +'<button class="btn" style="padding:4px 10px;font-size:11px" onclick="setPlannerAllIncluded(false)">☐ Batalkan Semua</button>'
     +'</div>'
     +'<div class="inv-table-wrap"><table class="inv-table planner-table"><thead><tr>'
-    +'<th></th><th>Emiten</th><th>Sektor</th><th>Harga</th><th>MoS</th><th>Modal Ditanam (Rp)</th><th>Lot</th><th>Target %</th><th>Aktual %</th><th>Status</th>'
+    +'<th></th><th>Emiten</th><th>Sektor</th><th>Harga</th><th>MoS</th><th>Modal Ditanam (Rp)</th><th>Lot</th><th>Target %</th><th>Aktual %</th>'
     +'</tr></thead><tbody>';
 
   const sortedEmitens=[...emitens].sort((a,b)=>(a.ticker||'').localeCompare(b.ticker||''));
@@ -2236,12 +2235,6 @@ function renderPlanner(){
     const mos=plannerMoS(em);
     const mosStr=mos===null?'—':(mos>0?'+':'')+mos.toFixed(1)+'%';
     const mosCls=mos===null?'':(mos>0?'pos':'neg');
-    const diff=actPct-(pos.targetPct||0);
-    let status='<span style="color:var(--text3);font-size:11px;font-family:sans-serif">Sesuai</span>';
-    if((pos.targetPct||0)>0||(pos.invested||0)>0){
-      if(diff>PLANNER_REBALANCE_PP) status='<span class="disc-pill neg">Trim ~'+diff.toFixed(1)+'pp</span>';
-      else if(diff<-PLANNER_REBALANCE_PP) status='<span class="disc-pill pos">Tambah ~'+Math.abs(diff).toFixed(1)+'pp</span>';
-    }
     const priceCell=price
       ?fmt(price)+(isLive?' <span style="font-size:9px;color:var(--green-t);font-weight:700">● LIVE</span>':' <span style="font-size:9px;color:var(--text3)">(terakhir)</span>')
       :'<span style="font-size:11px;color:var(--text3)">—</span>';
@@ -2264,7 +2257,6 @@ function renderPlanner(){
       +'<td>'+lotCell+'</td>'
       +'<td><input type="text" inputmode="decimal" class="planner-input planner-input-sm" value="'+(pos.targetPct||'')+'" placeholder="0" onchange="setPlannerTarget(\''+em.id+'\',this.value)"></td>'
       +'<td style="font-family:sans-serif;font-weight:600">'+(actPct?actPct.toFixed(1)+'%':'—')+'</td>'
-      +'<td>'+status+'</td>'
       +'</tr>';
   });
 

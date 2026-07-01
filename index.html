@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StockTracker by BosGeng</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/svg+xml" href="favicons.svg">
 <!-- Google Fonts: Noto Serif (samurai typography) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,32 +25,32 @@
     --bg:#1a1e28;--bg2:#222838;--surface:#2a3040;--border:#344058;--border2:#445070;
     --text:#b8c8d8;--text2:#7a90a8;--text3:#445568;
     --accent:#2e5a8c;--accent-bg:#1a2438;--accent-t:#7ab0e0;
-    --green:#22c55e;--green-bg:#072116;--green-t:#6ee7a0;
-    --red:#ef4444;--red-bg:#2a0e0e;--red-t:#fca5a5;
+    --green:#5aab72;--green-bg:#0d2018;--green-t:#a8e8bc;
+    --red:#cc5050;--red-bg:#221010;--red-t:#f5a8a8;
     --warn:#7a9cc0;--warn-bg:#1a2438;--warn-border:#2e5a8c;--warn-t:#a8c8e8;
     --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.35),0 1px 2px rgba(0,0,0,.25);
     --sky-gradient:linear-gradient(180deg,#1a1e30 0%,#2e3450 35%,#5a4a68 65%,#8a6478 100%);
     --bg-scrim:#1a1e28;--bg-scrim-opacity:.35;
   }
   [data-theme="morning"] {
-    /* Morning — 06:00–16:00 · Soft cream + Muted sun (low-glare cards) */
-    --bg:#f1ecdf;--bg2:#e8e0cf;--surface:#f6f1e6;--border:#ddd3b8;--border2:#c7b896;
-    --text:#46402f;--text2:#766c52;--text3:#a3987a;
-    --accent:#d2934a;--accent-bg:#f3e6d0;--accent-t:#8c5a1f;
-    --green:#16a34a;--green-bg:#e3f5e8;--green-t:#0f7a37;
-    --red:#dc2626;--red-bg:#fbe5e2;--red-t:#a51c1c;
-    --warn:#bd9148;--warn-bg:#f7eed9;--warn-border:#d9c08a;--warn-t:#7c5a1e;
-    --radius:8px;--shadow:0 1px 3px rgba(70,60,30,.08),0 1px 2px rgba(70,60,30,.05);
-    --sky-gradient:linear-gradient(180deg,#cfd9d0 0%,#d8c9a8 55%,#e3cead 100%);
-    --bg-scrim:#8c7c5a;--bg-scrim-opacity:.22;
+    /* Morning — 06:00–16:00 · Sky blue + Morning sun */
+    --bg:#e8f4fc;--bg2:#d4eaf8;--surface:#dcedf8;--border:#b0d4ec;--border2:#7ab4d8;
+    --text:#1a3a50;--text2:#2e6080;--text3:#5a90b0;
+    --accent:#e8922a;--accent-bg:#fff4e0;--accent-t:#a05c0a;
+    --green:#2e7d4f;--green-bg:#eaf7f0;--green-t:#1a5c38;
+    --red:#c0392b;--red-bg:#fdecea;--red-t:#8b1a10;
+    --warn:#c07820;--warn-bg:#fff8e8;--warn-border:#e8b84a;--warn-t:#7a4a08;
+    --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+    --sky-gradient:linear-gradient(180deg,#a8d0ec 0%,#cdb98c 55%,#e0c9a0 100%);
+    --bg-scrim:#a0824e;--bg-scrim-opacity:.32;
   }
   [data-theme="dusk"] {
     /* Dusk — 16:00–17:30 · Orange sunset + Subtle black */
     --bg:#0e0a06;--bg2:#1a120a;--surface:#221810;--border:#382410;--border2:#503418;
     --text:#f4d8b0;--text2:#c09060;--text3:#785030;
     --accent:#e06c1a;--accent-bg:#281408;--accent-t:#f5b06a;
-    --green:#22c55e;--green-bg:#08200f;--green-t:#6ee7a0;
-    --red:#ef4444;--red-bg:#2a0e08;--red-t:#fca5a5;
+    --green:#5aab72;--green-bg:#0a1e0c;--green-t:#a8e8bc;
+    --red:#cc5050;--red-bg:#200c08;--red-t:#f5a8a8;
     --warn:#e06c1a;--warn-bg:#281408;--warn-border:#604020;--warn-t:#f5b06a;
     --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.4);
     --sky-gradient:linear-gradient(180deg,#1a0e10 0%,#5a2c1e 40%,#c0601f 75%,#e0a050 100%);
@@ -61,8 +61,8 @@
     --bg:#080810;--bg2:#0e0e1c;--surface:#141428;--border:#201e38;--border2:#302e50;
     --text:#e8dfd4;--text2:#a098b8;--text3:#585570;
     --accent:#c0282a;--accent-bg:#1e0808;--accent-t:#f0a0a0;
-    --green:#22c55e;--green-bg:#06190f;--green-t:#6ee7a0;
-    --red:#ef4444;--red-bg:#220a0a;--red-t:#fca5a5;
+    --green:#5aab72;--green-bg:#081a10;--green-t:#a8e8bc;
+    --red:#cc5050;--red-bg:#1e0808;--red-t:#f5a8a8;
     --warn:#c0282a;--warn-bg:#1e0808;--warn-border:#502020;--warn-t:#f0a0a0;
     --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.6),0 1px 2px rgba(0,0,0,.5);
     --sky-gradient:linear-gradient(180deg,#020206 0%,#0a0a1c 30%,#1e1840 60%,#3c2244 82%,#5a2a3a 100%);
@@ -104,13 +104,6 @@
 
   .main{padding:24px;max-width:1200px;margin:0 auto}
 
-  .stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-  .stat-card{background:var(--surface);border:1px solid var(--border);border-bottom:3px solid var(--border2);border-radius:var(--radius);padding:14px 16px;text-align:center;transition:border-color .2s}
-  .stat-card:hover{border-bottom-color:var(--accent)}
-  .stat-num{font-size:26px;font-weight:700;font-family:'Noto Serif',Georgia,serif;color:var(--text)}
-  .stat-num.green{color:var(--green)}.stat-num.red{color:var(--red)}.stat-num.accent{color:var(--accent)}
-  .stat-lbl{font-size:11px;font-family:sans-serif;color:var(--text3);margin-top:2px;letter-spacing:.5px;text-transform:uppercase}
-
   .actions-bar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap}
   .section-title{font-size:15px;font-weight:600;color:var(--text);font-family:'Noto Serif',Georgia,serif}
 
@@ -139,15 +132,15 @@
 
   .emiten-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
 
-  .emiten-card{background:linear-gradient(165deg,var(--surface) 0%,var(--bg2) 130%);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow);transition:border-color .2s,opacity .15s,box-shadow .2s,transform .2s;cursor:pointer;position:relative}
+  .emiten-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow);transition:border-color .2s,opacity .15s,box-shadow .2s,transform .2s;cursor:pointer;position:relative}
   .emiten-card::before{content:'';position:absolute;top:0;left:-3px;bottom:0;width:3px;background:linear-gradient(to bottom,var(--accent),transparent 80%);opacity:.8}
   .emiten-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.25),0 0 0 1px var(--accent);transform:translateY(-2px)}
   .emiten-card.overvalue{border-left-color:var(--red)}
   .emiten-card.overvalue::before{background:linear-gradient(to bottom,var(--red),transparent 80%)}
   .emiten-card.undervalue{border-left-color:var(--green)}
   .emiten-card.undervalue::before{background:linear-gradient(to bottom,var(--green),transparent 80%)}
-  .emiten-card.holding-warn,.emiten-card.live-warn{border-left-color:var(--warn)!important}
-  .emiten-card.holding-warn::before,.emiten-card.live-warn::before{background:linear-gradient(to bottom,var(--warn),transparent 80%)!important}
+  .emiten-card.holding-warn{border-left-color:var(--warn)!important}
+  .emiten-card.holding-warn::before{background:linear-gradient(to bottom,var(--warn),transparent 80%)!important}
   .emiten-card.dragging{opacity:.3;box-shadow:none;border-style:dashed}
   .emiten-card.drag-over{border-color:var(--accent)!important;box-shadow:0 0 0 2px var(--accent),var(--shadow);background:var(--accent-bg)}
 
@@ -189,15 +182,10 @@
   .disc-pill.neg{background:var(--red-bg);color:var(--red-t)}
 
   .progress-wrap{display:flex;flex-direction:column;gap:4px}
-  .progress-label{font-family:sans-serif;font-size:10px;color:var(--text3);display:flex;justify-content:space-between;align-items:center}
-  .progress-bar{height:9px;background:var(--bg2);border-radius:5px;overflow:hidden;border:1px solid var(--border)}
-  .progress-fill{height:100%;border-radius:5px;transition:width .6s cubic-bezier(.22,1,.36,1);position:relative}
+  .progress-label{font-family:sans-serif;font-size:10px;color:var(--text3);display:flex;justify-content:space-between}
+  .progress-bar{height:5px;background:var(--bg2);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
+  .progress-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.22,1,.36,1);position:relative}
   .progress-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:8px;background:rgba(255,255,255,.3);filter:blur(3px);border-radius:3px}
-
-  .live-fill-pulse{position:relative;overflow:hidden}
-  .live-fill-pulse::before{content:'';position:absolute;top:0;bottom:0;left:-60%;width:60%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.65),transparent);animation:fillSweep 1.6s ease-in-out infinite}
-  @keyframes fillSweep{0%{left:-60%}100%{left:100%}}
-  .live-progress-wrap{display:none}
 
   .notes-box{font-family:sans-serif;font-size:12px;color:var(--text2);background:var(--bg2);border-radius:6px;padding:8px 10px;line-height:1.5;min-height:32px;word-break:break-word}
   .notes-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
@@ -263,7 +251,6 @@
   /* ── STATS TAB ── */
   .stats-tab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px}
   .stats-section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px}
-  .stats-section-title{font-family:Georgia,serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
   .stats-section-title svg{color:var(--accent)}
   .stats-kv{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-family:sans-serif;font-size:12px}
   .stats-kv:last-child{border-bottom:none}
@@ -299,7 +286,6 @@
   .form-field input,.form-field textarea,.form-field select{font-family:sans-serif;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--text);outline:none;transition:border-color .15s}
   .form-field input:focus,.form-field textarea:focus,.form-field select:focus{border-color:var(--accent)}
   .form-field textarea{resize:vertical;min-height:70px;line-height:1.5}
-  .form-divider{font-family:sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);border-top:1px solid var(--border);padding-top:14px;margin-top:4px}
   .computed-row{background:var(--bg2);border-radius:var(--radius);padding:10px 12px;display:flex;justify-content:space-between;align-items:center;font-family:sans-serif;font-size:13px}
   .computed-lbl{color:var(--text2)}.computed-val{font-weight:700;font-family:Georgia,serif;font-size:16px}
   .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
@@ -320,7 +306,7 @@
 
   .card-popup-backdrop{display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.5);backdrop-filter:blur(5px)}
   .card-popup-backdrop.open{display:flex}
-  .card-popup{background:linear-gradient(165deg,var(--surface) 0%,var(--bg2) 130%);border:1px solid var(--border);border-left:4px solid var(--accent);border-top:3px solid var(--accent);border-radius:0 12px 12px 0;padding:20px;width:100%;max-width:480px;max-height:82vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.4);display:flex;flex-direction:column;gap:12px;position:relative;animation:popupIn .18s cubic-bezier(.34,1.3,.64,1)}
+  .card-popup{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);border-top:3px solid var(--accent);border-radius:0 12px 12px 0;padding:20px;width:100%;max-width:480px;max-height:82vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.4);display:flex;flex-direction:column;gap:12px;position:relative;animation:popupIn .18s cubic-bezier(.34,1.3,.64,1)}
   .card-popup.overvalue{border-left-color:var(--red);border-top-color:var(--red)}
   .card-popup.undervalue{border-left-color:var(--green);border-top-color:var(--green)}
   .card-popup.holding-warn-popup{border-left-color:var(--warn);border-top-color:var(--warn)}
@@ -488,12 +474,6 @@
   .price-pulse-up{animation:pricePulseGreen .8s ease}
   .price-pulse-down{animation:pricePulseRed .8s ease}
 
-  .winrate-track{fill:none;stroke:var(--border2);stroke-width:6}
-  .winrate-fill{fill:none;stroke:var(--green);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 1.4s cubic-bezier(.22,1,.36,1);transform:rotate(-90deg);transform-origin:50% 50%}
-  .winrate-fill.red{stroke:var(--red)}
-  .winrate-label{font-family:'Noto Serif',Georgia,serif;font-size:26px;font-weight:700;fill:var(--text)}
-  .winrate-sublabel{font-family:sans-serif;font-size:10px;fill:var(--text3);letter-spacing:.5px;text-transform:uppercase}
-
   /* ============================================================
      🌸 SAKURA CANVAS (persistent background petal rain)
      ============================================================ */
@@ -580,7 +560,7 @@
   @media(max-width:900px){.split-layout{grid-template-columns:1fr}.split-right{position:static;max-height:500px}}
   @media(max-width:640px){
     .topbar{padding:0 12px;gap:8px;height:50px}.logo{font-size:14px}
-    .main{padding:10px}.stats-bar{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}.drag-handle{display:none}
+    .main{padding:10px}.form-grid{grid-template-columns:1fr}.drag-handle{display:none}
     .emiten-grid{grid-template-columns:1fr}.ticker{font-size:18px}.price-val{font-size:19px}.emiten-card{padding:13px}
     .notes-cols{grid-template-columns:1fr}.actions-bar{flex-wrap:wrap}.actions-bar .btn-primary{width:100%;justify-content:center}
     .inv-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}.inv-table{font-size:12px}.inv-table th,.inv-table td{padding:8px 10px}
@@ -687,7 +667,27 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
   </button>
   <span id="ticker-quota" style="font-family:sans-serif;font-size:10px;padding:0 8px;white-space:nowrap">0/30</span>
+  <div style="position:relative;flex-shrink:0">
+    <button class="ticker-refresh-btn" onclick="toggleGoapiKeyPopover()" title="Pengaturan API key">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+    <div id="goapi-key-popover" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:260px;background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:8px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:120">
+      <div style="font-family:sans-serif;font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:5px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        GoAPI Key (harga live IDX)
+      </div>
+      <div id="goapi-key-status" style="font-family:sans-serif;font-size:10.5px;color:var(--text3);margin-bottom:8px"></div>
+      <div style="display:flex;gap:6px">
+        <input type="password" id="goapi-key-input" class="ai-key-input" placeholder="API key GoAPI..." autocomplete="off" onkeydown="if(event.key==='Enter')saveGoapiKey()">
+        <button class="btn btn-primary" style="font-size:11px;padding:5px 10px;white-space:nowrap" onclick="saveGoapiKey()">Simpan</button>
+      </div>
+      <div style="font-family:sans-serif;font-size:10px;color:var(--text3);line-height:1.5;margin-top:7px">
+        Key disimpan di <strong>localStorage</strong> browser kamu sendiri, tidak dibagikan ke siapa pun. Daftar di <a href="https://goapi.io" target="_blank" style="color:var(--accent)">goapi.io</a>.
+      </div>
+    </div>
+  </div>
 </div>
+
 
 <div class="cyclical-warning" id="cyclical-warning">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -1228,10 +1228,10 @@ function importData(event){
 // ============================================================
 const THEMES = ['dawn','morning','dusk','night'];
 const THEME_META = {
-  dawn:    {icon:'🌫️', label:'Dawn',    tip:'Dawn'},
-  morning: {icon:'☀️', label:'Morning', tip:'Morning'},
-  dusk:    {icon:'🌅', label:'Dusk',    tip:'Dusk'},
-  night:   {icon:'🌌', label:'Night',   tip:'Night'},
+  dawn:    {icon:'🌫️', label:'Dawn',    tip:'Dawn · Misty grey & Dark blue · 04:30–06:00'},
+  morning: {icon:'☀️', label:'Morning', tip:'Morning · Sky blue & Morning sun · 06:00–16:00'},
+  dusk:    {icon:'🌅', label:'Dusk',    tip:'Dusk · Orange sunset & Subtle black · 16:00–17:30'},
+  night:   {icon:'🌌', label:'Night',   tip:'Night · Dark space & Lacquer red · 17:30–04:30'},
 };
 function getThemeFromTime(){
   const h=new Date().getHours(),m=new Date().getMinutes(),t=h*60+m;
@@ -1411,59 +1411,7 @@ function switchTab(tab){
   if(tab==='inventory')renderInventory();
   if(tab==='stats')renderStats();
 }
-function countUp(el,target,suffix,duration){
-  if(!el)return;
-  if(target===null||isNaN(target)){el.textContent='—';return;}
-  const start=Date.now();const from=0;
-  const tick=()=>{
-    const p=Math.min(1,(Date.now()-start)/duration);
-    const val=Math.round(from+(target-from)*p);
-    el.textContent=val+(suffix||'');
-    if(p<1)requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
-}
-function updateWinrateRadial(pct){
-  let svg=document.getElementById('winrate-radial-svg');
-  const container=document.getElementById('s-winrate');
-  if(!container)return;
-  if(!svg){
-    const r=38,cx=50,cy=50,circ=2*Math.PI*r;
-    svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-    svg.setAttribute('id','winrate-radial-svg');
-    svg.setAttribute('width','100');svg.setAttribute('height','100');
-    svg.setAttribute('viewBox','0 0 100 100');
-    svg.classList.add('winrate-svg');
-    svg.innerHTML=`<circle class="winrate-track" cx="${cx}" cy="${cy}" r="${r}"/>
-      <circle class="winrate-fill${pct!==null&&pct<50?' red':''}" id="winrate-arc" cx="${cx}" cy="${cy}" r="${r}" stroke-dasharray="${circ}" stroke-dashoffset="${circ}"/>
-      <text class="winrate-label" x="50" y="54" text-anchor="middle" id="winrate-text">${pct!==null?pct+'%':'—'}</text>
-      <text class="winrate-sublabel" x="50" y="67" text-anchor="middle">WIN RATE</text>`;
-    container.innerHTML='';
-    container.appendChild(svg);
-    // Remove win-rate stat-lbl since it's now in SVG
-    const lbl=container.parentElement.querySelector('.stat-lbl');
-    if(lbl)lbl.style.display='none';
-  } else {
-    const arc=document.getElementById('winrate-arc');
-    const txt=document.getElementById('winrate-text');
-    if(arc){arc.className.baseVal=arc.className.baseVal.replace(' red','');if(pct!==null&&pct<50)arc.className.baseVal+=' red';}
-    if(txt)txt.textContent=pct!==null?pct+'%':'—';
-  }
-  const arc=document.getElementById('winrate-arc');
-  if(arc&&pct!==null){
-    const r=38,circ=2*Math.PI*r;
-    setTimeout(()=>{arc.style.strokeDashoffset=circ-(circ*pct/100);},50);
-  }
-}
 function updateStats(){
-  const hits=state.inventory.filter(i=>i.result==='hit').length;
-  const misses=state.inventory.filter(i=>i.result==='miss').length;
-  const total=hits+misses;
-  const winPct=total?Math.round(hits/total*100):null;
-  countUp(document.getElementById('s-active'),state.emitens.length,'',400);
-  countUp(document.getElementById('s-hit'),hits,'',500);
-  countUp(document.getElementById('s-miss'),misses,'',500);
-  updateWinrateRadial(winPct);
   document.getElementById('badge-active').textContent=state.emitens.length;
   document.getElementById('badge-inv').textContent=state.inventory.length;
   const hint=document.getElementById('drag-hint');if(hint)hint.style.display=state.emitens.length>=2?'':'none';
@@ -1686,7 +1634,7 @@ function renderCards(){
   renderSectorFilterBar();
 
   let html='';
-  filtered.forEach(em=>{
+  filtered.forEach((em,idx)=>{
     const last=em.entries[em.entries.length-1];if(!last)return;
     const {fv1,fv2,fv3,avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
     const isUnder=avg&&last.price<avg,isOver=avg&&last.price>=avg;
@@ -1699,7 +1647,7 @@ function renderCards(){
     const tebakan=em.tebakan||'bullish';
     const tanggalD=last.tanggalAwal?fmtDate(last.tanggalAwal):null;
 
-    html+='<div class="emiten-card emiten-card-anim anim-card-drop '+cardClass+'" id="card-'+em.id+'" style="animation-delay:'+(filtered.indexOf(em)*0.08).toFixed(2)+'s" draggable="true"'
+    html+='<div class="emiten-card emiten-card-anim anim-card-drop '+cardClass+'" id="card-'+em.id+'" style="animation-delay:'+(idx*0.08).toFixed(2)+'s" draggable="true"'
       +' onclick="openCardPopup(event,\''+em.id+'\')"'
       +' ondragstart="onDragStart(event,\''+em.id+'\')" ondragend="onDragEnd(event,\''+em.id+'\')"'
       +' ondragover="onDragOver(event,\''+em.id+'\')" ondragleave="onDragLeave(event,\''+em.id+'\')" ondrop="onDrop(event,\''+em.id+'\')">'
@@ -1729,8 +1677,6 @@ function renderCards(){
         +(mosPct!==null?'<div class="fv-row"><span class="fv-label" style="font-weight:600;color:var(--text2)">Margin of Safety <button class="mos-info-btn" onclick="event.stopPropagation();toggleMosTooltip(event,this)">i</button></span><span class="fv-vals"><span class="fv-num" style="font-size:13px;color:'+(mosPct>=0?'var(--green-t)':'var(--red-t)')+'">'+(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%</span></span></div>':'')
       +'</div>'
       +(avg&&last.price?'<div class="progress-wrap"><div class="progress-label"><span>Harga vs FV avg ('+fmt(avg)+')</span><span>'+progress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%;background:'+pColor+'"></div></div></div>':'')
-      +(avg?'<div class="progress-wrap live-progress-wrap" id="liveprog-'+em.id+'" data-fv-avg="'+avg+'"><div class="progress-label"><span>Harga Live vs FV avg ('+fmt(avg)+')</span><span id="liveprogpct-'+em.id+'">—</span></div><div class="progress-bar"><div class="progress-fill live-fill-pulse" id="liveprogfill-'+em.id+'" style="width:0%"></div></div></div>':'')
-      +'<div id="livewarn-'+em.id+'"></div>'
       +(last.notes?'<div class="notes-box">'+formatNotes(last.notes)+'</div>':'')
       +'<div class="card-popup-hint">🔍 Klik untuk detail &amp; aksi</div>'
       +'</div>';
@@ -1753,10 +1699,7 @@ function openCardPopup(e, emitenId){
   const {fv1,fv2,fv3,avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
   const isUnder=avg&&last.price<avg,isOver=avg&&last.price>=avg;
   const isWarn=checkHoldingWarn(em);
-  const liveData=window.livePriceMap?window.livePriceMap[em.ticker.toUpperCase()]:null;
-  const livePrice=liveData?liveData.price:null;
-  const isLiveOver=avg&&livePrice?livePrice>avg:false;
-  const cardClass=(isWarn||isLiveOver)?'holding-warn-popup':isUnder?'undervalue':isOver?'overvalue':'';
+  const cardClass=isWarn?'holding-warn-popup':isUnder?'undervalue':isOver?'overvalue':'';
   const tebakan=em.tebakan||'bullish';
   const tanggalD=last.tanggalAwal?fmtDate(last.tanggalAwal):null;
   const pColor=isUnder?'var(--green)':'var(--red)';
@@ -1787,12 +1730,6 @@ function openCardPopup(e, emitenId){
       +(mosPct!==null?'<div class="fv-row"><span class="fv-label" style="font-weight:600;color:var(--text2)">Margin of Safety <button class="mos-info-btn" onclick="event.stopPropagation();toggleMosTooltip(event,this)">i</button></span><span class="fv-vals"><span class="fv-num" style="font-size:13px;color:'+(mosPct>=0?'var(--green-t)':'var(--red-t)')+'">'+(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%</span></span></div>':'')
     +'</div>'
     +(avg&&last.price?'<div class="progress-wrap"><div class="progress-label"><span>Harga vs FV avg ('+fmt(avg)+')</span><span>'+progress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%;background:'+pColor+'"></div></div></div>':'')
-    +(avg&&livePrice?(()=>{
-        const liveProgress=Math.min(100,Math.round(livePrice/avg*100));
-        const liveColor=isLiveOver?'var(--red)':'var(--green)';
-        return '<div class="progress-wrap"><div class="progress-label"><span>Harga Live vs FV avg ('+fmt(avg)+')</span><span>'+liveProgress+'%</span></div><div class="progress-bar"><div class="progress-fill live-fill-pulse" style="width:'+liveProgress+'%;background:'+liveColor+'"></div></div></div>'
-          +(isLiveOver?'<div class="holding-warn-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Harga live (Rp '+Math.round(livePrice).toLocaleString('id-ID')+') sudah melewati FV avg (Rp '+Math.round(avg).toLocaleString('id-ID')+'). Pertimbangkan ambil profit atau re-evaluasi thesis.</div>':'');
-      })():'')
     +'<div style="border-top:1px solid var(--border);padding-top:10px">'
       +'<div class="expand-section-label">Data Fundamental</div>'
       +'<div class="expand-kv-grid">'
@@ -2528,15 +2465,50 @@ document.addEventListener('click',function(e){if(!mosTooltip.contains(e.target)&
 // ============================================================
 // LIVE TICKER
 // ============================================================
-const GOAPI_KEY='7ffe102e-e7b8-5899-a706-1fab523a';
+const GOAPI_KEY_LS='goapi_api_key_v1';
 const TICKER_LS_KEY='goapi_ticker_v1',TICKER_QUOTA_KEY='goapi_quota_v1';
 const TICKER_MAX_AGE=6*60*60*1000,TICKER_MAX_DAY=30,TICKER_AUTO_MS=(24*60*60*1000)/TICKER_MAX_DAY;
+function getGoapiKey(){return localStorage.getItem(GOAPI_KEY_LS)||'';}
 function getQuota(){try{const q=JSON.parse(localStorage.getItem(TICKER_QUOTA_KEY)||'null');const today=new Date().toISOString().slice(0,10);if(!q||q.date!==today)return{date:today,count:0};return q;}catch(e){return{date:new Date().toISOString().slice(0,10),count:0};}}
 function bumpQuota(){const q=getQuota();q.count++;try{localStorage.setItem(TICKER_QUOTA_KEY,JSON.stringify(q));}catch(e){}updateQuotaBadge();}
 function updateQuotaBadge(){const el=document.getElementById('ticker-quota');if(!el)return;const q=getQuota();el.textContent=q.count+'/'+TICKER_MAX_DAY;el.style.color=q.count>=TICKER_MAX_DAY?'var(--red-t)':'var(--text3)';}
 function canRefresh(){return getQuota().count<TICKER_MAX_DAY;}
 function fmtTickerPrice(n){if(!n&&n!==0)return '—';return 'Rp '+Math.round(n).toLocaleString('id-ID');}
-async function fetchAllPrices(symbols){const url='https://api.goapi.io/stock/idx/prices?symbols='+encodeURIComponent(symbols.join(','));try{const res=await fetch(url,{headers:{'x-api-key':GOAPI_KEY}});if(!res.ok)return null;const json=await res.json();return json?.data?.results??null;}catch(e){return null;}}
+async function fetchAllPrices(symbols){
+  const key=getGoapiKey();if(!key)return null;
+  const url='https://api.goapi.io/stock/idx/prices?symbols='+encodeURIComponent(symbols.join(','));
+  try{const res=await fetch(url,{headers:{'x-api-key':key}});if(!res.ok)return null;const json=await res.json();return json?.data?.results??null;}catch(e){return null;}
+}
+function updateGoapiKeyStatus(){
+  const statusEl=document.getElementById('goapi-key-status');if(!statusEl)return;
+  const key=getGoapiKey();
+  if(key)statusEl.innerHTML='<span style="color:var(--green-t)">✓ Key tersimpan &nbsp;·&nbsp; <button onclick="clearGoapiKey()" style="background:none;border:none;color:var(--red-t);font-size:10px;cursor:pointer;padding:0;font-family:sans-serif">Hapus</button></span>';
+  else statusEl.innerHTML='<span>Belum ada key tersimpan — harga live tidak akan dimuat.</span>';
+}
+function toggleGoapiKeyPopover(){
+  const pop=document.getElementById('goapi-key-popover');if(!pop)return;
+  const willOpen=pop.style.display==='none';
+  pop.style.display=willOpen?'block':'none';
+  if(willOpen){updateGoapiKeyStatus();document.getElementById('goapi-key-input').value='';setTimeout(()=>document.getElementById('goapi-key-input').focus(),50);}
+}
+function saveGoapiKey(){
+  const input=document.getElementById('goapi-key-input');const val=(input?.value||'').trim();
+  if(!val){showToast('Masukkan API key GoAPI.');return;}
+  localStorage.setItem(GOAPI_KEY_LS,val);
+  showToast('GoAPI key disimpan.');
+  updateGoapiKeyStatus();
+  document.getElementById('goapi-key-popover').style.display='none';
+  initTicker(true);
+}
+function clearGoapiKey(){
+  localStorage.removeItem(GOAPI_KEY_LS);
+  showToast('GoAPI key dihapus.');
+  updateGoapiKeyStatus();
+}
+document.addEventListener('click',function(e){
+  const pop=document.getElementById('goapi-key-popover');if(!pop||pop.style.display==='none')return;
+  if(!pop.contains(e.target)&&!e.target.closest('[onclick="toggleGoapiKeyPopover()"]'))pop.style.display='none';
+});
 function renderTickerBar(items){
   const track=document.getElementById('ticker-track'),loading=document.getElementById('ticker-loading');if(!track||!loading)return;
   const valid=items.filter(i=>i&&i.price!=null);
@@ -2573,28 +2545,6 @@ function updateCardLivePrices(){
       void priceEl.offsetWidth;
       priceEl.classList.add(pct>=0?'price-pulse-up':'price-pulse-down');
     }
-
-    // Harga Live vs FV avg progress bar + overvalue warning
-    const liveProg=document.getElementById('liveprog-'+em.id);
-    if(liveProg){
-      const avg=parseFloat(liveProg.getAttribute('data-fv-avg'))||0;
-      const fill=document.getElementById('liveprogfill-'+em.id);
-      const pctEl=document.getElementById('liveprogpct-'+em.id);
-      const warnSlot=document.getElementById('livewarn-'+em.id);
-      if(avg>0){
-        const liveProgress=Math.min(100,Math.round(livePrice/avg*100));
-        const isLiveOver=livePrice>avg;
-        liveProg.style.display='flex';
-        if(fill){fill.style.width=liveProgress+'%';fill.style.background=isLiveOver?'var(--red)':'var(--green)';}
-        if(pctEl)pctEl.textContent=liveProgress+'%';
-        card.classList.toggle('live-warn',isLiveOver);
-        if(warnSlot){
-          warnSlot.innerHTML=isLiveOver
-            ?'<div class="holding-warn-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Harga live (Rp '+Math.round(livePrice).toLocaleString('id-ID')+') sudah melewati FV avg (Rp '+Math.round(avg).toLocaleString('id-ID')+'). Pertimbangkan ambil profit atau re-evaluasi thesis.</div>'
-            :'';
-        }
-      }
-    }
   });
 }
 function highlightCardByTicker(sym){
@@ -2618,6 +2568,7 @@ function highlightCardByTicker(sym){
 async function initTicker(forceRefresh){
   const loading=document.getElementById('ticker-loading'),track=document.getElementById('ticker-track');
   if(!state.emitens||state.emitens.length===0){if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Tambah emiten untuk melihat harga live</span>';}if(track)track.style.display='none';return;}
+  if(!getGoapiKey()){if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Masukkan GoAPI key (⚙ di kanan) untuk harga live</span>';}if(track)track.style.display='none';return;}
   const symbols=state.emitens.map(e=>e.ticker.toUpperCase()),now=Date.now();
   if(!forceRefresh){try{const saved=JSON.parse(localStorage.getItem(TICKER_LS_KEY)||'null');if(saved&&(now-saved.ts)<TICKER_MAX_AGE){const sameSyms=symbols.length===(saved.syms||[]).length&&symbols.every(s=>(saved.syms||[]).includes(s));if(sameSyms&&saved.items&&saved.items.length){renderTickerBar(saved.items);updateQuotaBadge();return;}}}catch(e){}}
   if(!canRefresh()){if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Limit harian tercapai.</span>';}if(track)track.style.display='none';return;}
@@ -2655,17 +2606,6 @@ setTimeout(startTickerLoop,800);
 // BOOT ANIMATIONS
 // ============================================================
 (function bootAnimate(){
-  // Stat cards staggered fade up
-  ['sc-active','sc-hit','sc-miss','sc-winrate'].forEach((id,i)=>{
-    const el=document.getElementById(id);
-    if(!el)return;
-    el.style.opacity='0';
-    setTimeout(()=>{
-      el.classList.add('anim-fade-up');
-      el.style.animationDelay='0s';
-    },500+i*150);
-  });
-
   // Emiten cards staggered drop — re-run after renderCards settles
   setTimeout(()=>{
     document.querySelectorAll('.emiten-card-anim').forEach((el,i)=>{
@@ -2683,11 +2623,11 @@ setTimeout(startTickerLoop,800);
 </script>
 
 <!-- ============================================================
-     GROQ AI CHATBOT WIDGET (Llama via Groq Cloud)
+     ORACLE AI CHATBOT WIDGET (multi-model via OpenRouter)
      ============================================================ -->
 <style>
   /* --- FAB Button --- */
-  #ollama-fab {
+  #oracle-fab {
     position: fixed;
     bottom: 24px;
     right: 24px;
@@ -2710,12 +2650,12 @@ setTimeout(startTickerLoop,800);
     0%,100% { box-shadow: 0 4px 16px rgba(0,0,0,.3), 0 0 0 0 var(--accent); }
     50%      { box-shadow: 0 4px 16px rgba(0,0,0,.3), 0 0 0 6px transparent; }
   }
-  #ollama-fab:hover { transform: scale(1.07); animation: none; box-shadow: 0 6px 22px rgba(0,0,0,.35); }
-  #ollama-fab:active { transform: scale(.96); }
-  #ollama-fab svg { width: 26px; height: 26px; }
+  #oracle-fab:hover { transform: scale(1.07); animation: none; box-shadow: 0 6px 22px rgba(0,0,0,.35); }
+  #oracle-fab:active { transform: scale(.96); }
+  #oracle-fab svg { width: 26px; height: 26px; }
 
   /* --- Chat Panel --- */
-  #ollama-panel {
+  #oracle-panel {
     position: fixed;
     bottom: 90px;
     right: 24px;
@@ -2731,16 +2671,16 @@ setTimeout(startTickerLoop,800);
     flex-direction: column;
     overflow: hidden;
     font-family: sans-serif;
-    animation: ollamaPopIn .2s cubic-bezier(.34,1.3,.64,1);
+    animation: oraclePopIn .2s cubic-bezier(.34,1.3,.64,1);
   }
-  #ollama-panel.open { display: flex; }
-  @keyframes ollamaPopIn {
+  #oracle-panel.open { display: flex; }
+  @keyframes oraclePopIn {
     from { opacity: 0; transform: scale(.93) translateY(10px); }
     to   { opacity: 1; transform: scale(1) translateY(0); }
   }
 
   /* --- Panel Header --- */
-  #ollama-header {
+  #oracle-header {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -2749,7 +2689,7 @@ setTimeout(startTickerLoop,800);
     background: linear-gradient(135deg, var(--surface), var(--accent-bg));
     flex-shrink: 0;
   }
-  #ollama-header-icon {
+  #oracle-header-icon {
     width: 30px; height: 30px;
     border-radius: 6px;
     background: var(--accent-bg);
@@ -2758,21 +2698,21 @@ setTimeout(startTickerLoop,800);
     flex-shrink: 0;
     box-shadow: 0 0 8px rgba(0,0,0,.2);
   }
-  #ollama-header-icon svg { width: 20px; height: 20px; }
-  #ollama-header-title {
+  #oracle-header-icon svg { width: 20px; height: 20px; }
+  #oracle-header-title {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 1px;
     min-width: 0;
   }
-  #ollama-header-title strong {
+  #oracle-header-title strong {
     font-family: Georgia, serif;
     font-size: 13px;
     font-weight: 700;
     color: var(--text);
   }
-  #ollama-model-label {
+  #oracle-model-label {
     font-size: 10px;
     color: var(--text3);
     letter-spacing: .3px;
@@ -2780,8 +2720,8 @@ setTimeout(startTickerLoop,800);
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  #ollama-header-actions { display: flex; gap: 4px; flex-shrink: 0; }
-  .ollama-icon-btn {
+  #oracle-header-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .oracle-icon-btn {
     width: 28px; height: 28px;
     border: 1px solid var(--border);
     border-radius: 7px;
@@ -2791,11 +2731,11 @@ setTimeout(startTickerLoop,800);
     display: flex; align-items: center; justify-content: center;
     transition: background .15s, color .15s;
   }
-  .ollama-icon-btn:hover { background: var(--border); color: var(--text); }
-  .ollama-icon-btn svg { width: 13px; height: 13px; }
+  .oracle-icon-btn:hover { background: var(--border); color: var(--text); }
+  .oracle-icon-btn svg { width: 13px; height: 13px; }
 
   /* --- Settings Panel --- */
-  #ollama-settings {
+  #oracle-settings {
     display: none;
     flex-direction: column;
     gap: 10px;
@@ -2804,8 +2744,8 @@ setTimeout(startTickerLoop,800);
     background: var(--bg2);
     flex-shrink: 0;
   }
-  #ollama-settings.open { display: flex; }
-  .ollama-settings-title {
+  #oracle-settings.open { display: flex; }
+  .oracle-settings-title {
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
@@ -2813,15 +2753,15 @@ setTimeout(startTickerLoop,800);
     color: var(--text3);
     margin-bottom: 2px;
   }
-  .ollama-field { display: flex; flex-direction: column; gap: 4px; }
-  .ollama-field label {
+  .oracle-field { display: flex; flex-direction: column; gap: 4px; }
+  .oracle-field label {
     font-size: 10px;
     font-weight: 600;
     color: var(--text3);
     text-transform: uppercase;
     letter-spacing: .4px;
   }
-  .ollama-field input {
+  .oracle-field input {
     font-family: sans-serif;
     font-size: 12px;
     padding: 6px 9px;
@@ -2832,8 +2772,8 @@ setTimeout(startTickerLoop,800);
     outline: none;
     transition: border-color .15s;
   }
-  .ollama-field input:focus { border-color: var(--accent); }
-  #ollama-settings-save {
+  .oracle-field input:focus { border-color: var(--accent); }
+  #oracle-settings-save {
     font-family: sans-serif;
     font-size: 12px;
     padding: 6px 14px;
@@ -2846,10 +2786,10 @@ setTimeout(startTickerLoop,800);
     transition: background .15s, color .15s;
     align-self: flex-end;
   }
-  #ollama-settings-save:hover { background: var(--accent); color: #fff; }
+  #oracle-settings-save:hover { background: var(--accent); color: #fff; }
 
   /* --- Messages Area --- */
-  #ollama-messages {
+  #oracle-messages {
     flex: 1;
     overflow-y: auto;
     padding: 12px 14px;
@@ -2858,22 +2798,22 @@ setTimeout(startTickerLoop,800);
     gap: 10px;
     scroll-behavior: smooth;
   }
-  #ollama-messages::-webkit-scrollbar { width: 4px; }
-  #ollama-messages::-webkit-scrollbar-track { background: transparent; }
-  #ollama-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  #oracle-messages::-webkit-scrollbar { width: 4px; }
+  #oracle-messages::-webkit-scrollbar-track { background: transparent; }
+  #oracle-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-  .ollama-msg {
+  .oracle-msg {
     display: flex;
     gap: 7px;
     align-items: flex-end;
-    animation: ollamaMsgIn .18s ease;
+    animation: oracleMsgIn .18s ease;
   }
-  @keyframes ollamaMsgIn {
+  @keyframes oracleMsgIn {
     from { opacity: 0; transform: translateY(6px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  .ollama-msg.user { flex-direction: row-reverse; }
-  .ollama-bubble {
+  .oracle-msg.user { flex-direction: row-reverse; }
+  .oracle-bubble {
     max-width: 78%;
     padding: 8px 12px;
     border-radius: 12px;
@@ -2884,36 +2824,36 @@ setTimeout(startTickerLoop,800);
     font-family: sans-serif;
   }
   /* Crimson lacquer user bubble */
-  .ollama-msg.user .ollama-bubble {
+  .oracle-msg.user .oracle-bubble {
     background: var(--accent);
     color: #fff;
     border-bottom-right-radius: 4px;
     box-shadow: 0 2px 8px rgba(0,0,0,.25);
   }
   /* Aged paper bot bubble */
-  .ollama-msg.bot .ollama-bubble {
+  .oracle-msg.bot .oracle-bubble {
     background: var(--surface);
     border: 1px solid var(--border);
     border-left: 3px solid var(--accent);
     border-bottom-left-radius: 4px;
     box-shadow: 0 2px 6px rgba(0,0,0,.12);
   }
-  .ollama-avatar {
+  .oracle-avatar {
     width: 22px; height: 22px;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
     font-size: 12px;
   }
-  .ollama-msg.bot .ollama-avatar {
+  .oracle-msg.bot .oracle-avatar {
     background: var(--accent-bg);
     border: 1px solid var(--accent);
   }
-  .ollama-msg.bot .ollama-avatar svg { width: 13px; height: 13px; }
-  .ollama-msg.user .ollama-avatar { background: var(--bg2); border: 1px solid var(--border); }
+  .oracle-msg.bot .oracle-avatar svg { width: 13px; height: 13px; }
+  .oracle-msg.user .oracle-avatar { background: var(--bg2); border: 1px solid var(--border); }
 
   /* Typing indicator */
-  .ollama-typing {
+  .oracle-typing {
     display: flex;
     align-items: center;
     gap: 4px;
@@ -2924,21 +2864,21 @@ setTimeout(startTickerLoop,800);
     border-bottom-left-radius: 4px;
     width: fit-content;
   }
-  .ollama-typing span {
+  .oracle-typing span {
     width: 6px; height: 6px;
     border-radius: 50%;
     background: var(--accent);
-    animation: ollamaTyping 1.2s infinite ease-in-out;
+    animation: oracleTyping 1.2s infinite ease-in-out;
   }
-  .ollama-typing span:nth-child(2) { animation-delay: .2s; }
-  .ollama-typing span:nth-child(3) { animation-delay: .4s; }
-  @keyframes ollamaTyping {
+  .oracle-typing span:nth-child(2) { animation-delay: .2s; }
+  .oracle-typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes oracleTyping {
     0%,80%,100% { transform: scale(.6); opacity: .4; }
     40%          { transform: scale(1); opacity: 1; }
   }
 
   /* Empty state */
-  #ollama-empty {
+  #oracle-empty {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -2951,29 +2891,29 @@ setTimeout(startTickerLoop,800);
     padding: 0 24px;
     pointer-events: none;
   }
-  #ollama-empty svg { width: 32px; height: 32px; opacity: .4; }
-  #ollama-empty p { color: var(--text3); margin: 0; line-height: 1.5; }
+  #oracle-empty svg { width: 32px; height: 32px; opacity: .4; }
+  #oracle-empty p { color: var(--text3); margin: 0; line-height: 1.5; }
 
   /* Error bubble */
   /* Markdown styling inside chatbot bubble */
-  .ollama-bubble.bot p { margin: 0 0 6px 0; }
-  .ollama-bubble.bot p:last-child { margin-bottom: 0; }
-  .ollama-bubble.bot ul, .ollama-bubble.bot ol { margin: 4px 0; padding-left: 18px; }
-  .ollama-bubble.bot li { margin: 2px 0; }
-  .ollama-bubble.bot strong { font-weight: 700; color: var(--text); }
-  .ollama-bubble.bot em { font-style: italic; }
-  .ollama-bubble.bot code { font-family: monospace; font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 4px; }
-  .ollama-bubble.bot pre { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px; overflow-x: auto; margin: 6px 0; }
-  .ollama-bubble.bot pre code { background: none; border: none; padding: 0; font-size: 11px; }
-  .ollama-bubble.bot h1,.ollama-bubble.bot h2,.ollama-bubble.bot h3 { font-size: 13px; font-weight: 700; margin: 6px 0 4px; }
-  .ollama-error {
+  .oracle-bubble.bot p { margin: 0 0 6px 0; }
+  .oracle-bubble.bot p:last-child { margin-bottom: 0; }
+  .oracle-bubble.bot ul, .oracle-bubble.bot ol { margin: 4px 0; padding-left: 18px; }
+  .oracle-bubble.bot li { margin: 2px 0; }
+  .oracle-bubble.bot strong { font-weight: 700; color: var(--text); }
+  .oracle-bubble.bot em { font-style: italic; }
+  .oracle-bubble.bot code { font-family: monospace; font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 1px 4px; }
+  .oracle-bubble.bot pre { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px; overflow-x: auto; margin: 6px 0; }
+  .oracle-bubble.bot pre code { background: none; border: none; padding: 0; font-size: 11px; }
+  .oracle-bubble.bot h1,.oracle-bubble.bot h2,.oracle-bubble.bot h3 { font-size: 13px; font-weight: 700; margin: 6px 0 4px; }
+  .oracle-error {
     background: var(--red-bg) !important;
     border-color: var(--red) !important;
     color: var(--red-t) !important;
   }
 
   /* --- Input Area --- */
-  #ollama-input-area {
+  #oracle-input-area {
     display: flex;
     align-items: flex-end;
     gap: 7px;
@@ -2982,7 +2922,7 @@ setTimeout(startTickerLoop,800);
     background: var(--surface);
     flex-shrink: 0;
   }
-  #ollama-input {
+  #oracle-input {
     flex: 1;
     font-family: sans-serif;
     font-size: 13px;
@@ -2998,9 +2938,9 @@ setTimeout(startTickerLoop,800);
     overflow-y: auto;
     transition: border-color .15s;
   }
-  #ollama-input:focus { border-color: var(--accent); }
-  #ollama-input::placeholder { color: var(--text3); }
-  #ollama-send {
+  #oracle-input:focus { border-color: var(--accent); }
+  #oracle-input::placeholder { color: var(--text3); }
+  #oracle-send {
     width: 36px; height: 36px;
     border-radius: 9px;
     border: none;
@@ -3011,13 +2951,13 @@ setTimeout(startTickerLoop,800);
     flex-shrink: 0;
     transition: opacity .15s, transform .15s;
   }
-  #ollama-send:hover { opacity: .88; }
-  #ollama-send:active { transform: scale(.93); }
-  #ollama-send:disabled { opacity: .4; cursor: not-allowed; }
-  #ollama-send svg { width: 16px; height: 16px; }
+  #oracle-send:hover { opacity: .88; }
+  #oracle-send:active { transform: scale(.93); }
+  #oracle-send:disabled { opacity: .4; cursor: not-allowed; }
+  #oracle-send svg { width: 16px; height: 16px; }
 
   /* --- Disclaimer --- */
-  #ollama-disclaimer {
+  #oracle-disclaimer {
     padding: 5px 12px 7px;
     font-size: 10px;
     color: var(--text3);
@@ -3027,13 +2967,13 @@ setTimeout(startTickerLoop,800);
   }
 
   @media(max-width: 400px) {
-    #ollama-panel { width: calc(100vw - 20px); right: 10px; bottom: 80px; }
-    #ollama-fab   { bottom: 16px; right: 16px; }
+    #oracle-panel { width: calc(100vw - 20px); right: 10px; bottom: 80px; }
+    #oracle-fab   { bottom: 16px; right: 16px; }
   }
 </style>
 
 <!-- FAB Button -->
-<button id="ollama-fab" title="Oracle AI — Chat tentang saham" onclick="ollamaToggle()">
+<button id="oracle-fab" title="Oracle AI — Chat tentang saham" onclick="oracleToggle()">
   <!-- Torii gate icon -->
   <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
     <!-- Left pillar -->
@@ -3051,11 +2991,11 @@ setTimeout(startTickerLoop,800);
 </button>
 
 <!-- Chat Panel -->
-<div id="ollama-panel">
+<div id="oracle-panel">
 
   <!-- Header -->
-  <div id="ollama-header">
-    <div id="ollama-header-icon">
+  <div id="oracle-header">
+    <div id="oracle-header-icon">
       <!-- Torii gate mini icon -->
       <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="14" y="24" width="7" height="36" rx="2" fill="var(--accent)" opacity=".9"/>
@@ -3065,34 +3005,34 @@ setTimeout(startTickerLoop,800);
         <rect x="6" y="18" width="52" height="8" rx="2" fill="var(--accent)" opacity=".95"/>
       </svg>
     </div>
-    <div id="ollama-header-title">
+    <div id="oracle-header-title">
       <strong>Oracle AI</strong>
-      <span id="ollama-model-label">openrouter · deepseek/deepseek-chat-v3-0324</span>
+      <span id="oracle-model-label">openrouter · deepseek/deepseek-chat-v3-0324</span>
     </div>
-    <div id="ollama-header-actions">
-      <button class="ollama-icon-btn" title="Hapus riwayat" onclick="ollamaClearHistory()">
+    <div id="oracle-header-actions">
+      <button class="oracle-icon-btn" title="Hapus riwayat" onclick="oracleClearHistory()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6m4-6v6"/><path d="M9 6V4h6v2"/></svg>
       </button>
-      <button class="ollama-icon-btn" title="Pengaturan" onclick="ollamaToggleSettings()">
+      <button class="oracle-icon-btn" title="Pengaturan" onclick="oracleToggleSettings()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
-      <button class="ollama-icon-btn" title="Tutup" onclick="ollamaToggle()">
+      <button class="oracle-icon-btn" title="Tutup" onclick="oracleToggle()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
   </div>
 
   <!-- Settings -->
-  <div id="ollama-settings">
-    <div class="ollama-settings-title">⚙ Pengaturan OpenRouter</div>
-    <div class="ollama-field">
+  <div id="oracle-settings">
+    <div class="oracle-settings-title">⚙ Pengaturan OpenRouter</div>
+    <div class="oracle-field">
       <label>OpenRouter API Key</label>
-      <input type="password" id="ollama-url-input" placeholder="sk-or-••••••••••••••••••••••" />
+      <input type="password" id="oracle-url-input" placeholder="sk-or-••••••••••••••••••••••" />
       <span style="font-size:10px;color:var(--text3);margin-top:2px">Daftar gratis di <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--accent)">openrouter.ai/keys</a> · banyak model gratis tersedia</span>
     </div>
-    <div class="ollama-field">
+    <div class="oracle-field">
       <label>Model</label>
-      <select id="ollama-model-input" style="font-family:sans-serif;font-size:12px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);outline:none;cursor:pointer;transition:border-color .15s">
+      <select id="oracle-model-input" style="font-family:sans-serif;font-size:12px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);outline:none;cursor:pointer;transition:border-color .15s">
         <optgroup label="⭐ DeepSeek — Recommended">
           <option value="deepseek/deepseek-chat-v3-0324">DeepSeek V3 0324 · Powerful &amp; hemat (FREE)</option>
           <option value="deepseek/deepseek-chat">DeepSeek V3 · Stabil &amp; cepat (FREE)</option>
@@ -3167,12 +3107,12 @@ setTimeout(startTickerLoop,800);
         </optgroup>
       </select>
     </div>
-    <button id="ollama-settings-save" onclick="ollamaSaveSettings()">Simpan</button>
+    <button id="oracle-settings-save" onclick="oracleSaveSettings()">Simpan</button>
   </div>
 
   <!-- Messages -->
-  <div id="ollama-messages">
-    <div id="ollama-empty">
+  <div id="oracle-messages">
+    <div id="oracle-empty">
       <!-- Torii gate empty state -->
       <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40" opacity=".4">
         <rect x="14" y="24" width="7" height="36" rx="2" fill="currentColor"/>
@@ -3183,24 +3123,24 @@ setTimeout(startTickerLoop,800);
       </svg>
       <p><strong style="color:var(--text2)">Oracle AI</strong><br>Tanyakan apa saja tentang saham,<br>analisis emiten, atau strategi investasi.</p>
       <div style="pointer-events:all;display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:4px">
-        <button onclick="ollamaQuickPrompt('Jelaskan cara membaca margin of safety dan kapan waktu yang tepat untuk beli saham')" style="font-size:10px;padding:4px 9px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent-t)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">📐 Cara baca MoS</button>
-        <button onclick="ollamaQuickPrompt('Bedakan value investing vs growth investing, mana yang lebih cocok untuk pasar IDX?')" style="font-size:10px;padding:4px 9px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent-t)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">⚖️ Value vs Growth</button>
-        <button onclick="ollamaQuickPrompt('Sektor apa yang biasanya defensif saat ekonomi melambat di Indonesia?')" style="font-size:10px;padding:4px 9px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent-t)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">🛡️ Sektor defensif</button>
-        <button onclick="ollamaQuickPrompt('Analisis portfolio saya berdasarkan data yang kamu punya')" style="font-size:10px;padding:4px 9px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent-t)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">📋 Analisis portfolio saya</button>
+        <button onclick="oracleQuickPrompt('Jelaskan cara membaca margin of safety dan kapan waktu yang tepat untuk beli saham')" style="font-size:10px;padding:4px 9px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent-t)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">📐 Cara baca MoS</button>
+        <button onclick="oracleQuickPrompt('Bedakan value investing vs growth investing, mana yang lebih cocok untuk pasar IDX?')" style="font-size:10px;padding:4px 9px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent-t)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">⚖️ Value vs Growth</button>
+        <button onclick="oracleQuickPrompt('Sektor apa yang biasanya defensif saat ekonomi melambat di Indonesia?')" style="font-size:10px;padding:4px 9px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent-t)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">🛡️ Sektor defensif</button>
+        <button onclick="oracleQuickPrompt('Analisis portfolio saya berdasarkan data yang kamu punya')" style="font-size:10px;padding:4px 9px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent-t)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">📋 Analisis portfolio saya</button>
       </div>
     </div>
   </div>
 
   <!-- Input Area -->
-  <div id="ollama-input-area">
-    <textarea id="ollama-input" rows="1" placeholder="Tanya sesuatu…" onkeydown="ollamaHandleKey(event)" oninput="ollamaAutoResize(this)"></textarea>
-    <button id="ollama-send" onclick="ollamaSend()" title="Kirim">
+  <div id="oracle-input-area">
+    <textarea id="oracle-input" rows="1" placeholder="Tanya sesuatu…" onkeydown="oracleHandleKey(event)" oninput="oracleAutoResize(this)"></textarea>
+    <button id="oracle-send" onclick="oracleSend()" title="Kirim">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
   </div>
 
   <!-- Disclaimer -->
-  <div id="ollama-disclaimer">Powered by OpenRouter · 40+ Model AI · Bukan saran keuangan — DYOR</div>
+  <div id="oracle-disclaimer">Powered by OpenRouter · 40+ Model AI · Bukan saran keuangan — DYOR</div>
 </div>
 
 <script>
@@ -3208,12 +3148,12 @@ setTimeout(startTickerLoop,800);
   // ── State ──
   const LS_KEY   = 'openrouter_api_key_v1';
   const LS_MODEL = 'openrouter_model_v1';
-  const GROQ_URL = 'https://openrouter.ai/api/v1/chat/completions';
+  const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-  let ollamaHistory   = [];
-  let ollamaStreaming  = false;
-  let ollamaPanelOpen = false;
-  let ollamaSettingsOpen = false;
+  let oracleHistory   = [];
+  let oracleStreaming  = false;
+  let oraclePanelOpen = false;
+  let oracleSettingsOpen = false;
 
   function getKey()   { return localStorage.getItem(LS_KEY)   || ''; }
   function getModel() { return localStorage.getItem(LS_MODEL) || 'deepseek/deepseek-chat-v3-0324'; }
@@ -3269,12 +3209,12 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
   }
 
   // ── Quick prompt helper ──
-  window.ollamaQuickPrompt = function(text) {
-    const input = document.getElementById('ollama-input');
+  window.oracleQuickPrompt = function(text) {
+    const input = document.getElementById('oracle-input');
     if (input) {
       input.value = text;
       input.focus();
-      ollamaAutoResize(input);
+      oracleAutoResize(input);
     }
   };
 
@@ -3285,29 +3225,29 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
 
   function updateModelLabel() {
     const model = getModel();
-    document.getElementById('ollama-model-label').textContent = 'openrouter · ' + getModelShortLabel(model);
-    document.getElementById('ollama-url-input').value   = getKey();
-    document.getElementById('ollama-model-input').value = model;
+    document.getElementById('oracle-model-label').textContent = 'openrouter · ' + getModelShortLabel(model);
+    document.getElementById('oracle-url-input').value   = getKey();
+    document.getElementById('oracle-model-input').value = model;
     // If no API key set, auto-open settings
-    if (!getKey() && ollamaPanelOpen) {
-      ollamaSettingsOpen = true;
-      document.getElementById('ollama-settings').classList.add('open');
+    if (!getKey() && oraclePanelOpen) {
+      oracleSettingsOpen = true;
+      document.getElementById('oracle-settings').classList.add('open');
     }
   }
   updateModelLabel();
 
   // ── Toggle panel ──
-  window.ollamaToggle = function() {
-    ollamaPanelOpen = !ollamaPanelOpen;
-    const panel = document.getElementById('ollama-panel');
-    if (ollamaPanelOpen) {
+  window.oracleToggle = function() {
+    oraclePanelOpen = !oraclePanelOpen;
+    const panel = document.getElementById('oracle-panel');
+    if (oraclePanelOpen) {
       panel.classList.add('open');
       updateModelLabel();
       setTimeout(() => {
         if (!getKey()) {
-          document.getElementById('ollama-url-input').focus();
+          document.getElementById('oracle-url-input').focus();
         } else {
-          document.getElementById('ollama-input').focus();
+          document.getElementById('oracle-input').focus();
         }
       }, 120);
     } else {
@@ -3316,60 +3256,60 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
   };
 
   // ── Toggle settings ──
-  window.ollamaToggleSettings = function() {
-    ollamaSettingsOpen = !ollamaSettingsOpen;
-    document.getElementById('ollama-settings').classList.toggle('open', ollamaSettingsOpen);
-    if (ollamaSettingsOpen) {
-      document.getElementById('ollama-url-input').value   = getKey();
-      document.getElementById('ollama-model-input').value = getModel();
+  window.oracleToggleSettings = function() {
+    oracleSettingsOpen = !oracleSettingsOpen;
+    document.getElementById('oracle-settings').classList.toggle('open', oracleSettingsOpen);
+    if (oracleSettingsOpen) {
+      document.getElementById('oracle-url-input').value   = getKey();
+      document.getElementById('oracle-model-input').value = getModel();
     }
   };
 
   // ── Save settings ──
-  window.ollamaSaveSettings = function() {
-    const key   = document.getElementById('ollama-url-input').value.trim();
-    const model = document.getElementById('ollama-model-input').value.trim();
+  window.oracleSaveSettings = function() {
+    const key   = document.getElementById('oracle-url-input').value.trim();
+    const model = document.getElementById('oracle-model-input').value.trim();
     if (key)   localStorage.setItem(LS_KEY,   key);
     if (model) localStorage.setItem(LS_MODEL, model);
     updateModelLabel();
-    ollamaSettingsOpen = false;
-    document.getElementById('ollama-settings').classList.remove('open');
-    document.getElementById('ollama-input').focus();
+    oracleSettingsOpen = false;
+    document.getElementById('oracle-settings').classList.remove('open');
+    document.getElementById('oracle-input').focus();
   };
 
   // ── Clear history ──
-  window.ollamaClearHistory = function() {
-    ollamaHistory = [];
-    const msgs = document.getElementById('ollama-messages');
+  window.oracleClearHistory = function() {
+    oracleHistory = [];
+    const msgs = document.getElementById('oracle-messages');
     msgs.innerHTML = '';
     const empty = document.createElement('div');
-    empty.id = 'ollama-empty';
+    empty.id = 'oracle-empty';
     empty.innerHTML = '<p><strong style="color:var(--text2)">Riwayat dihapus</strong><br>Mulai percakapan baru.</p>';
     msgs.appendChild(empty);
   };
 
   // ── Auto-resize textarea ──
-  window.ollamaAutoResize = function(el) {
+  window.oracleAutoResize = function(el) {
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 100) + 'px';
   };
 
   // ── Handle Enter key ──
-  window.ollamaHandleKey = function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ollamaSend(); }
+  window.oracleHandleKey = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); oracleSend(); }
   };
 
   // ── Render a message bubble ──
   function appendBubble(role, text, streaming) {
-    const empty = document.getElementById('ollama-empty');
+    const empty = document.getElementById('oracle-empty');
     if (empty) empty.style.display = 'none';
 
-    const msgs = document.getElementById('ollama-messages');
+    const msgs = document.getElementById('oracle-messages');
     const wrap = document.createElement('div');
-    wrap.className = 'ollama-msg ' + role;
+    wrap.className = 'oracle-msg ' + role;
 
     const avatar = document.createElement('div');
-    avatar.className = 'ollama-avatar';
+    avatar.className = 'oracle-avatar';
     if (role === 'bot') {
       avatar.innerHTML = `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="18" height="18"><rect x="14" y="24" width="7" height="36" rx="2" fill="var(--accent)"/><rect x="43" y="24" width="7" height="36" rx="2" fill="var(--accent)"/><rect x="10" y="32" width="44" height="7" rx="2" fill="var(--accent)" opacity=".8"/><path d="M6 22 Q32 10 58 22" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" fill="none"/><rect x="6" y="18" width="52" height="8" rx="2" fill="var(--accent)"/></svg>`;
     } else {
@@ -3377,8 +3317,8 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
     }
 
     const bubble = document.createElement('div');
-    bubble.className = 'ollama-bubble' + (role === 'bot' ? ' bot' : '');
-    if (streaming) bubble.innerHTML = '<div class="ollama-typing"><span></span><span></span><span></span></div>';
+    bubble.className = 'oracle-bubble' + (role === 'bot' ? ' bot' : '');
+    if (streaming) bubble.innerHTML = '<div class="oracle-typing"><span></span><span></span><span></span></div>';
     else bubble.textContent = text;
 
     wrap.appendChild(role === 'bot' ? avatar : bubble);
@@ -3389,29 +3329,29 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
   }
 
   // ── Send message ──
-  window.ollamaSend = async function() {
-    if (ollamaStreaming) return;
-    const input = document.getElementById('ollama-input');
+  window.oracleSend = async function() {
+    if (oracleStreaming) return;
+    const input = document.getElementById('oracle-input');
     const text  = input.value.trim();
     if (!text) return;
 
     // Check API key
     if (!getKey()) {
-      ollamaSettingsOpen = true;
-      document.getElementById('ollama-settings').classList.add('open');
-      document.getElementById('ollama-url-input').focus();
+      oracleSettingsOpen = true;
+      document.getElementById('oracle-settings').classList.add('open');
+      document.getElementById('oracle-url-input').focus();
       return;
     }
 
     input.value = '';
     input.style.height = 'auto';
-    document.getElementById('ollama-send').disabled = true;
+    document.getElementById('oracle-send').disabled = true;
 
     appendBubble('user', text);
-    ollamaHistory.push({ role: 'user', content: text });
+    oracleHistory.push({ role: 'user', content: text });
 
     const botBubble = appendBubble('bot', '', true);
-    ollamaStreaming  = true;
+    oracleStreaming  = true;
 
     const currentModel = getModel();
     const isReasoningModel = currentModel.includes('r1') || currentModel.includes('thinking') || currentModel.includes('o1') || currentModel.includes('o3') || currentModel.includes('qwq');
@@ -3419,7 +3359,7 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
     try {
       const messages = [
         { role: 'system', content: buildSystemPrompt() },
-        ...ollamaHistory
+        ...oracleHistory
       ];
 
       const body = {
@@ -3435,7 +3375,7 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
         body.reasoning = { exclude: true };
       }
 
-      const res = await fetch(GROQ_URL, {
+      const res = await fetch(OPENROUTER_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -3483,7 +3423,7 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
             fullText += token;
             // Tampilkan plain text saat streaming (agar tidak glitch mid-markdown)
             botBubble.textContent = stripThink(fullText);
-            document.getElementById('ollama-messages').scrollTop = 99999;
+            document.getElementById('oracle-messages').scrollTop = 99999;
           } catch (_) {}
         }
       }
@@ -3492,18 +3432,18 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
       const cleanText = stripThink(fullText);
       botBubble.innerHTML = renderMdFull(cleanText);
       renderMath(botBubble);
-      document.getElementById('ollama-messages').scrollTop = 99999;
+      document.getElementById('oracle-messages').scrollTop = 99999;
 
       // Simpan ke history tanpa <think> block
-      ollamaHistory.push({ role: 'assistant', content: cleanText });
+      oracleHistory.push({ role: 'assistant', content: cleanText });
 
     } catch (err) {
       botBubble.textContent = '⚠ ' + err.message;
-      botBubble.classList.add('ollama-error');
+      botBubble.classList.add('oracle-error');
     } finally {
-      ollamaStreaming = false;
-      document.getElementById('ollama-send').disabled = false;
-      document.getElementById('ollama-input').focus();
+      oracleStreaming = false;
+      document.getElementById('oracle-send').disabled = false;
+      document.getElementById('oracle-input').focus();
     }
   };
 })();
@@ -3630,7 +3570,7 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
         t:Math.random()*1000
       }),
     };
-    const COUNTS={dawn:10,morning:35,dusk:28,night:200};
+    const COUNTS={dawn:6,morning:35,dusk:28,night:300};
 
     function rebuild(theme){
       if(!FACTORIES[theme])theme='night';

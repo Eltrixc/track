@@ -187,6 +187,28 @@
   .progress-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.22,1,.36,1);position:relative}
   .progress-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:8px;background:rgba(255,255,255,.3);filter:blur(3px);border-radius:3px}
 
+  /* Live price progress bar — lebih tebal + pulse animation */
+  .progress-bar-live{height:9px;background:var(--bg2);border-radius:5px;overflow:hidden;border:1px solid var(--border);position:relative}
+  .progress-fill-live{height:100%;border-radius:5px;position:relative;transition:width .8s cubic-bezier(.22,1,.36,1);overflow:hidden}
+  .progress-fill-live::before{
+    content:'';position:absolute;top:0;left:-60%;bottom:0;width:50%;
+    background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.55) 50%,transparent 100%);
+    animation:liveBarPulse 2s ease-in-out infinite;
+    border-radius:5px;
+  }
+  .progress-fill-live::after{content:'';position:absolute;right:0;top:0;bottom:0;width:10px;background:rgba(255,255,255,.25);filter:blur(4px);border-radius:5px}
+  @keyframes liveBarPulse{
+    0%{left:-60%;opacity:0}
+    20%{opacity:1}
+    80%{opacity:1}
+    100%{left:110%;opacity:0}
+  }
+  .progress-wrap-live{display:flex;flex-direction:column;gap:5px;margin-top:2px}
+  .progress-label-live{font-family:sans-serif;font-size:10px;color:var(--text3);display:flex;justify-content:space-between;align-items:center}
+  .live-dot-blink{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;flex-shrink:0;animation:liveDotBlink 2s ease-in-out infinite}
+  @keyframes liveDotBlink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(46,125,79,.5)}50%{opacity:.6;box-shadow:0 0 0 4px rgba(46,125,79,.0)}}
+  .live-bar-pct{font-weight:700;font-size:10.5px;font-family:sans-serif}
+
   .notes-box{font-family:sans-serif;font-size:12px;color:var(--text2);background:var(--bg2);border-radius:6px;padding:8px 10px;line-height:1.5;min-height:32px;word-break:break-word}
   .notes-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
   .notes-col{border-radius:5px;padding:7px 9px}
@@ -1677,6 +1699,7 @@ function renderCards(){
         +(mosPct!==null?'<div class="fv-row"><span class="fv-label" style="font-weight:600;color:var(--text2)">Margin of Safety <button class="mos-info-btn" onclick="event.stopPropagation();toggleMosTooltip(event,this)">i</button></span><span class="fv-vals"><span class="fv-num" style="font-size:13px;color:'+(mosPct>=0?'var(--green-t)':'var(--red-t)')+'">'+(mosPct>=0?'+':'')+mosPct.toFixed(1)+'%</span></span></div>':'')
       +'</div>'
       +(avg&&last.price?'<div class="progress-wrap"><div class="progress-label"><span>Harga vs FV avg ('+fmt(avg)+')</span><span>'+progress+'%</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%;background:'+pColor+'"></div></div></div>':'')
+      +(avg?'<div class="progress-wrap-live" id="lpb-'+em.id+'"><div class="progress-label-live"><span style="display:flex;align-items:center"><span class="live-dot-blink"></span>Harga Live vs FV avg ('+fmt(avg)+')</span><span class="live-bar-pct" id="lpb-pct-'+em.id+'" style="color:var(--text3)">—</span></div><div class="progress-bar-live"><div class="progress-fill-live" id="lpb-fill-'+em.id+'" style="width:0%;background:var(--border2)"></div></div></div>':'')
       +(last.notes?'<div class="notes-box">'+formatNotes(last.notes)+'</div>':'')
       +'<div class="card-popup-hint">🔍 Klik untuk detail &amp; aksi</div>'
       +'</div>';
@@ -2583,23 +2606,54 @@ function updateCardLivePrices(){
     if(!live)return;
     const card=document.getElementById('card-'+em.id);
     if(!card)return;
+
+    // ── Update teks harga live ──
     const priceEl=card.querySelector('.live-price-val');
-    if(!priceEl)return;
-    const basePrice=parseFloat(priceEl.getAttribute('data-base-price'))||0;
-    const livePrice=live.price;
-    const pct=basePrice>0?((livePrice-basePrice)/basePrice*100):null;
-    const chgColor=pct===null?'var(--text3)':pct>0?'var(--green)':pct<0?'var(--red)':'var(--text3)';
-    const arrow=pct===null?'':pct>0?'▲':pct<0?'▼':'';
-    const pctStr=pct!==null?(pct>0?'+':'')+pct.toFixed(2)+'%':'';
-    const prevText=priceEl.textContent;
-    const newText='Rp '+Math.round(livePrice).toLocaleString('id-ID');
-    priceEl.innerHTML='<span style="color:var(--text)">Rp '+Math.round(livePrice).toLocaleString('id-ID')+'</span>'
-      +(pctStr?'<span style="font-size:11px;font-family:sans-serif;margin-left:6px;font-weight:600;color:'+chgColor+'">'+arrow+' '+pctStr+'</span>':'');
-    // Pulse on change
-    if(prevText&&!prevText.includes(newText.replace('Rp ',''))){
-      priceEl.classList.remove('price-pulse-up','price-pulse-down');
-      void priceEl.offsetWidth;
-      priceEl.classList.add(pct>=0?'price-pulse-up':'price-pulse-down');
+    if(priceEl){
+      const basePrice=parseFloat(priceEl.getAttribute('data-base-price'))||0;
+      const livePrice=live.price;
+      const pct=basePrice>0?((livePrice-basePrice)/basePrice*100):null;
+      const chgColor=pct===null?'var(--text3)':pct>0?'var(--green)':pct<0?'var(--red)':'var(--text3)';
+      const arrow=pct===null?'':pct>0?'▲':pct<0?'▼':'';
+      const pctStr=pct!==null?(pct>0?'+':'')+pct.toFixed(2)+'%':'';
+      const prevText=priceEl.textContent;
+      const newText='Rp '+Math.round(livePrice).toLocaleString('id-ID');
+      priceEl.innerHTML='<span style="color:var(--text)">'+newText+'</span>'
+        +(pctStr?'<span style="font-size:11px;font-family:sans-serif;margin-left:6px;font-weight:600;color:'+chgColor+'">'+arrow+' '+pctStr+'</span>':'');
+      if(prevText&&!prevText.includes(newText.replace('Rp ',''))){
+        priceEl.classList.remove('price-pulse-up','price-pulse-down');
+        void priceEl.offsetWidth;
+        priceEl.classList.add(pct>=0?'price-pulse-up':'price-pulse-down');
+      }
+    }
+
+    // ── Update live progress bar (Harga Live vs FV avg) ──
+    const fillEl=card.querySelector('#lpb-fill-'+em.id);
+    const pctEl=card.querySelector('#lpb-pct-'+em.id);
+    if(fillEl&&pctEl&&live.price){
+      // Ambil avg dari emiten (kalkulasi ulang ringan)
+      const last=em.entries[em.entries.length-1];
+      if(last){
+        const {avg}=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
+        if(avg){
+          const livePct=Math.min(150,Math.round(live.price/avg*100)); // cap 150% supaya bar tidak overflow
+          const isLiveUnder=live.price<avg;
+          const barColor=isLiveUnder?'var(--green)':'var(--red)';
+          const pctLabel=(live.price/avg*100).toFixed(1)+'%';
+
+          // Update fill width & warna
+          fillEl.style.width=Math.min(livePct,100)+'%';
+          fillEl.style.background=barColor;
+
+          // Update label pct + warna
+          pctEl.textContent=pctLabel;
+          pctEl.style.color=isLiveUnder?'var(--green-t)':'var(--red-t)';
+
+          // Update dot blink ke warna sesuai kondisi
+          const dotEl=card.querySelector('.live-dot-blink');
+          if(dotEl)dotEl.style.background=isLiveUnder?'var(--green)':'var(--red)';
+        }
+      }
     }
   });
 }

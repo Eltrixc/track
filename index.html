@@ -67,7 +67,8 @@
     --bg-scrim:#080810;--bg-scrim-opacity:.22;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:Georgia,'Times New Roman',serif;background:transparent;color:var(--text);min-height:100vh;transition:color .3s}
+  html{overflow-x:hidden}
+  body{font-family:Georgia,'Times New Roman',serif;background:transparent;color:var(--text);min-height:100vh;transition:color .3s;overflow-x:hidden}
 
   /* ============================================================
      🎴 THEME BACKGROUND ART — pixel art scene + CSS sky gradient
@@ -302,7 +303,7 @@
   .planner-capital-input:focus{border-color:var(--accent)}
   .planner-input{width:110px;font-family:sans-serif;font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s}
   .planner-input:focus{border-color:var(--accent)}
-  .planner-input-sm{width:60px}
+  .planner-input-sm{width:78px;padding-right:4px}
   .planner-table th,.planner-table td{white-space:nowrap}
   .planner-table input[type="checkbox"]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
   .return-best{color:var(--green-t)}.return-worst{color:var(--red-t)}

@@ -309,6 +309,7 @@
   .planner-input:focus{border-color:var(--accent)}
   .planner-input-sm{width:78px;padding-right:4px}
   .planner-table th,.planner-table td{white-space:nowrap}
+  .planner-table th.th-help{cursor:help;border-bottom:1px dotted var(--text3)}
   .planner-table input[type="checkbox"]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
   .return-best{color:var(--green-t)}.return-worst{color:var(--red-t)}
 
@@ -2154,6 +2155,24 @@ function renderPlanner(){
   const cash=totalCapital-totalInvested;
   const totalTarget=includedEmitens.reduce((s,em)=>s+(getPlannerPos(em.id).targetPct||0),0);
 
+  // Replikasi logika bobot dari generatePlannerSuggestion (tanpa efek samping) supaya
+  // bisa dijelaskan lewat tooltip kenapa saran alokasi tiap emiten seperti itu.
+  const suggestionRaw=includedEmitens.map(em=>{
+    const {price}=plannerGetPrice(em);
+    return {id:em.id,price,lotValue:price?price*100:null,mos:plannerMoS(em)};
+  }).filter(it=>it.price&&it.lotValue);
+  let suggestionWeights=suggestionRaw.map(it=>({...it,w:(it.mos&&it.mos>0)?it.mos:0}));
+  const suggestionTotalW=suggestionWeights.reduce((a,b)=>a+b.w,0);
+  const suggestionUsesEqualSplit=suggestionTotalW<=0;
+  if(suggestionUsesEqualSplit){
+    const eq=suggestionWeights.length?1/suggestionWeights.length:0;
+    suggestionWeights=suggestionWeights.map(w=>({...w,w:eq}));
+  }else{
+    suggestionWeights=suggestionWeights.map(w=>({...w,w:w.w/suggestionTotalW}));
+  }
+  const suggestionMap={};
+  suggestionWeights.forEach(w=>{suggestionMap[w.id]=w;});
+
   // Agregasi per sektor (berbobot modal ditanam, hanya emiten yang dicentang)
   const sectorMap={};
   includedEmitens.forEach(em=>{
@@ -2223,7 +2242,11 @@ function renderPlanner(){
     +'<button class="btn" style="padding:4px 10px;font-size:11px" onclick="setPlannerAllIncluded(false)">☐ Batalkan Semua</button>'
     +'</div>'
     +'<div class="inv-table-wrap"><table class="inv-table planner-table"><thead><tr>'
-    +'<th></th><th>Emiten</th><th>Sektor</th><th>Harga</th><th>MoS</th><th>Modal Ditanam (Rp)</th><th>Lot</th><th>Target %</th><th>Aktual %</th>'
+    +'<th></th><th>Emiten</th><th>Sektor</th><th>Harga</th>'
+    +'<th class="th-help" title="Margin of Safety = (Fair Value rata-rata dari data valuasi terakhir − Harga saat ini) ÷ Harga saat ini × 100%. Positif = harga di bawah fair value (potensi undervalued), negatif = di atas fair value.">MoS</th>'
+    +'<th>Modal Ditanam (Rp)</th><th>Lot</th>'
+    +'<th class="th-help" title="Target % diisi manual, atau otomatis dari tombol Terapkan Saran Alokasi (dihitung dari bobot MoS tiap emiten dibagi total bobot MoS positif seluruh emiten tercentang, lalu dikali Modal Total dan dibulatkan per kelipatan lot). Arahkan kursor ke kotak Target % tiap baris untuk rincian per emiten.">Target %</th>'
+    +'<th class="th-help" title="Aktual % = Modal Ditanam emiten ini ÷ Total Modal Ditanam seluruh emiten yang dicentang × 100%.">Aktual %</th>'
     +'</tr></thead><tbody>';
 
   const sortedEmitens=[...emitens].sort((a,b)=>(a.ticker||'').localeCompare(b.ticker||''));
@@ -2247,6 +2270,23 @@ function renderPlanner(){
       lotCell='<input type="number" class="planner-input planner-input-sm" min="0" step="1" value="'+lots+'" onchange="setPlannerLot(\''+em.id+'\',this.value,'+lotValue+')">'
         +(sisa>0?' <span style="font-size:10px;color:var(--text3)">(sisa '+fmt(sisa)+')</span>':'');
     }
+    // Tooltip: kenapa saran alokasi emiten ini persentasenya seperti itu.
+    let targetTip='Target % bisa diisi manual, atau otomatis lewat tombol Terapkan Saran Alokasi.';
+    const sw=included?suggestionMap[em.id]:null;
+    if(sw){
+      const pctW=(sw.w*100).toFixed(1);
+      const rawAlloc=totalCapital*sw.w;
+      const baseLots=sw.lotValue?Math.floor(rawAlloc/sw.lotValue):0;
+      targetTip='Saran alokasi '+escHtml(em.ticker)+': '
+        +(suggestionUsesEqualSplit
+          ?'karena tidak ada emiten tercentang dengan MoS positif, bobot dibagi RATA ke '+suggestionWeights.length+' emiten → '+pctW+'%.'
+          :'MoS emiten ini '+mosStr+' dibagi total MoS positif seluruh emiten tercentang → bobot '+pctW+'%.')
+        +' Bobot '+pctW+'% × Modal Total ('+fmt(totalCapital)+') ≈ '+fmt(rawAlloc)+', dibulatkan ke BAWAH per kelipatan 1 lot (Rp'+fmt(sw.lotValue)+') → minimal '+baseLots+' lot. Sisa dana hasil pembulatan lalu didistribusikan lot demi lot ke emiten berbobot tertinggi lebih dulu, jadi hasil akhir Modal Ditanam bisa sedikit lebih besar dari perhitungan dasar ini.';
+    }else if(included&&!price){
+      targetTip='Saran alokasi '+escHtml(em.ticker)+' tidak bisa dihitung karena belum ada data harga untuk emiten ini.';
+    }else if(!included){
+      targetTip='Emiten ini tidak dicentang, jadi tidak diikutkan dalam perhitungan saran alokasi.';
+    }
     html+='<tr>'
       +'<td style="text-align:center"><input type="checkbox" title="Sertakan dalam saran alokasi" '+(included?'checked':'')+' onchange="setPlannerIncluded(\''+em.id+'\',this.checked)"></td>'
       +'<td><strong>'+escHtml(em.ticker)+'</strong></td>'
@@ -2255,7 +2295,7 @@ function renderPlanner(){
       +'<td><span class="disc-pill '+mosCls+'">'+mosStr+'</span></td>'
       +'<td><input type="text" inputmode="numeric" class="planner-input" value="'+plannerFmtVal(pos.invested)+'" placeholder="0" oninput="plannerFormatInput(this)" onchange="setPlannerInvested(\''+em.id+'\',this.value)"></td>'
       +'<td>'+lotCell+'</td>'
-      +'<td><input type="text" inputmode="decimal" class="planner-input planner-input-sm" value="'+(pos.targetPct||'')+'" placeholder="0" onchange="setPlannerTarget(\''+em.id+'\',this.value)"></td>'
+      +'<td><input type="text" inputmode="decimal" class="planner-input planner-input-sm" value="'+(pos.targetPct||'')+'" placeholder="0" title="'+escHtml(targetTip)+'" onchange="setPlannerTarget(\''+em.id+'\',this.value)"></td>'
       +'<td style="font-family:sans-serif;font-weight:600">'+(actPct?actPct.toFixed(1)+'%':'—')+'</td>'
       +'</tr>';
   });

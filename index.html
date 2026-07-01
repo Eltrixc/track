@@ -304,6 +304,7 @@
   .planner-input:focus{border-color:var(--accent)}
   .planner-input-sm{width:60px}
   .planner-table th,.planner-table td{white-space:nowrap}
+  .planner-table input[type="checkbox"]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
   .return-best{color:var(--green-t)}.return-worst{color:var(--red-t)}
 
   .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
@@ -1680,7 +1681,7 @@ const PLANNER_REBALANCE_PP = 5;      // selisih (percentage point) target vs akt
 function getPlannerPos(id){
   if(!state.planner) state.planner={totalCapital:0,positions:{}};
   if(!state.planner.positions) state.planner.positions={};
-  if(!state.planner.positions[id]) state.planner.positions[id]={invested:0,targetPct:0};
+  if(!state.planner.positions[id]) state.planner.positions[id]={invested:0,targetPct:0,included:true};
   return state.planner.positions[id];
 }
 
@@ -1702,12 +1703,22 @@ function plannerFormatInput(el){
   el.setSelectionRange(el.value.length,el.value.length);
 }
 
+// Harga acuan: pakai harga live (dari ticker bar) kalau tersedia, kalau tidak fallback ke harga entry terakhir.
+function plannerGetPrice(em){
+  const live=window.livePriceMap&&window.livePriceMap[em.ticker.toUpperCase()];
+  if(live&&live.price) return {price:live.price,isLive:true};
+  const last=em.entries&&em.entries[em.entries.length-1];
+  return {price:last?last.price:null,isLive:false};
+}
+
 function plannerMoS(em){
   const last=em.entries&&em.entries[em.entries.length-1];
-  if(!last||!last.price) return null;
+  if(!last) return null;
   const fv=calcFV(last.bvps,last.pbv,last.ni,last.pe,last.shares,last.eps);
   if(!fv.avg) return null;
-  return (fv.avg-last.price)/last.price*100;
+  const {price}=plannerGetPrice(em);
+  if(!price) return null;
+  return (fv.avg-price)/price*100;
 }
 
 function setPlannerCapital(val){
@@ -1724,28 +1735,72 @@ function setPlannerTarget(id,val){
   getPlannerPos(id).targetPct=v;
   save(); renderPlanner();
 }
+function setPlannerIncluded(id,checked){
+  getPlannerPos(id).included=!!checked;
+  save(); renderPlanner();
+}
 function resetPlannerTargets(){
   state.emitens.forEach(em=>{getPlannerPos(em.id).targetPct=0;});
   save(); renderPlanner();
   showToast('Target alokasi berhasil direset ke 0%.');
 }
 
-// Saran alokasi: emiten dengan MoS (margin of safety) lebih tinggi dapat porsi target lebih besar.
-// Kalau semua MoS negatif/kosong, fallback ke equal-weight.
+// Saran alokasi: hitung bobot dari MoS (harga live) tiap emiten yang dicentang,
+// bagi Modal Total sesuai bobot, lalu bulatkan ke bawah ke kelipatan 1 lot (100 lembar)
+// supaya hasilnya langsung bisa dieksekusi. Sisa dana dari pembulatan diprioritaskan
+// ke emiten berbobot tertinggi selama masih cukup untuk minimal 1 lot tambahan.
 function generatePlannerSuggestion(){
-  if(!state.emitens.length){showToast('Belum ada emiten aktif.');return;}
-  const scores=state.emitens.map(em=>({id:em.id,mos:plannerMoS(em)}));
-  let weights=scores.map(s=>({id:s.id,w:(s.mos&&s.mos>0)?s.mos:0}));
+  const included=state.emitens.filter(em=>getPlannerPos(em.id).included!==false);
+  if(!included.length){showToast('Centang minimal satu emiten yang ingin dialokasikan.');return;}
+  const totalCapital=state.planner.totalCapital||0;
+  if(totalCapital<=0){showToast('Isi Modal Total terlebih dahulu sebelum membuat saran alokasi.');return;}
+
+  const items=included.map(em=>{
+    const {price}=plannerGetPrice(em);
+    return {id:em.id,price,lotValue:price?price*100:null,mos:plannerMoS(em)};
+  }).filter(it=>it.price&&it.lotValue);
+
+  const skippedCount=included.length-items.length;
+  if(!items.length){showToast('Emiten yang dicentang belum memiliki data harga, saran tidak dapat dihitung.');return;}
+
+  let weights=items.map(it=>({...it,w:(it.mos&&it.mos>0)?it.mos:0}));
   const totalW=weights.reduce((a,b)=>a+b.w,0);
   if(totalW<=0){
-    const eq=100/state.emitens.length;
-    weights=weights.map(w=>({id:w.id,w:eq}));
+    const eq=1/weights.length;
+    weights=weights.map(w=>({...w,w:eq}));
   }else{
-    weights=weights.map(w=>({id:w.id,w:w.w/totalW*100}));
+    weights=weights.map(w=>({...w,w:w.w/totalW}));
   }
-  weights.forEach(w=>{getPlannerPos(w.id).targetPct=Math.round(w.w*10)/10;});
+
+  // Alokasi awal, dibulatkan ke bawah per kelipatan lot
+  weights.forEach(w=>{
+    const raw=totalCapital*w.w;
+    w.lots=Math.floor(raw/w.lotValue);
+    w.invested=w.lots*w.lotValue;
+  });
+
+  // Distribusikan sisa dana hasil pembulatan ke emiten berbobot tertinggi, selot demi selot
+  let leftover=totalCapital-weights.reduce((s,w)=>s+w.invested,0);
+  const order=[...weights].sort((a,b)=>b.w-a.w);
+  let progressed=true;
+  while(leftover>0&&progressed){
+    progressed=false;
+    for(const w of order){
+      if(leftover>=w.lotValue){w.lots+=1;w.invested+=w.lotValue;leftover-=w.lotValue;progressed=true;}
+      if(leftover<=0)break;
+    }
+  }
+
+  weights.forEach(w=>{
+    const pos=getPlannerPos(w.id);
+    pos.invested=w.invested;
+    pos.targetPct=Math.round(w.w*1000)/10;
+  });
+
   save(); renderPlanner();
-  showToast('✦ Saran alokasi berbasis MoS diterapkan.');
+  let msg='✦ Saran alokasi diterapkan ke Modal Ditanam untuk '+weights.length+' emiten.';
+  if(skippedCount>0) msg+=' '+skippedCount+' emiten dilewati karena belum ada data harga.';
+  showToast(msg);
 }
 
 function renderPlanner(){
@@ -1772,9 +1827,17 @@ function renderPlanner(){
   // Warnings
   const warnings=[];
   emitens.forEach(em=>{
-    const inv=getPlannerPos(em.id).invested||0;
+    const pos=getPlannerPos(em.id);
+    const inv=pos.invested||0;
     const pct=totalInvested>0?inv/totalInvested*100:0;
     if(pct>PLANNER_STOCK_WARN_PCT) warnings.push(escHtml(em.ticker)+' memiliki porsi '+pct.toFixed(1)+'% dari total investasi, melebihi batas aman '+PLANNER_STOCK_WARN_PCT+'%.');
+    if(inv>0){
+      const {price}=plannerGetPrice(em);
+      if(price){
+        const lotValue=price*100;
+        if(inv<lotValue) warnings.push(escHtml(em.ticker)+': modal Rp'+' '+inv.toLocaleString('id-ID')+' belum cukup untuk 1 lot (minimal '+fmt(lotValue)+').');
+      }
+    }
   });
   sectorRows.forEach(s=>{
     if(s.pct>PLANNER_SECTOR_WARN_PCT) warnings.push('Sektor '+escHtml(s.sec)+' memiliki porsi '+s.pct.toFixed(1)+'% dari total investasi, menunjukkan konsentrasi yang tinggi pada satu sektor.');
@@ -1805,13 +1868,16 @@ function renderPlanner(){
 
   html+='<div class="stats-section" style="margin-bottom:20px">'
     +'<div class="stats-section-title">Alokasi per Emiten</div>'
+    +'<div style="font-family:sans-serif;font-size:11px;color:var(--text3);margin:-6px 0 12px">Centang emiten yang ingin diikutsertakan dalam saran alokasi. MoS dan lot dihitung dari harga live bila tersedia.</div>'
     +'<div class="inv-table-wrap"><table class="inv-table planner-table"><thead><tr>'
-    +'<th>Emiten</th><th>Sektor</th><th>MoS</th><th>Modal Ditanam (Rp)</th><th>Target %</th><th>Aktual %</th><th>Status</th>'
+    +'<th></th><th>Emiten</th><th>Sektor</th><th>Harga</th><th>MoS</th><th>Modal Ditanam (Rp)</th><th>Lot</th><th>Target %</th><th>Aktual %</th><th>Status</th>'
     +'</tr></thead><tbody>';
 
   emitens.forEach(em=>{
     const pos=getPlannerPos(em.id);
+    const included=pos.included!==false;
     const actPct=totalInvested>0?(pos.invested||0)/totalInvested*100:0;
+    const {price,isLive}=plannerGetPrice(em);
     const mos=plannerMoS(em);
     const mosStr=mos===null?'—':(mos>0?'+':'')+mos.toFixed(1)+'%';
     const mosCls=mos===null?'':(mos>0?'pos':'neg');
@@ -1821,11 +1887,28 @@ function renderPlanner(){
       if(diff>PLANNER_REBALANCE_PP) status='<span class="disc-pill neg">Trim ~'+diff.toFixed(1)+'pp</span>';
       else if(diff<-PLANNER_REBALANCE_PP) status='<span class="disc-pill pos">Tambah ~'+Math.abs(diff).toFixed(1)+'pp</span>';
     }
+    const priceCell=price
+      ?fmt(price)+(isLive?' <span style="font-size:9px;color:var(--green-t);font-weight:700">● LIVE</span>':' <span style="font-size:9px;color:var(--text3)">(terakhir)</span>')
+      :'<span style="font-size:11px;color:var(--text3)">—</span>';
+    let lotCell='<span style="font-size:11px;color:var(--text3)">—</span>';
+    if(price){
+      const lotValue=price*100;
+      const inv=pos.invested||0;
+      if(inv>0){
+        const lots=Math.floor(inv/lotValue);
+        const sisa=inv-lots*lotValue;
+        if(lots<1) lotCell='<span class="disc-pill neg">Kurang dari 1 lot</span>';
+        else lotCell=lots+' lot'+(sisa>0?' <span style="font-size:10px;color:var(--text3)">(sisa '+fmt(sisa)+')</span>':'');
+      }
+    }
     html+='<tr>'
+      +'<td style="text-align:center"><input type="checkbox" title="Sertakan dalam saran alokasi" '+(included?'checked':'')+' onchange="setPlannerIncluded(\''+em.id+'\',this.checked)"></td>'
       +'<td><strong>'+escHtml(em.ticker)+'</strong></td>'
       +'<td><span class="sector-badge">'+escHtml(em.sector||'—')+'</span></td>'
+      +'<td>'+priceCell+'</td>'
       +'<td><span class="disc-pill '+mosCls+'">'+mosStr+'</span></td>'
       +'<td><input type="text" inputmode="numeric" class="planner-input" value="'+plannerFmtVal(pos.invested)+'" placeholder="0" oninput="plannerFormatInput(this)" onchange="setPlannerInvested(\''+em.id+'\',this.value)"></td>'
+      +'<td>'+lotCell+'</td>'
       +'<td><input type="number" class="planner-input planner-input-sm" value="'+(pos.targetPct||'')+'" placeholder="0" step="0.1" onchange="setPlannerTarget(\''+em.id+'\',this.value)"></td>'
       +'<td style="font-family:sans-serif;font-weight:600">'+(actPct?actPct.toFixed(1)+'%':'—')+'</td>'
       +'<td>'+status+'</td>'
@@ -1838,7 +1921,7 @@ function renderPlanner(){
     +'<span>Total target alokasi: <strong style="color:'+(targetOff?'var(--warn-t)':'var(--text)')+'">'+totalTarget.toFixed(1)+'%</strong>'+(targetOff?' (idealnya mendekati 100%)':'')+'</span>'
     +'<div style="display:flex;gap:8px">'
     +'<button class="btn" onclick="resetPlannerTargets()">Reset Target</button>'
-    +'<button class="btn btn-primary" onclick="generatePlannerSuggestion()">✦ Saran Alokasi (berbasis MoS)</button>'
+    +'<button class="btn btn-primary" onclick="generatePlannerSuggestion()">✦ Terapkan Saran Alokasi</button>'
     +'</div></div></div>';
 
   html+='<div class="stats-section"><div class="stats-section-title">Diversifikasi Sektor</div>';
@@ -2913,6 +2996,7 @@ function updateCardLivePrices(){
       }
     }
   });
+  if(currentTab==='planner') renderPlanner();
 }
 function highlightCardByTicker(sym){
   // Switch to Prediksi Aktif tab if not already

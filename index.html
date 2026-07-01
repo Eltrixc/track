@@ -309,7 +309,9 @@
   .planner-input:focus{border-color:var(--accent)}
   .planner-input-sm{width:78px;padding-right:4px}
   .planner-table th,.planner-table td{white-space:nowrap}
-  .planner-table th.th-help{cursor:help;border-bottom:1px dotted var(--text3)}
+  .tip-icon{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:var(--bg2);border:1px solid var(--border2);color:var(--text3);font-size:10px;font-family:sans-serif;font-style:normal;font-weight:700;cursor:pointer;vertical-align:middle;margin-left:3px;user-select:none}
+  .tip-icon:hover,.tip-icon:active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent-t)}
+  .tip-pop{position:fixed;z-index:9999;max-width:280px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:sans-serif;font-size:11.5px;line-height:1.5;color:var(--text2);box-shadow:0 6px 20px rgba(0,0,0,.18);display:none}
   .planner-table input[type="checkbox"]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
   .return-best{color:var(--green-t)}.return-worst{color:var(--red-t)}
 
@@ -1749,6 +1751,42 @@ function onDrop(e,id){e.preventDefault();e.stopPropagation();if(!dragSrcId||drag
 const PLANNER_STOCK_WARN_PCT = 25;   // warning kalau 1 emiten > sekian % dari total investasi
 const PLANNER_SECTOR_WARN_PCT = 40;  // warning kalau 1 sektor > sekian % dari total investasi
 
+// Tooltip klik (bukan hover) untuk elemen [data-tip] di tab Planner — dipakai supaya
+// penjelasan kalkulasi tetap bisa dibuka di HP/touchscreen, tidak cuma di desktop.
+function plannerShowTip(evt){
+  evt.stopPropagation();
+  const target=evt.currentTarget;
+  const text=target.getAttribute('data-tip');
+  if(!text) return;
+  let pop=document.getElementById('planner-tip-pop');
+  if(!pop){
+    pop=document.createElement('div');
+    pop.id='planner-tip-pop';
+    pop.className='tip-pop';
+    document.body.appendChild(pop);
+  }
+  if(pop.style.display==='block'&&pop.dataset.owner===target.dataset.tipId){
+    pop.style.display='none';
+    return;
+  }
+  pop.textContent=text;
+  pop.dataset.owner=target.dataset.tipId||'';
+  pop.style.display='block';
+  const rect=target.getBoundingClientRect();
+  const vw=window.innerWidth,vh=window.innerHeight;
+  pop.style.left='0px';pop.style.top='0px';
+  const pw=pop.offsetWidth,ph=pop.offsetHeight;
+  let left=Math.min(Math.max(8,rect.left),vw-pw-8);
+  let top=rect.bottom+6;
+  if(top+ph>vh-8) top=Math.max(8,rect.top-ph-6);
+  pop.style.left=left+'px';
+  pop.style.top=top+'px';
+}
+document.addEventListener('click',function(e){
+  const pop=document.getElementById('planner-tip-pop');
+  if(pop&&pop.style.display==='block'&&!e.target.closest('.tip-icon')) pop.style.display='none';
+});
+
 function getPlannerPos(id){
   if(!state.planner) state.planner={totalCapital:0,positions:{}};
   if(!state.planner.positions) state.planner.positions={};
@@ -2243,10 +2281,10 @@ function renderPlanner(){
     +'</div>'
     +'<div class="inv-table-wrap"><table class="inv-table planner-table"><thead><tr>'
     +'<th></th><th>Emiten</th><th>Sektor</th><th>Harga</th>'
-    +'<th class="th-help" title="Margin of Safety = (Fair Value rata-rata dari data valuasi terakhir − Harga saat ini) ÷ Harga saat ini × 100%. Positif = harga di bawah fair value (potensi undervalued), negatif = di atas fair value.">MoS</th>'
+    +'<th>MoS<span class="tip-icon" data-tip-id="h-mos" data-tip="Margin of Safety = (Fair Value rata-rata dari data valuasi terakhir − Harga saat ini) ÷ Harga saat ini × 100%. Positif = harga di bawah fair value (potensi undervalued), negatif = di atas fair value." onclick="plannerShowTip(event)">?</span></th>'
     +'<th>Modal Ditanam (Rp)</th><th>Lot</th>'
-    +'<th class="th-help" title="Target % diisi manual, atau otomatis dari tombol Terapkan Saran Alokasi (dihitung dari bobot MoS tiap emiten dibagi total bobot MoS positif seluruh emiten tercentang, lalu dikali Modal Total dan dibulatkan per kelipatan lot). Arahkan kursor ke kotak Target % tiap baris untuk rincian per emiten.">Target %</th>'
-    +'<th class="th-help" title="Aktual % = Modal Ditanam emiten ini ÷ Total Modal Ditanam seluruh emiten yang dicentang × 100%.">Aktual %</th>'
+    +'<th>Target %<span class="tip-icon" data-tip-id="h-target" data-tip="Target % diisi manual, atau otomatis dari tombol Terapkan Saran Alokasi (dihitung dari bobot MoS tiap emiten dibagi total bobot MoS positif seluruh emiten tercentang, lalu dikali Modal Total dan dibulatkan per kelipatan lot). Tap ikon di kotak Target % tiap baris untuk rincian per emiten." onclick="plannerShowTip(event)">?</span></th>'
+    +'<th>Aktual %<span class="tip-icon" data-tip-id="h-actual" data-tip="Aktual % = Modal Ditanam emiten ini ÷ Total Modal Ditanam seluruh emiten yang dicentang × 100%." onclick="plannerShowTip(event)">?</span></th>'
     +'</tr></thead><tbody>';
 
   const sortedEmitens=[...emitens].sort((a,b)=>(a.ticker||'').localeCompare(b.ticker||''));
@@ -2295,7 +2333,7 @@ function renderPlanner(){
       +'<td><span class="disc-pill '+mosCls+'">'+mosStr+'</span></td>'
       +'<td><input type="text" inputmode="numeric" class="planner-input" value="'+plannerFmtVal(pos.invested)+'" placeholder="0" oninput="plannerFormatInput(this)" onchange="setPlannerInvested(\''+em.id+'\',this.value)"></td>'
       +'<td>'+lotCell+'</td>'
-      +'<td><input type="text" inputmode="decimal" class="planner-input planner-input-sm" value="'+(pos.targetPct||'')+'" placeholder="0" title="'+escHtml(targetTip)+'" onchange="setPlannerTarget(\''+em.id+'\',this.value)"></td>'
+      +'<td><span style="display:inline-flex;align-items:center;gap:3px"><input type="text" inputmode="decimal" class="planner-input planner-input-sm" value="'+(pos.targetPct||'')+'" placeholder="0" onchange="setPlannerTarget(\''+em.id+'\',this.value)"><span class="tip-icon" data-tip-id="target-'+em.id+'" data-tip="'+escHtml(targetTip)+'" onclick="plannerShowTip(event)">?</span></span></td>'
       +'<td style="font-family:sans-serif;font-weight:600">'+(actPct?actPct.toFixed(1)+'%':'—')+'</td>'
       +'</tr>';
   });

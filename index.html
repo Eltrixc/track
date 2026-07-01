@@ -2319,7 +2319,7 @@ function renderPlanner(){
         +(suggestionUsesEqualSplit
           ?'karena tidak ada emiten tercentang dengan MoS positif, bobot dibagi RATA ke '+suggestionWeights.length+' emiten → '+pctW+'%.'
           :'MoS emiten ini '+mosStr+' dibagi total MoS positif seluruh emiten tercentang → bobot '+pctW+'%.')
-        +' Bobot '+pctW+'% × Modal Total ('+fmt(totalCapital)+') ≈ '+fmt(rawAlloc)+', dibulatkan ke BAWAH per kelipatan 1 lot (Rp'+fmt(sw.lotValue)+') → minimal '+baseLots+' lot. Sisa dana hasil pembulatan lalu didistribusikan lot demi lot ke emiten berbobot tertinggi lebih dulu, jadi hasil akhir Modal Ditanam bisa sedikit lebih besar dari perhitungan dasar ini.';
+        +' Bobot '+pctW+'% × Modal Total ('+fmt(totalCapital)+') ≈ '+fmt(rawAlloc)+', dibulatkan ke BAWAH per kelipatan 1 lot ('+fmt(sw.lotValue)+') → minimal '+baseLots+' lot. Sisa dana hasil pembulatan lalu didistribusikan lot demi lot ke emiten berbobot tertinggi lebih dulu, jadi hasil akhir Modal Ditanam bisa sedikit lebih besar dari perhitungan dasar ini.';
     }else if(included&&!price){
       targetTip='Saran alokasi '+escHtml(em.ticker)+' tidak bisa dihitung karena belum ada data harga untuk emiten ini.';
     }else if(!included){

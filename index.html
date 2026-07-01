@@ -1801,13 +1801,24 @@ function setPlannerInvested(id,val){
   getPlannerPos(id).invested=plannerParseNum(val);
   save(); renderPlanner();
 }
+function setPlannerLot(id,val,lotValue){
+  let lots=parseInt(val,10); if(isNaN(lots)||lots<0) lots=0;
+  getPlannerPos(id).invested=lots*lotValue;
+  save(); renderPlanner();
+}
 function setPlannerTarget(id,val){
   let v=parseFloat(val); if(isNaN(v)) v=0; v=Math.max(0,Math.min(100,v));
   getPlannerPos(id).targetPct=v;
   save(); renderPlanner();
 }
 function setPlannerIncluded(id,checked){
-  getPlannerPos(id).included=!!checked;
+  const pos=getPlannerPos(id);
+  pos.included=!!checked;
+  if(!checked){
+    // Emiten di-uncheck: reset Modal Ditanam & Target % ke 0 (Lot ikut jadi 0 karena dihitung dari Modal Ditanam).
+    pos.invested=0;
+    pos.targetPct=0;
+  }
   save(); renderPlanner();
 }
 function resetPlannerTargets(){
@@ -2046,9 +2057,9 @@ function renderPlanner(){
   const isIncluded=em=>getPlannerPos(em.id).included!==false;
   const includedEmitens=emitens.filter(isIncluded);
   // PENTING: total & agregasi cuma dihitung dari emiten yang DICENTANG.
-  // Emiten yang di-uncheck dianggap keluar dari plan — Modal Ditanam-nya tetap
-  // tersimpan (biar gampang dicentang lagi nanti) tapi tidak ikut ke Modal
-  // Terinvestasi, Diversifikasi Sektor, warning, ataupun chart.
+  // Emiten yang di-uncheck dianggap keluar dari plan — Modal Ditanam, Lot,
+  // dan Target %-nya otomatis direset ke 0 (lihat setPlannerIncluded) sehingga
+  // tidak ikut ke Modal Terinvestasi, Diversifikasi Sektor, warning, ataupun chart.
   const totalInvested=includedEmitens.reduce((sum,em)=>sum+(getPlannerPos(em.id).invested||0),0);
   const totalCapital=state.planner.totalCapital||0;
   const cash=totalCapital-totalInvested;
@@ -2084,8 +2095,6 @@ function renderPlanner(){
     if(s.pct>PLANNER_SECTOR_WARN_PCT) warnings.push('Sektor '+escHtml(s.sec)+' memiliki porsi '+s.pct.toFixed(1)+'% dari total investasi, menunjukkan konsentrasi yang tinggi pada satu sektor.');
   });
   if(cash<0) warnings.push('Dana yang dialokasikan ('+fmt(totalInvested)+') melebihi Modal Total ('+fmt(totalCapital)+').');
-  const excludedWithFunds=emitens.filter(em=>!isIncluded(em)&&(getPlannerPos(em.id).invested||0)>0);
-  if(excludedWithFunds.length) warnings.push(excludedWithFunds.length+' emiten (tercentang tidak aktif) masih punya Modal Ditanam tersimpan tapi TIDAK dihitung ke total — centang lagi kalau mau diikutsertakan, atau kosongkan Modal Ditanam-nya: '+excludedWithFunds.map(em=>escHtml(em.ticker)).join(', ')+'.');
 
   let html='';
 
@@ -2119,7 +2128,7 @@ function renderPlanner(){
 
   html+='<div class="stats-section" style="margin-bottom:20px">'
     +'<div class="stats-section-title">Alokasi per Emiten</div>'
-    +'<div style="font-family:sans-serif;font-size:11px;color:var(--text3);margin:-6px 0 12px">Centang emiten yang ingin diikutsertakan dalam saran alokasi. MoS dan lot dihitung dari harga live bila tersedia.</div>'
+    +'<div style="font-family:sans-serif;font-size:11px;color:var(--text3);margin:-6px 0 12px">Centang emiten yang ingin diikutsertakan dalam saran alokasi. MoS dihitung dari harga live bila tersedia. Lot bisa diklik tombol +/‑ atau diisi manual, dan otomatis menyesuaikan Modal Ditanam.</div>'
     +'<div class="inv-table-wrap"><table class="inv-table planner-table"><thead><tr>'
     +'<th></th><th>Emiten</th><th>Sektor</th><th>Harga</th><th>MoS</th><th>Modal Ditanam (Rp)</th><th>Lot</th><th>Target %</th><th>Aktual %</th><th>Status</th>'
     +'</tr></thead><tbody>';
@@ -2145,12 +2154,10 @@ function renderPlanner(){
     if(price){
       const lotValue=price*100;
       const inv=pos.invested||0;
-      if(inv>0){
-        const lots=Math.floor(inv/lotValue);
-        const sisa=inv-lots*lotValue;
-        if(lots<1) lotCell='<span class="disc-pill neg">Kurang dari 1 lot</span>';
-        else lotCell=lots+' lot'+(sisa>0?' <span style="font-size:10px;color:var(--text3)">(sisa '+fmt(sisa)+')</span>':'');
-      }
+      const lots=Math.floor(inv/lotValue);
+      const sisa=inv-lots*lotValue;
+      lotCell='<input type="number" class="planner-input planner-input-sm" min="0" step="1" value="'+lots+'" onchange="setPlannerLot(\''+em.id+'\',this.value,'+lotValue+')">'
+        +(sisa>0?' <span style="font-size:10px;color:var(--text3)">(sisa '+fmt(sisa)+')</span>':'');
     }
     html+='<tr>'
       +'<td style="text-align:center"><input type="checkbox" title="Sertakan dalam saran alokasi" '+(included?'checked':'')+' onchange="setPlannerIncluded(\''+em.id+'\',this.checked)"></td>'
@@ -2160,7 +2167,7 @@ function renderPlanner(){
       +'<td><span class="disc-pill '+mosCls+'">'+mosStr+'</span></td>'
       +'<td><input type="text" inputmode="numeric" class="planner-input" value="'+plannerFmtVal(pos.invested)+'" placeholder="0" oninput="plannerFormatInput(this)" onchange="setPlannerInvested(\''+em.id+'\',this.value)"></td>'
       +'<td>'+lotCell+'</td>'
-      +'<td><input type="number" class="planner-input planner-input-sm" value="'+(pos.targetPct||'')+'" placeholder="0" step="0.1" onchange="setPlannerTarget(\''+em.id+'\',this.value)"></td>'
+      +'<td><input type="text" inputmode="decimal" class="planner-input planner-input-sm" value="'+(pos.targetPct||'')+'" placeholder="0" onchange="setPlannerTarget(\''+em.id+'\',this.value)"></td>'
       +'<td style="font-family:sans-serif;font-weight:600">'+(actPct?actPct.toFixed(1)+'%':'—')+'</td>'
       +'<td>'+status+'</td>'
       +'</tr>';

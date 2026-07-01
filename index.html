@@ -67,8 +67,12 @@
     --bg-scrim:#080810;--bg-scrim-opacity:.22;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  html{overflow-x:hidden}
-  body{font-family:Georgia,'Times New Roman',serif;background:transparent;color:var(--text);min-height:100vh;transition:color .3s;overflow-x:hidden}
+  body{font-family:Georgia,'Times New Roman',serif;background:transparent;color:var(--text);min-height:100vh;transition:color .3s}
+  /* Dikunci hanya selama intro gate berjalan, supaya panel geser (#gate-left/#gate-right)
+     yang translate keluar layar nggak sempat memicu scrollbar horizontal sesaat.
+     Tidak dipasang permanen di body/html karena itu bikin overflow-y ikut jadi 'auto'
+     (aturan CSS overflow shorthand), yang merusak position:sticky (mis. panel AI Summary). */
+  body.intro-locked{overflow:hidden}
 
   /* ============================================================
      🎴 THEME BACKGROUND ART — pixel art scene + CSS sky gradient
@@ -4654,7 +4658,8 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
   /* ── INTRO GATE SEQUENCE ── */
   function skipIntro(){
     const gate=document.getElementById('intro-gate');
-    if(gate){gate.style.transition='opacity .4s';gate.style.opacity='0';setTimeout(()=>{gate.remove();},400);}
+    if(gate){gate.style.transition='opacity .4s';gate.style.opacity='0';setTimeout(()=>{gate.remove();document.body.classList.remove('intro-locked');},400);}
+    else document.body.classList.remove('intro-locked');
   }
   window.skipIntro=skipIntro;
 
@@ -4704,7 +4709,7 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
     setTimeout(()=>{
       gate.style.transition='opacity .7s';
       gate.style.opacity='0';
-      setTimeout(()=>{gate.remove();},720);
+      setTimeout(()=>{gate.remove();document.body.classList.remove('intro-locked');},720);
     }, 5400);
   }
 
@@ -4717,6 +4722,7 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
     initSakura();
     initThemeAmbient();
   }else{
+    document.body.classList.add('intro-locked');
     initSakura();
     initThemeAmbient();
     runIntro();

@@ -477,7 +477,7 @@
   /* ============================================================
      🌸 SAKURA CANVAS (persistent background petal rain)
      ============================================================ */
-  #sakura-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;opacity:2}
+  #sakura-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;opacity:.75}
 
   /* ============================================================
      ⛩️ INTRO GATE OVERLAY
@@ -2467,12 +2467,68 @@ document.addEventListener('click',function(e){if(!mosTooltip.contains(e.target)&
 // ============================================================
 const GOAPI_KEY_LS='goapi_api_key_v1';
 const TICKER_LS_KEY='goapi_ticker_v1',TICKER_QUOTA_KEY='goapi_quota_v1';
-const TICKER_MAX_AGE=6*60*60*1000,TICKER_MAX_DAY=30,TICKER_AUTO_MS=(24*60*60*1000)/TICKER_MAX_DAY;
+const TICKER_MAX_AGE=20*60*1000,TICKER_MAX_DAY=30; // cache 20 menit (sedikit > interval refresh)
+// Market IDX: Senin-Jumat 09:00-16:30 WIB (UTC+7)
+// Pre-open mulai 08:55 supaya data pertama langsung ada saat buka
+const MARKET_OPEN_H=8,MARKET_OPEN_M=55;   // 08:55 WIB
+const MARKET_CLOSE_H=16,MARKET_CLOSE_M=30; // 16:30 WIB
+// Durasi market dalam milidetik: 07:35 = 455 menit
+const MARKET_DURATION_MS=(MARKET_CLOSE_H*60+MARKET_CLOSE_M-(MARKET_OPEN_H*60+MARKET_OPEN_M))*60*1000;
+// Interval antar refresh saat market buka: bagi 30 call merata di durasi market
+const TICKER_AUTO_MS=Math.floor(MARKET_DURATION_MS/TICKER_MAX_DAY); // ~15.2 menit
+
 function getGoapiKey(){return localStorage.getItem(GOAPI_KEY_LS)||'';}
-function getQuota(){try{const q=JSON.parse(localStorage.getItem(TICKER_QUOTA_KEY)||'null');const today=new Date().toISOString().slice(0,10);if(!q||q.date!==today)return{date:today,count:0};return q;}catch(e){return{date:new Date().toISOString().slice(0,10),count:0};}}
+
+// Kembalikan objek Date dalam zona WIB (UTC+7)
+function nowWIB(){return new Date(Date.now()+7*60*60*1000);}
+
+// Cek apakah sekarang jam market IDX buka (Senin-Jumat, 08:55-16:30 WIB)
+function isMarketOpen(){
+  const d=nowWIB();
+  const day=d.getUTCDay(); // 0=Minggu, 6=Sabtu
+  if(day===0||day===6)return false;
+  const h=d.getUTCHours(),m=d.getUTCMinutes();
+  const mins=h*60+m;
+  return mins>=(MARKET_OPEN_H*60+MARKET_OPEN_M)&&mins<(MARKET_CLOSE_H*60+MARKET_CLOSE_M);
+}
+
+// Milidetik sampai market buka berikutnya (dipakai untuk reschedule loop)
+function msUntilNextOpen(){
+  const d=nowWIB();
+  const day=d.getUTCDay();
+  const h=d.getUTCHours(),m=d.getUTCMinutes(),s=d.getUTCSeconds();
+  const minsNow=h*60+m;
+  const minsOpen=MARKET_OPEN_H*60+MARKET_OPEN_M;
+  // Hitung sisa hari ini atau hari berikutnya
+  let addDays=0;
+  if(day===0) addDays=1;        // Minggu -> Senin
+  else if(day===6) addDays=2;   // Sabtu -> Senin
+  else if(minsNow>=MARKET_CLOSE_H*60+MARKET_CLOSE_M){
+    // Sudah lewat jam tutup hari ini
+    addDays=(day===5)?3:1;      // Jumat -> Senin, selainnya -> besok
+  } else if(minsNow<minsOpen){
+    addDays=0; // Masih hari yang sama, tinggal nunggu jam buka
+  }
+  const secsUntilOpen=addDays>0
+    ? (addDays*24*60*60) - (h*3600+m*60+s) + minsOpen*60
+    : (minsOpen-minsNow)*60 - s;
+  return Math.max(0,secsUntilOpen)*1000;
+}
+
+function getQuota(){try{const q=JSON.parse(localStorage.getItem(TICKER_QUOTA_KEY)||'null');const today=nowWIB().toISOString().slice(0,10);if(!q||q.date!==today)return{date:today,count:0};return q;}catch(e){return{date:nowWIB().toISOString().slice(0,10),count:0};}}
 function bumpQuota(){const q=getQuota();q.count++;try{localStorage.setItem(TICKER_QUOTA_KEY,JSON.stringify(q));}catch(e){}updateQuotaBadge();}
-function updateQuotaBadge(){const el=document.getElementById('ticker-quota');if(!el)return;const q=getQuota();el.textContent=q.count+'/'+TICKER_MAX_DAY;el.style.color=q.count>=TICKER_MAX_DAY?'var(--red-t)':'var(--text3)';}
-function canRefresh(){return getQuota().count<TICKER_MAX_DAY;}
+function updateQuotaBadge(){
+  const el=document.getElementById('ticker-quota');if(!el)return;
+  const q=getQuota();
+  if(!isMarketOpen()){
+    el.textContent='Market tutup';
+    el.style.color='var(--text3)';
+  } else {
+    el.textContent=q.count+'/'+TICKER_MAX_DAY;
+    el.style.color=q.count>=TICKER_MAX_DAY?'var(--red-t)':'var(--text3)';
+  }
+}
+function canRefresh(){return isMarketOpen()&&getQuota().count<TICKER_MAX_DAY;}
 function fmtTickerPrice(n){if(!n&&n!==0)return '—';return 'Rp '+Math.round(n).toLocaleString('id-ID');}
 async function fetchAllPrices(symbols){
   const key=getGoapiKey();if(!key)return null;
@@ -2567,20 +2623,86 @@ function highlightCardByTicker(sym){
 }
 async function initTicker(forceRefresh){
   const loading=document.getElementById('ticker-loading'),track=document.getElementById('ticker-track');
-  if(!state.emitens||state.emitens.length===0){if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Tambah emiten untuk melihat harga live</span>';}if(track)track.style.display='none';return;}
-  if(!getGoapiKey()){if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Masukkan GoAPI key (⚙ di kanan) untuk harga live</span>';}if(track)track.style.display='none';return;}
+  if(!state.emitens||state.emitens.length===0){
+    if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Tambah emiten untuk melihat harga live</span>';}
+    if(track)track.style.display='none';return;
+  }
+  if(!getGoapiKey()){
+    if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Masukkan GoAPI key (⚙ di kanan) untuk harga live</span>';}
+    if(track)track.style.display='none';return;
+  }
+  // Market tutup — tampilkan data cache kalau ada, jangan buang quota
+  if(!isMarketOpen()){
+    updateQuotaBadge();
+    const symbols=state.emitens.map(e=>e.ticker.toUpperCase());
+    try{
+      const saved=JSON.parse(localStorage.getItem(TICKER_LS_KEY)||'null');
+      if(saved&&saved.items&&saved.items.length){
+        // Render data terakhir yang ada, tapi tandai sebagai "terakhir diperbarui"
+        renderTickerBar(saved.items);
+        const minsAgo=Math.round((Date.now()-saved.ts)/60000);
+        const el=document.getElementById('ticker-quota');
+        if(el)el.title='Data dari '+minsAgo+' menit yang lalu';
+      } else {
+        if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">⏸ Market tutup · Data live tersedia saat market buka</span>';}
+        if(track)track.style.display='none';
+      }
+    }catch(e){}
+    return;
+  }
   const symbols=state.emitens.map(e=>e.ticker.toUpperCase()),now=Date.now();
   if(!forceRefresh){try{const saved=JSON.parse(localStorage.getItem(TICKER_LS_KEY)||'null');if(saved&&(now-saved.ts)<TICKER_MAX_AGE){const sameSyms=symbols.length===(saved.syms||[]).length&&symbols.every(s=>(saved.syms||[]).includes(s));if(sameSyms&&saved.items&&saved.items.length){renderTickerBar(saved.items);updateQuotaBadge();return;}}}catch(e){}}
-  if(!canRefresh()){if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Limit harian tercapai.</span>';}if(track)track.style.display='none';return;}
-  if(loading){loading.style.display='flex';loading.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" class="spin-icon"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg><span style="font-size:11px;color:var(--text3)">Memuat harga…</span>';}if(track)track.style.display='none';
+  if(!canRefresh()){
+    if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Limit harian tercapai.</span>';}
+    if(track)track.style.display='none';return;
+  }
+  if(loading){loading.style.display='flex';loading.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" class="spin-icon"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg><span style="font-size:11px;color:var(--text3)">Memuat harga…</span>';}
+  if(track)track.style.display='none';
   const raw=await fetchAllPrices(symbols);bumpQuota();
   if(!raw){if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">Gagal memuat harga</span>';}return;}
   const items=raw.map(d=>({symbol:d.symbol,price:d.close??d.last_price??null,change:d.change??null,pct:d.change_pct??d.percent_change??null})).sort((a,b)=>a.symbol.localeCompare(b.symbol));
   try{localStorage.setItem(TICKER_LS_KEY,JSON.stringify({ts:now,syms:symbols,items}));}catch(e){}
   renderTickerBar(items);updateQuotaBadge();
 }
-let tickerAutoTimer=null;
-function startTickerLoop(){updateQuotaBadge();initTicker(false);if(tickerAutoTimer)clearInterval(tickerAutoTimer);tickerAutoTimer=setInterval(()=>{if(canRefresh())initTicker(true);},TICKER_AUTO_MS);}
+
+let tickerAutoTimer=null,tickerWaitTimer=null;
+function startTickerLoop(){
+  // Bersihkan timer lama supaya tidak ada yang numpuk
+  if(tickerAutoTimer){clearInterval(tickerAutoTimer);tickerAutoTimer=null;}
+  if(tickerWaitTimer){clearTimeout(tickerWaitTimer);tickerWaitTimer=null;}
+  updateQuotaBadge();
+  if(isMarketOpen()){
+    // Market buka sekarang — fetch langsung, lalu loop tiap TICKER_AUTO_MS
+    initTicker(false);
+    tickerAutoTimer=setInterval(()=>{
+      if(!isMarketOpen()){
+        // Market baru saja tutup di tengah loop — stop interval, schedule restart
+        clearInterval(tickerAutoTimer);tickerAutoTimer=null;
+        updateQuotaBadge();
+        scheduleNextOpen();
+      } else if(canRefresh()){
+        initTicker(true);
+      }
+    },TICKER_AUTO_MS);
+  } else {
+    // Market sedang tutup — render cache kalau ada, lalu tunggu sampai buka
+    initTicker(false);
+    scheduleNextOpen();
+  }
+}
+function scheduleNextOpen(){
+  if(tickerWaitTimer){clearTimeout(tickerWaitTimer);tickerWaitTimer=null;}
+  const ms=msUntilNextOpen();
+  const minsLeft=Math.round(ms/60000);
+  // Update badge dengan info kapan market buka
+  const el=document.getElementById('ticker-quota');
+  if(el&&!isMarketOpen()){
+    if(minsLeft<120) el.title='Market buka dalam ~'+minsLeft+' menit';
+    else el.title='Market buka dalam ~'+Math.round(minsLeft/60)+' jam';
+  }
+  // Restart loop saat market buka
+  tickerWaitTimer=setTimeout(()=>startTickerLoop(),ms+5000); // +5 detik buffer
+}
 
 // ============================================================
 // INIT
@@ -3570,7 +3692,7 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
         t:Math.random()*1000
       }),
     };
-    const COUNTS={dawn:6,morning:35,dusk:28,night:300};
+    const COUNTS={dawn:6,morning:35,dusk:28,night:90};
 
     function rebuild(theme){
       if(!FACTORIES[theme])theme='night';

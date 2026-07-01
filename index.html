@@ -1862,6 +1862,12 @@ function generatePlannerSuggestion(){
   const skippedCount=included.length-items.length;
   if(!items.length){showToast('Emiten yang dicentang belum memiliki data harga, saran tidak dapat dihitung.');return;}
 
+  const minLotValue=Math.min(...items.map(it=>it.lotValue));
+  if(totalCapital<minLotValue){
+    showToast('Modal Total ('+fmt(totalCapital)+') tidak cukup untuk membeli 1 lot emiten manapun yang dicentang (minimal '+fmt(minLotValue)+'). Tambah Modal Total atau kurangi jumlah emiten yang dicentang.');
+    return;
+  }
+
   let weights=items.map(it=>({...it,w:(it.mos&&it.mos>0)?it.mos:0}));
   const totalW=weights.reduce((a,b)=>a+b.w,0);
   if(totalW<=0){
@@ -1897,8 +1903,13 @@ function generatePlannerSuggestion(){
   });
 
   save(); renderPlanner();
+  const zeroLotItems=weights.filter(w=>w.lots===0);
   let msg='✦ Saran alokasi diterapkan ke Modal Ditanam untuk '+weights.length+' emiten.';
   if(skippedCount>0) msg+=' '+skippedCount+' emiten dilewati karena belum ada data harga.';
+  if(zeroLotItems.length){
+    const tickers=zeroLotItems.map(w=>{const em=state.emitens.find(e=>e.id===w.id);return em?em.ticker:w.id;}).join(', ');
+    msg+=' Modal tidak cukup untuk mengalokasikan 1 lot ke '+zeroLotItems.length+' emiten: '+tickers+'.';
+  }
   showToast(msg);
 }
 

@@ -307,6 +307,49 @@
   .planner-table input[type="checkbox"]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
   .return-best{color:var(--green-t)}.return-worst{color:var(--red-t)}
 
+  /* ── Planner: status bar aktif / simpan plan ── */
+  .planner-status-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .planner-active-badge{font-family:sans-serif;font-size:11px;padding:5px 12px;border-radius:20px;background:var(--accent-bg);border:1px solid var(--accent);color:var(--accent-t);display:inline-flex;align-items:center;gap:6px;font-weight:600}
+  .planner-active-badge.draft{background:var(--bg2);border-color:var(--border2);color:var(--text2)}
+
+  /* ── Planner: saved plan list ── */
+  .saved-plan-list{display:flex;flex-direction:column;gap:8px}
+  .saved-plan-card{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;flex-wrap:wrap;transition:border-color .15s}
+  .saved-plan-card.is-active{border-color:var(--accent);background:var(--accent-bg)}
+  .saved-plan-info{display:flex;flex-direction:column;gap:2px;min-width:160px}
+  .saved-plan-name{font-family:'Noto Serif',Georgia,serif;font-size:13px;font-weight:700;color:var(--text)}
+  .saved-plan-meta{font-family:sans-serif;font-size:10px;color:var(--text3)}
+  .saved-plan-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .saved-plan-actions .btn{padding:5px 10px;font-size:11px}
+
+  /* ── Planner: chart controls & visuals ── */
+  .chart-toggle-group{display:flex;gap:4px;background:var(--bg2);border-radius:var(--radius);padding:3px;border:1px solid var(--border)}
+  .chart-toggle-btn{font-family:sans-serif;font-size:11px;padding:5px 12px;border:none;border-radius:6px;background:transparent;color:var(--text2);cursor:pointer;transition:background .15s,color .15s;white-space:nowrap}
+  .chart-toggle-btn.active{background:var(--accent);color:#fff;font-weight:600}
+  .chart-controls-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .chart-controls-label{font-family:sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);margin-right:6px}
+  .chart-legend{display:flex;flex-direction:column;gap:7px;font-family:sans-serif;font-size:11px;min-width:150px}
+  .chart-legend-item{display:flex;align-items:center;gap:7px}
+  .chart-legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;display:inline-block}
+  .chart-legend-label{color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chart-legend-pct{color:var(--text);font-weight:700}
+  .treemap-wrap{display:flex;gap:2px;height:110px;border-radius:8px;overflow:hidden;margin-bottom:16px}
+  .treemap-cell{display:flex;align-items:flex-end;min-width:2px;padding:6px;position:relative;transition:flex-grow .3s;cursor:default}
+  .treemap-cell span{font-size:10px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* ── Planner: sektor row expand (porsi kepemilikan saham) ── */
+  .sector-expand-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-family:sans-serif;font-size:12px;cursor:pointer}
+  .sector-expand-row:hover .fv-acc-label{color:var(--accent-t)}
+  .sector-expand-arrow{transition:transform .2s;color:var(--text3);flex-shrink:0}
+  .sector-expand-arrow.open{transform:rotate(90deg)}
+  .sector-stock-list{padding:2px 0 10px 24px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+  .sector-stock-list:last-child{border-bottom:none}
+  .sector-stock-row{display:flex;align-items:center;gap:10px;font-family:sans-serif;font-size:11px}
+  .sector-stock-ticker{min-width:60px;color:var(--text2);font-weight:600}
+  .sector-stock-bar{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+  .sector-stock-fill{height:100%;border-radius:3px;background:var(--accent-t);opacity:.7}
+  .sector-stock-val{min-width:90px;text-align:right;color:var(--text3);font-size:10px}
+
   .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
   .modal-backdrop.open{display:flex}
   .modal{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:12px;padding:24px;width:90%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.4);animation:scrollUnfurl .3s cubic-bezier(.22,1,.36,1)}
@@ -884,6 +927,7 @@
         <div class="section-title">🗺️ Portfolio Planner</div>
         <div style="font-family:sans-serif;font-size:11px;color:var(--text3);margin-top:3px">Rencanakan alokasi modal, pantau diversifikasi sektor, dan ketahui kapan portofolio perlu direbalance.</div>
       </div>
+      <button class="btn btn-primary" onclick="openSavePlanModal()">💾 Simpan Plan</button>
     </div>
     <div id="planner-content"></div>
   </div>
@@ -1062,6 +1106,22 @@
   </div>
 </div>
 
+<!-- Modal: Save Plan -->
+<div class="modal-backdrop" id="modal-save-plan">
+  <div class="modal modal-sm">
+    <h2>💾 Simpan Plan Alokasi</h2>
+    <div class="modal-sub">Beri nama supaya kamu bisa membandingkan beberapa skenario alokasi nanti.</div>
+    <div class="form-field">
+      <label>Nama plan</label>
+      <input type="text" id="sp-name" placeholder="cth: Skenario Konservatif Q3" maxlength="60" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmSavePlan();}">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeSavePlanModal()">Batal</button>
+      <button class="btn btn-primary" onclick="confirmSavePlan()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
 <!-- Card Popup -->
 <div class="card-popup-backdrop" id="card-popup-backdrop" onclick="handleCardPopupBackdropClick(event)">
   <div class="card-popup" id="card-popup-inner">
@@ -1157,12 +1217,18 @@ function getMissLabel(ind,teb){
 // ============================================================
 // STATE
 // ============================================================
-let state = {emitens:[],inventory:[],cardOrder:[],invSort:'newest',planner:{totalCapital:0,positions:{}}};
+let state = {emitens:[],inventory:[],cardOrder:[],invSort:'newest',planner:{totalCapital:0,positions:{}},plannerSaved:[]};
 let currentTab='active';
 let editingEmitenId=null;
 let dragSrcId=null,dragOverId=null;
 let activeSectorFilter='all';
 let showOnlyWarn=false;
+
+// Planner: preferensi tampilan (tidak disimpan ke localStorage, reset tiap sesi)
+let plannerActivePlanId=null;       // id plan tersimpan yang sedang dimuat, null = draft langsung
+let plannerChartType='bar';         // 'bar' | 'donut' | 'treemap'
+let plannerChartGroup='sector';     // 'sector' | 'stock'
+let plannerExpandedSectors={};      // {namaSektor:true} status expand porsi kepemilikan saham
 
 // ============================================================
 // PERSISTENCE
@@ -1171,7 +1237,7 @@ function save(){try{localStorage.setItem('nw_state',JSON.stringify(state));}catc
 function load(){
   try{
     const d=localStorage.getItem('nw_state');
-    if(d){const p=JSON.parse(d);state={cardOrder:[],invSort:'newest',planner:{totalCapital:0,positions:{}},...p};}
+    if(d){const p=JSON.parse(d);state={cardOrder:[],invSort:'newest',planner:{totalCapital:0,positions:{}},plannerSaved:[],...p};}
   }catch(e){}
 }
 
@@ -1803,10 +1869,174 @@ function generatePlannerSuggestion(){
   showToast(msg);
 }
 
+// ============================================================
+// PLANNER — SIMPAN / MUAT PLAN ALOKASI
+// ============================================================
+// Satu "plan" adalah snapshot dari Modal Total + posisi alokasi (Modal Ditanam,
+// Target %, status Sertakan) pada suatu waktu. User bisa menyimpan beberapa
+// skenario alokasi dan berpindah-pindah di antaranya tanpa kehilangan data.
+function openSavePlanModal(){
+  const totalInvested=(state.emitens||[]).reduce((s,em)=>s+(getPlannerPos(em.id).invested||0),0);
+  if(totalInvested<=0){showToast('Alokasikan Modal Ditanam ke minimal satu emiten dulu sebelum menyimpan plan.');return;}
+  const input=document.getElementById('sp-name');
+  input.value='';
+  document.getElementById('modal-save-plan').classList.add('open');
+  document.body.style.overflow='hidden';
+  setTimeout(()=>input.focus(),50);
+}
+function closeSavePlanModal(){document.getElementById('modal-save-plan').classList.remove('open');document.body.style.overflow='';}
+
+function confirmSavePlan(){
+  let name=(document.getElementById('sp-name').value||'').trim();
+  if(!state.plannerSaved) state.plannerSaved=[];
+  if(!name) name='Plan '+(state.plannerSaved.length+1);
+  let finalName=name,n=2;
+  while(state.plannerSaved.some(p=>p.name===finalName)){finalName=name+' ('+n+')';n++;}
+  const snap={
+    id:uid(),
+    name:finalName,
+    createdAt:Date.now(),
+    updatedAt:Date.now(),
+    totalCapital:state.planner.totalCapital||0,
+    positions:JSON.parse(JSON.stringify(state.planner.positions||{}))
+  };
+  state.plannerSaved.unshift(snap);
+  plannerActivePlanId=snap.id;
+  save();
+  closeSavePlanModal();
+  renderPlanner();
+  showToast('✦ Plan "'+finalName+'" berhasil disimpan.');
+}
+
+function loadSavedPlan(id){
+  const p=(state.plannerSaved||[]).find(x=>x.id===id);
+  if(!p) return;
+  if(!state.planner) state.planner={totalCapital:0,positions:{}};
+  state.planner.totalCapital=p.totalCapital||0;
+  state.planner.positions=JSON.parse(JSON.stringify(p.positions||{}));
+  plannerActivePlanId=id;
+  save();
+  renderPlanner();
+  showToast('📂 Plan "'+p.name+'" dimuat ke planner.');
+}
+
+function unloadActivePlan(){
+  plannerActivePlanId=null;
+  renderPlanner();
+}
+
+function updateSavedPlan(id){
+  const p=(state.plannerSaved||[]).find(x=>x.id===id);
+  if(!p) return;
+  p.totalCapital=state.planner.totalCapital||0;
+  p.positions=JSON.parse(JSON.stringify(state.planner.positions||{}));
+  p.updatedAt=Date.now();
+  save();
+  renderPlanner();
+  showToast('Plan "'+p.name+'" diperbarui dengan alokasi saat ini.');
+}
+
+function renameSavedPlan(id){
+  const p=(state.plannerSaved||[]).find(x=>x.id===id);
+  if(!p) return;
+  const name=prompt('Nama baru untuk plan ini:',p.name);
+  if(name===null) return;
+  const trimmed=name.trim();
+  if(!trimmed){showToast('Nama plan tidak boleh kosong.');return;}
+  p.name=trimmed;p.updatedAt=Date.now();
+  save();
+  renderPlanner();
+  showToast('Nama plan berhasil diganti.');
+}
+
+function deleteSavedPlan(id){
+  const p=(state.plannerSaved||[]).find(x=>x.id===id);
+  if(!p) return;
+  if(!confirm('Hapus plan "'+p.name+'"? Tindakan ini tidak bisa dibatalkan.')) return;
+  state.plannerSaved=(state.plannerSaved||[]).filter(x=>x.id!==id);
+  if(plannerActivePlanId===id) plannerActivePlanId=null;
+  save();
+  renderPlanner();
+  showToast('Plan dihapus.');
+}
+
+function plannerFmtDate(ts){
+  try{return new Date(ts).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return '—';}
+}
+
+// ============================================================
+// PLANNER — KONTROL TAMPILAN CHART (bar / donut / treemap, per sektor / per saham)
+// ============================================================
+function setPlannerChartType(t){plannerChartType=t;renderPlanner();}
+function setPlannerChartGroup(g){plannerChartGroup=g;renderPlanner();}
+function togglePlannerSectorExpand(sec){
+  plannerExpandedSectors[sec]=!plannerExpandedSectors[sec];
+  renderPlanner();
+}
+
+const CHART_PALETTE=['#c0282a','#e0922a','#2a8c5a','#2a6ac0','#8c4ac0','#c02a7a','#2ac0b0','#b8b02a','#7a5a2a','#4a5aa0','#3ac05a','#c05a3a'];
+function plannerChartColor(i){return CHART_PALETTE[i%CHART_PALETTE.length];}
+
+// Bar chart — dipakai juga sebagai tampilan default Diversifikasi Sektor
+function renderChartBarRows(rows,warnPct){
+  return rows.map(r=>{
+    const over=warnPct&&r.pct>warnPct;
+    return '<div class="fv-acc-row">'
+      +'<span class="fv-acc-label" style="min-width:150px;display:flex;align-items:center;gap:6px"><span class="chart-legend-dot" style="background:'+r.color+'"></span>'+escHtml(r.label)+'</span>'
+      +'<div class="fv-acc-bar"><div class="fv-acc-fill" style="width:'+Math.min(r.pct,100)+'%;background:'+(over?'var(--warn)':r.color)+'"></div></div>'
+      +'<span class="fv-acc-val">'+r.pct.toFixed(1)+'%</span>'
+      +'</div>';
+  }).join('');
+}
+
+// Donut chart — SVG murni, tanpa library eksternal
+function renderChartDonut(rows){
+  const size=200,cx=size/2,cy=size/2,r=size/2-16,strokeW=26;
+  const circumference=2*Math.PI*r;
+  let offsetAcc=0,segs='';
+  rows.forEach(row=>{
+    const dash=Math.max(row.pct/100*circumference,rows.length>1?0.6:circumference);
+    const gap=circumference-dash;
+    segs+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+row.color+'" stroke-width="'+strokeW+'" stroke-dasharray="'+dash.toFixed(2)+' '+gap.toFixed(2)+'" stroke-dashoffset="'+(-offsetAcc).toFixed(2)+'" transform="rotate(-90 '+cx+' '+cy+')"><title>'+escHtml(row.label)+': '+row.pct.toFixed(1)+'%</title></circle>';
+    offsetAcc+=row.pct/100*circumference;
+  });
+  return '<svg viewBox="0 0 '+size+' '+size+'" width="'+size+'" height="'+size+'" style="display:block;flex-shrink:0">'
+    +segs
+    +'<circle cx="'+cx+'" cy="'+cy+'" r="'+(r-strokeW/2-3)+'" fill="var(--surface)"/>'
+    +'</svg>';
+}
+
+// Treemap sederhana (strip proporsional 1 baris) — flex-grow menjamin total selalu 100% lebar
+function renderChartTreemap(rows){
+  return '<div class="treemap-wrap">'+rows.map(r=>{
+    const showLabel=r.pct>=6;
+    return '<div class="treemap-cell" style="flex-grow:'+Math.max(r.pct,0.5)+';flex-basis:0;background:'+r.color+'" title="'+escHtml(r.label)+': '+r.pct.toFixed(1)+'%">'
+      +(showLabel?'<span>'+escHtml(r.label)+' '+r.pct.toFixed(0)+'%</span>':'')
+      +'</div>';
+  }).join('')+'</div>';
+}
+
+function renderChartLegend(rows){
+  return '<div class="chart-legend">'+rows.map(r=>'<div class="chart-legend-item"><span class="chart-legend-dot" style="background:'+r.color+'"></span><span class="chart-legend-label" title="'+escHtml(r.label)+'">'+escHtml(r.label)+'</span><span class="chart-legend-pct">'+r.pct.toFixed(1)+'%</span></div>').join('')+'</div>';
+}
+
+// Router utama: gambar chart sesuai plannerChartType yang aktif
+function renderAllocationChart(rows,warnPct){
+  if(!rows.length) return '<div style="font-family:sans-serif;font-size:12px;color:var(--text3)">Belum ada data alokasi untuk ditampilkan.</div>';
+  if(plannerChartType==='donut'){
+    return '<div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;justify-content:center">'+renderChartDonut(rows)+renderChartLegend(rows)+'</div>';
+  }
+  if(plannerChartType==='treemap'){
+    return renderChartTreemap(rows)+renderChartLegend(rows);
+  }
+  return renderChartBarRows(rows,warnPct);
+}
+
 function renderPlanner(){
   const el=document.getElementById('planner-content');
   if(!el) return;
   if(!state.planner) state.planner={totalCapital:0,positions:{}};
+  if(!state.plannerSaved) state.plannerSaved=[];
   const emitens=state.emitens||[];
   const totalInvested=emitens.reduce((sum,em)=>sum+(getPlannerPos(em.id).invested||0),0);
   const totalCapital=state.planner.totalCapital||0;
@@ -1845,6 +2075,14 @@ function renderPlanner(){
   if(cash<0) warnings.push('Dana yang dialokasikan ('+fmt(totalInvested)+') melebihi Modal Total ('+fmt(totalCapital)+').');
 
   let html='';
+
+  const activePlan=(state.plannerSaved||[]).find(p=>p.id===plannerActivePlanId);
+  html+='<div class="planner-status-bar">'
+    +(activePlan
+      ?'<span class="planner-active-badge">📂 Memuat plan: <strong>'+escHtml(activePlan.name)+'</strong> · diperbarui '+plannerFmtDate(activePlan.updatedAt)+'</span>'
+      +'<span style="display:flex;gap:6px"><button class="btn" style="padding:5px 10px;font-size:11px" onclick="updateSavedPlan(\''+activePlan.id+'\')">🔄 Perbarui Plan Ini</button><button class="btn" style="padding:5px 10px;font-size:11px" onclick="unloadActivePlan()">✕ Lepas ke Draft</button></span>'
+      :'<span class="planner-active-badge draft">📝 Draft langsung (belum disimpan sebagai plan)</span><span></span>')
+    +'</div>';
 
   html+='<div class="planner-summary-grid">'
     +'<div class="planner-card"><div class="planner-card-label">Modal Total</div><input type="text" inputmode="numeric" class="planner-capital-input" id="pl-capital-input" value="'+plannerFmtVal(totalCapital)+'" placeholder="0" oninput="plannerFormatInput(this)" onchange="setPlannerCapital(this.value)"></div>'
@@ -1924,18 +2162,88 @@ function renderPlanner(){
     +'<button class="btn btn-primary" onclick="generatePlannerSuggestion()">✦ Terapkan Saran Alokasi</button>'
     +'</div></div></div>';
 
-  html+='<div class="stats-section"><div class="stats-section-title">Diversifikasi Sektor</div>';
-  if(!sectorRows.length||totalInvested<=0){
+  // ── Plan Tersimpan ──
+  html+='<div class="stats-section" style="margin-bottom:20px">'
+    +'<div class="stats-section-title">📂 Plan Tersimpan</div>';
+  if(!state.plannerSaved.length){
+    html+='<div style="font-family:sans-serif;font-size:12px;color:var(--text3)">Belum ada plan tersimpan. Atur alokasi di atas lalu klik <strong>💾 Simpan Plan</strong> untuk menyimpannya dengan nama, sehingga kamu bisa membandingkan beberapa skenario.</div>';
+  }else{
+    html+='<div class="saved-plan-list">'+state.plannerSaved.map(p=>{
+      const pInvested=Object.values(p.positions||{}).reduce((s,pos)=>s+(pos.invested||0),0);
+      const pCount=Object.values(p.positions||{}).filter(pos=>(pos.invested||0)>0).length;
+      const isActive=p.id===plannerActivePlanId;
+      return '<div class="saved-plan-card'+(isActive?' is-active':'')+'">'
+        +'<div class="saved-plan-info"><span class="saved-plan-name">'+(isActive?'📍 ':'')+escHtml(p.name)+'</span><span class="saved-plan-meta">'+fmt(pInvested)+' · '+pCount+' emiten · disimpan '+plannerFmtDate(p.createdAt)+'</span></div>'
+        +'<div class="saved-plan-actions">'
+        +(isActive?'':'<button class="btn btn-primary" onclick="loadSavedPlan(\''+p.id+'\')">Muat</button>')
+        +'<button class="btn btn-edit" onclick="renameSavedPlan(\''+p.id+'\')">Ganti Nama</button>'
+        +'<button class="btn" onclick="deleteSavedPlan(\''+p.id+'\')" style="color:var(--red-t);border-color:var(--red)">Hapus</button>'
+        +'</div></div>';
+    }).join('')+'</div>';
+  }
+  html+='</div>';
+
+  // ── Diversifikasi Sektor (+ porsi kepemilikan saham per emiten) ──
+  const sectorRowsColored=sectorRows.map((s,i)=>({sec:s.sec,val:s.val,pct:s.pct,color:plannerChartColor(i)}));
+  html+='<div class="stats-section" style="margin-bottom:20px"><div class="stats-section-title">Diversifikasi Sektor</div>';
+  if(!sectorRowsColored.length||totalInvested<=0){
     html+='<div style="font-family:sans-serif;font-size:12px;color:var(--text3)">Isi kolom Modal Ditanam pada setiap emiten untuk menampilkan komposisi sektor.</div>';
   }else{
-    sectorRows.forEach(s=>{
+    html+='<div style="font-family:sans-serif;font-size:11px;color:var(--text3);margin:-6px 0 12px">Klik sektor untuk melihat porsi kepemilikan tiap saham di dalamnya.</div>';
+    sectorRowsColored.forEach(s=>{
       const over=s.pct>PLANNER_SECTOR_WARN_PCT;
-      html+='<div class="fv-acc-row">'
-        +'<span class="fv-acc-label" style="min-width:150px">'+escHtml(s.sec)+'</span>'
-        +'<div class="fv-acc-bar"><div class="fv-acc-fill" style="width:'+Math.min(s.pct,100)+'%;background:'+(over?'var(--warn)':'var(--accent)')+'"></div></div>'
+      const expanded=!!plannerExpandedSectors[s.sec];
+      html+='<div class="sector-expand-row" onclick="togglePlannerSectorExpand(\''+escHtml(s.sec).replace(/'/g,"\\'")+'\')">'
+        +'<svg class="sector-expand-arrow'+(expanded?' open':'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="10" height="10"><polyline points="9 18 15 12 9 6"/></svg>'
+        +'<span class="fv-acc-label" style="min-width:150px;display:flex;align-items:center;gap:6px"><span class="chart-legend-dot" style="background:'+s.color+'"></span>'+escHtml(s.sec)+'</span>'
+        +'<div class="fv-acc-bar"><div class="fv-acc-fill" style="width:'+Math.min(s.pct,100)+'%;background:'+(over?'var(--warn)':s.color)+'"></div></div>'
         +'<span class="fv-acc-val">'+s.pct.toFixed(1)+'%</span>'
         +'</div>';
+      if(expanded){
+        const stocksInSector=emitens
+          .map(em=>({em,inv:getPlannerPos(em.id).invested||0}))
+          .filter(x=>(x.em.sector||'Tanpa Sektor')===s.sec&&x.inv>0)
+          .sort((a,b)=>b.inv-a.inv);
+        html+='<div class="sector-stock-list">'+(stocksInSector.length?stocksInSector.map(x=>{
+          const pctOfTotal=totalInvested>0?x.inv/totalInvested*100:0;
+          const pctOfSector=s.val>0?x.inv/s.val*100:0;
+          return '<div class="sector-stock-row">'
+            +'<span class="sector-stock-ticker">'+escHtml(x.em.ticker)+'</span>'
+            +'<div class="sector-stock-bar"><div class="sector-stock-fill" style="width:'+Math.min(pctOfSector,100)+'%"></div></div>'
+            +'<span class="sector-stock-val">'+fmt(x.inv)+' · '+pctOfTotal.toFixed(1)+'% total</span>'
+            +'</div>';
+        }).join(''):'<div style="font-family:sans-serif;font-size:11px;color:var(--text3)">Tidak ada saham dengan modal ditanam pada sektor ini.</div>')+'</div>';
+      }
     });
+  }
+  html+='</div>';
+
+  // ── Tampilan Alokasi Dana (opsi chart: bar / donut / treemap, per sektor / per saham) ──
+  const stockRowsColored=emitens
+    .map((em,i)=>({em,inv:getPlannerPos(em.id).invested||0}))
+    .filter(x=>x.inv>0)
+    .sort((a,b)=>b.inv-a.inv)
+    .map((x,i)=>({label:x.em.ticker,val:x.inv,pct:totalInvested>0?x.inv/totalInvested*100:0,color:plannerChartColor(i)}));
+  const sectorRowsForChart=sectorRowsColored.map(s=>({label:s.sec,val:s.val,pct:s.pct,color:s.color}));
+
+  html+='<div class="stats-section"><div class="stats-section-title">📊 Tampilan Alokasi Dana</div>';
+  if(totalInvested<=0){
+    html+='<div style="font-family:sans-serif;font-size:12px;color:var(--text3)">Isi kolom Modal Ditanam untuk menampilkan visualisasi alokasi dana.</div>';
+  }else{
+    html+='<div class="chart-controls-row">'
+      +'<div><span class="chart-controls-label">Kelompokkan</span><div class="chart-toggle-group" style="display:inline-flex">'
+        +'<button class="chart-toggle-btn'+(plannerChartGroup==='sector'?' active':'')+'" onclick="setPlannerChartGroup(\'sector\')">Per Sektor</button>'
+        +'<button class="chart-toggle-btn'+(plannerChartGroup==='stock'?' active':'')+'" onclick="setPlannerChartGroup(\'stock\')">Per Saham</button>'
+      +'</div></div>'
+      +'<div><span class="chart-controls-label">Tampilan</span><div class="chart-toggle-group" style="display:inline-flex">'
+        +'<button class="chart-toggle-btn'+(plannerChartType==='bar'?' active':'')+'" onclick="setPlannerChartType(\'bar\')">▤ Bar</button>'
+        +'<button class="chart-toggle-btn'+(plannerChartType==='donut'?' active':'')+'" onclick="setPlannerChartType(\'donut\')">◔ Donut</button>'
+        +'<button class="chart-toggle-btn'+(plannerChartType==='treemap'?' active':'')+'" onclick="setPlannerChartType(\'treemap\')">▦ Treemap</button>'
+      +'</div></div>'
+      +'</div>';
+    const chartRows=plannerChartGroup==='stock'?stockRowsColored:sectorRowsForChart;
+    const chartWarnPct=plannerChartGroup==='sector'?PLANNER_SECTOR_WARN_PCT:PLANNER_STOCK_WARN_PCT;
+    html+=renderAllocationChart(chartRows,chartWarnPct);
   }
   html+='</div>';
 
@@ -2804,17 +3112,18 @@ updateStats=function(){_origUpdateStats();renderAiList();};
 // ============================================================
 // MODAL CLOSE HANDLERS
 // ============================================================
-['modal-add','modal-quarter','modal-close-hit','modal-close-miss'].forEach(id=>{
+['modal-add','modal-quarter','modal-close-hit','modal-close-miss','modal-save-plan'].forEach(id=>{
   document.getElementById(id).addEventListener('click',function(e){
     if(e.target!==this)return;
     if(id==='modal-add')closeModal();
     if(id==='modal-quarter')closeQuarterModal();
     if(id==='modal-close-hit')closeHitModal();
     if(id==='modal-close-miss')closeMissModal();
+    if(id==='modal-save-plan')closeSavePlanModal();
   });
 });
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeQuarterModal();closeHitModal();closeMissModal();closeCardPopup();closeShareModal();}
+  if(e.key==='Escape'){closeModal();closeQuarterModal();closeHitModal();closeMissModal();closeCardPopup();closeShareModal();closeSavePlanModal();}
 });
 
 // ============================================================

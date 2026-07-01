@@ -2043,14 +2043,20 @@ function renderPlanner(){
   if(!state.planner) state.planner={totalCapital:0,positions:{}};
   if(!state.plannerSaved) state.plannerSaved=[];
   const emitens=state.emitens||[];
-  const totalInvested=emitens.reduce((sum,em)=>sum+(getPlannerPos(em.id).invested||0),0);
+  const isIncluded=em=>getPlannerPos(em.id).included!==false;
+  const includedEmitens=emitens.filter(isIncluded);
+  // PENTING: total & agregasi cuma dihitung dari emiten yang DICENTANG.
+  // Emiten yang di-uncheck dianggap keluar dari plan — Modal Ditanam-nya tetap
+  // tersimpan (biar gampang dicentang lagi nanti) tapi tidak ikut ke Modal
+  // Terinvestasi, Diversifikasi Sektor, warning, ataupun chart.
+  const totalInvested=includedEmitens.reduce((sum,em)=>sum+(getPlannerPos(em.id).invested||0),0);
   const totalCapital=state.planner.totalCapital||0;
   const cash=totalCapital-totalInvested;
-  const totalTarget=emitens.reduce((s,em)=>s+(getPlannerPos(em.id).targetPct||0),0);
+  const totalTarget=includedEmitens.reduce((s,em)=>s+(getPlannerPos(em.id).targetPct||0),0);
 
-  // Agregasi per sektor (berbobot modal ditanam)
+  // Agregasi per sektor (berbobot modal ditanam, hanya emiten yang dicentang)
   const sectorMap={};
-  emitens.forEach(em=>{
+  includedEmitens.forEach(em=>{
     const inv=getPlannerPos(em.id).invested||0;
     const sec=em.sector||'Tanpa Sektor';
     sectorMap[sec]=(sectorMap[sec]||0)+inv;
@@ -2059,9 +2065,9 @@ function renderPlanner(){
     .map(([sec,val])=>({sec,val,pct:totalInvested>0?val/totalInvested*100:0}))
     .sort((a,b)=>b.val-a.val);
 
-  // Warnings
+  // Warnings (hanya emiten yang dicentang / ikut dihitung)
   const warnings=[];
-  emitens.forEach(em=>{
+  includedEmitens.forEach(em=>{
     const pos=getPlannerPos(em.id);
     const inv=pos.invested||0;
     const pct=totalInvested>0?inv/totalInvested*100:0;
@@ -2078,6 +2084,8 @@ function renderPlanner(){
     if(s.pct>PLANNER_SECTOR_WARN_PCT) warnings.push('Sektor '+escHtml(s.sec)+' memiliki porsi '+s.pct.toFixed(1)+'% dari total investasi, menunjukkan konsentrasi yang tinggi pada satu sektor.');
   });
   if(cash<0) warnings.push('Dana yang dialokasikan ('+fmt(totalInvested)+') melebihi Modal Total ('+fmt(totalCapital)+').');
+  const excludedWithFunds=emitens.filter(em=>!isIncluded(em)&&(getPlannerPos(em.id).invested||0)>0);
+  if(excludedWithFunds.length) warnings.push(excludedWithFunds.length+' emiten (tercentang tidak aktif) masih punya Modal Ditanam tersimpan tapi TIDAK dihitung ke total — centang lagi kalau mau diikutsertakan, atau kosongkan Modal Ditanam-nya: '+excludedWithFunds.map(em=>escHtml(em.ticker)).join(', ')+'.');
 
   let html='';
 

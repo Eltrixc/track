@@ -2386,15 +2386,20 @@ DATA EMITEN:
 - Jumlah entry data: ${em.entries.length} kuartal
 
 FUNDAMENTAL (kuartal terakhir):
-- BVPS: ${last.bvps||'N/A'} | PBV: ${last.pbv||'N/A'}x | EPS: ${last.eps||'N/A'} | PE: ${last.pe||'N/A'}x
+- BVPS: ${last.bvps||'N/A'} | EPS: ${last.eps||'N/A'}
 - Net Income: ${last.ni||'N/A'}T | Saham Beredar: ${last.shares||'N/A'}M
 
+MULTIPLIER VALUASI HISTORIS (RATA-RATA 3 TAHUN — bukan PBV/PE real-time saat ini, hanya dipakai sebagai basis perhitungan Fair Value di bawah):
+- Mean PBV 3 tahun: ${last.pbv||'N/A'}x → dipakai untuk FV1
+- Mean PE 3 tahun: ${last.pe||'N/A'}x → dipakai untuk FV2 & FV3
+- PENTING: angka PBV/PE di atas BUKAN valuasi pasar saat ini. Jangan simpulkan saham "mahal" atau "murah" hanya dari besar-kecilnya angka multiplier ini — itu cuma rata-rata historis sebagai input rumus. Ukuran valuasi saat ini yang valid adalah perbandingan Harga vs FV/Margin of Safety di bawah.
+
 VALUASI:
-- FV1 (BVPS×PBV): ${fv1?'Rp '+Math.round(fv1):'N/A'}
-- FV2 ((NI×PE)÷Saham): ${fv2?'Rp '+Math.round(fv2):'N/A'}
-- FV3 (PE×EPS): ${fv3?'Rp '+Math.round(fv3):'N/A'}
+- FV1 (BVPS×Mean PBV 3th): ${fv1?'Rp '+Math.round(fv1):'N/A'}
+- FV2 ((NI×Mean PE 3th)÷Saham): ${fv2?'Rp '+Math.round(fv2):'N/A'}
+- FV3 (Mean PE 3th×EPS): ${fv3?'Rp '+Math.round(fv3):'N/A'}
 - FV Rata-rata: ${avg?'Rp '+Math.round(avg):'N/A'}
-- Margin of Safety: ${mosPct!==null?(mosPct>=0?'+':'')+mosPct.toFixed(1)+'% ('+mosTier+')':'N/A'}
+- Margin of Safety (Harga vs FV — ini indikator valuasi saat ini yang benar): ${mosPct!==null?(mosPct>=0?'+':'')+mosPct.toFixed(1)+'% ('+mosTier+')':'N/A'}
 - Status Valuasi: ${valuationSignal}
 
 ${historyCtx?`TREN HISTORIS (3 kuartal terakhir):\n${historyCtx}\n`:''}
@@ -2410,7 +2415,7 @@ INSTRUKSI PENTING:
 5. Variasikan cara penyampaian — jangan selalu pakai struktur yang sama
 
 Balas HANYA JSON tanpa markdown, tanpa komentar apapun:
-{"verdict":{"label":"BULLISH"|"BEARISH"|"NETRAL","summary":"2-3 kalimat padat yang langsung ke inti analisis"},"valuation":{"mos_interpretation":"1-2 kalimat tentang kualitas MoS saat ini"},"fundamentals":{"analysis":"2-3 kalimat yang menyoroti poin terkuat dan terlemah dari fundamental"},"price_action":{"bullish_scenario":"skenario realistis jika thesis benar, sertakan estimasi target harga","bearish_scenario":"risiko dan level stop-loss yang perlu diwaspadai","key_levels":"support dan resistance kunci dalam format yang ringkas"},"risks":"Sebutkan 2-4 risiko terspesifik untuk emiten ini (bukan risiko generik)","watchlist":["3-5 indikator atau event konkret yang harus dipantau investor"]}`;
+{"verdict":{"label":"BULLISH"|"BEARISH"|"NETRAL","summary":"2-3 kalimat padat yang langsung ke inti analisis"},"valuation":{"mos_interpretation":"1-2 kalimat tentang kualitas MoS saat ini"},"fundamentals":{"analysis":"2-3 kalimat yang menyoroti poin terkuat dan terlemah dari fundamental"},"price_action":{"bullish_scenario":"skenario realistis jika thesis benar, sertakan estimasi target harga","bearish_scenario":"risiko dan level stop-loss yang perlu diwaspadai","key_levels":"support dan resistance kunci dalam format yang ringkas"},"risks":["2-4 item risiko terspesifik untuk emiten ini (bukan risiko generik), SATU risiko per elemen array, masing-masing 1 kalimat singkat"],"watchlist":["3-5 indikator atau event konkret yang harus dipantau investor"]}`;
 
   return prompt;
 }
@@ -2482,7 +2487,7 @@ function renderAiHtml(d,em,fv,persona){
   <div class="ai-scenario bull"><div class="ai-scenario-label">▲ Bullish</div>${renderMdInline(d.price_action.bullish_scenario)}</div>
   <div class="ai-scenario bear"><div class="ai-scenario-label">▼ Bearish</div>${renderMdInline(d.price_action.bearish_scenario)}</div>
   <div style="background:var(--bg2);border-radius:6px;padding:9px 11px;font-family:sans-serif;font-size:12px;color:var(--text2);margin-top:6px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);margin-bottom:5px">Key Levels</div>${renderMdInline(d.price_action.key_levels)}</div></div>
-  <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>Risiko</div><div class="ai-prose">${renderMdInline(d.risks)}</div></div>
+  <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>Risiko</div><div class="ai-prose">${Array.isArray(d.risks)?`<ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:4px">${d.risks.map(r=>`<li>${renderMdInline(r)}</li>`).join('')}</ul>`:renderMdInline(d.risks)}</div></div>
   <div class="ai-section"><div class="ai-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Watchlist</div>
   <div style="display:flex;flex-wrap:wrap;gap:4px">${(d.watchlist||[]).map((w,i)=>`<span class="ai-tag ${i%3===0?'accent':i%3===1?'green':'red'}">${escHtml(w)}</span>`).join('')}</div></div>`;
   // Render math after building HTML (will be applied when inserted into DOM via showAiContent)

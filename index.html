@@ -1792,18 +1792,80 @@ function plannerMoS(em){
   return (fv.avg-price)/price*100;
 }
 
+// Total Modal Ditanam dari emiten yang dicentang (included), bisa exclude 1 id
+// (dipakai untuk menghitung sisa dana yang tersedia buat emiten yang sedang diedit).
+function plannerIncludedInvestedTotal(excludeId){
+  return (state.emitens||[]).reduce((s,em)=>{
+    if(em.id===excludeId) return s;
+    const p=getPlannerPos(em.id);
+    return s+((p.included!==false)?(p.invested||0):0);
+  },0);
+}
+// Kalau Modal Total dikurangi sampai tidak cukup lagi menutup alokasi yang sudah
+// ada, reset Modal Ditanam & Target seluruh emiten tercentang ke 0 (bukan cuma warning).
+function plannerEnforceCapital(){
+  const totalCapital=state.planner.totalCapital||0;
+  const totalInvested=plannerIncludedInvestedTotal(null);
+  if(totalInvested>totalCapital){
+    state.emitens.forEach(em=>{
+      const p=getPlannerPos(em.id);
+      if(p.included!==false){p.invested=0;p.targetPct=0;}
+    });
+    showToast('⚠️ Modal Total tidak cukup untuk alokasi yang sudah ada. Modal Ditanam & Target seluruh emiten tercentang direset ke 0.');
+  }
+}
 function setPlannerCapital(val){
   if(!state.planner) state.planner={totalCapital:0,positions:{}};
   state.planner.totalCapital=plannerParseNum(val);
+  plannerEnforceCapital();
   save(); renderPlanner();
 }
 function setPlannerInvested(id,val){
-  getPlannerPos(id).invested=plannerParseNum(val);
+  const pos=getPlannerPos(id);
+  let v=plannerParseNum(val); if(v<0) v=0;
+  if(pos.included!==false){
+    const totalCapital=state.planner.totalCapital||0;
+    const maxAllowed=Math.max(0,totalCapital-plannerIncludedInvestedTotal(id));
+    if(v>maxAllowed){
+      const em=(state.emitens||[]).find(e=>e.id===id);
+      const label=em?em.ticker:id;
+      if(maxAllowed<=0){
+        pos.invested=0; pos.targetPct=0;
+        showToast('⚠️ Modal tidak cukup, Modal Ditanam '+label+' direset ke Rp0.');
+      }else{
+        pos.invested=maxAllowed;
+        showToast('⚠️ Modal tidak cukup, Modal Ditanam '+label+' dibatasi ke '+fmt(maxAllowed)+'.');
+      }
+      save(); renderPlanner();
+      return;
+    }
+  }
+  pos.invested=v;
   save(); renderPlanner();
 }
 function setPlannerLot(id,val,lotValue){
+  const pos=getPlannerPos(id);
   let lots=parseInt(val,10); if(isNaN(lots)||lots<0) lots=0;
-  getPlannerPos(id).invested=lots*lotValue;
+  if(pos.included!==false){
+    const totalCapital=state.planner.totalCapital||0;
+    const maxAllowed=Math.max(0,totalCapital-plannerIncludedInvestedTotal(id));
+    const maxLots=Math.floor(maxAllowed/lotValue);
+    if(lots>maxLots){
+      const em=(state.emitens||[]).find(e=>e.id===id);
+      const label=em?em.ticker:id;
+      lots=maxLots;
+      if(lots<=0){
+        pos.invested=0; pos.targetPct=0;
+        showToast('⚠️ Modal tidak cukup untuk 1 lot, Lot '+label+' direset ke 0.');
+      }else{
+        pos.invested=lots*lotValue;
+        showToast('⚠️ Modal tidak cukup, Lot '+label+' dibatasi ke '+lots+' lot.');
+      }
+      save(); renderPlanner();
+      return;
+    }
+  }
+  pos.invested=lots*lotValue;
   save(); renderPlanner();
 }
 function setPlannerTarget(id,val){

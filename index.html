@@ -477,7 +477,7 @@
   /* ============================================================
      🌸 SAKURA CANVAS (persistent background petal rain)
      ============================================================ */
-  #sakura-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;opacity:.75}
+  #sakura-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;opacity:2}
 
   /* ============================================================
      ⛩️ INTRO GATE OVERLAY
@@ -568,7 +568,7 @@
     .inv-expand-inner{flex-direction:column;gap:8px}.inv-expand-inner .expand-kv{min-width:unset;width:100%}
     .modal{padding:16px;width:95%}.ticker-live-label{display:none}.cyclical-warning{font-size:11px;padding:6px 14px}
     .split-layout{grid-template-columns:1fr}.split-right{position:static;max-height:none}.card-popup{max-width:100%;border-radius:10px}
-    #sakura-canvas{opacity:.2}
+    #sakura-canvas{opacity:.7}
   }
 </style>
 </head>
@@ -2467,7 +2467,7 @@ document.addEventListener('click',function(e){if(!mosTooltip.contains(e.target)&
 // ============================================================
 const GOAPI_KEY_LS='goapi_api_key_v1';
 const TICKER_LS_KEY='goapi_ticker_v1',TICKER_QUOTA_KEY='goapi_quota_v1';
-const TICKER_MAX_AGE=20*60*1000,TICKER_MAX_DAY=30; // cache 20 menit (sedikit > interval refresh)
+const TICKER_MAX_AGE=20*60*1000,TICKER_MAX_AGE_CLOSED=24*60*60*1000,TICKER_MAX_DAY=30; // cache 20 menit saat market buka, 24 jam saat tutup
 // Market IDX: Senin-Jumat 09:00-16:30 WIB (UTC+7)
 // Pre-open mulai 08:55 supaya data pertama langsung ada saat buka
 const MARKET_OPEN_H=8,MARKET_OPEN_M=55;   // 08:55 WIB
@@ -2634,20 +2634,21 @@ async function initTicker(forceRefresh){
   // Market tutup — tampilkan data cache kalau ada, jangan buang quota
   if(!isMarketOpen()){
     updateQuotaBadge();
-    const symbols=state.emitens.map(e=>e.ticker.toUpperCase());
     try{
       const saved=JSON.parse(localStorage.getItem(TICKER_LS_KEY)||'null');
+      // Saat market tutup: render cache berapapun umurnya (data hari ini masih relevan)
       if(saved&&saved.items&&saved.items.length){
-        // Render data terakhir yang ada, tapi tandai sebagai "terakhir diperbarui"
-        renderTickerBar(saved.items);
+        renderTickerBar(saved.items); // ini sekaligus update livePriceMap & kartu
         const minsAgo=Math.round((Date.now()-saved.ts)/60000);
         const el=document.getElementById('ticker-quota');
-        if(el)el.title='Data dari '+minsAgo+' menit yang lalu';
+        if(el)el.title='Data '+minsAgo+' menit lalu';
       } else {
-        if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">⏸ Market tutup · Data live tersedia saat market buka</span>';}
+        if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">⏸ Market tutup · Buka saat jam market</span>';}
         if(track)track.style.display='none';
       }
-    }catch(e){}
+    }catch(e){
+      if(loading){loading.style.display='flex';loading.innerHTML='<span style="color:var(--text3);font-size:11px;font-style:italic">⏸ Market tutup</span>';}
+    }
     return;
   }
   const symbols=state.emitens.map(e=>e.ticker.toUpperCase()),now=Date.now();

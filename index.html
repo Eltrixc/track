@@ -9,12 +9,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
-<!-- Markdown renderer -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
-<!-- KaTeX for math equations -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<!-- Markdown renderer + KaTeX: sengaja TIDAK dimuat di sini.
+     Keduanya cuma dipakai fitur AI Oracle/analisa AI, jadi di-lazy-load
+     lewat ensureMdMathLibs() pas fitur itu pertama kali dibuka.
+     Ini biar halaman awal lebih ringan buat di-parse browser. -->
 <style>
   /* ============================================================
      🌅 SAMURAI THEME SYSTEM — 4 TIME-BASED PALETTES
@@ -499,7 +497,7 @@
   /* ============================================================
      🌸 SAKURA CANVAS (persistent background petal rain)
      ============================================================ */
-  #sakura-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;opacity:2}
+  #sakura-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;opacity:1}
 
   /* ============================================================
      ⛩️ INTRO GATE OVERLAY
@@ -2142,12 +2140,46 @@ function drawActiveCard(canvas,em){
 // ============================================================
 // MARKDOWN + MATH HELPERS
 // ============================================================
-// Configure marked: no pedantic, smart breaks
-(function() {
-  if (window.marked) {
-    marked.setOptions({ breaks: true, gfm: true, pedantic: false });
-  }
-})();
+// marked.js & KaTeX di-lazy-load (baru di-fetch pas fitur AI/Oracle
+// pertama kali dibuka), bukan di awal <head>, biar initial load lebih ringan.
+let _mdMathLibsPromise = null;
+function ensureMdMathLibs() {
+  if (_mdMathLibsPromise) return _mdMathLibsPromise;
+  _mdMathLibsPromise = new Promise((resolve) => {
+    let pending = 0;
+    const done = () => { if (--pending <= 0) resolve(); };
+
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css';
+    document.head.appendChild(css);
+
+    pending++;
+    const markedScript = document.createElement('script');
+    markedScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js';
+    markedScript.async = true;
+    markedScript.onload = done; markedScript.onerror = done;
+    document.head.appendChild(markedScript);
+
+    pending++;
+    const katexScript = document.createElement('script');
+    katexScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js';
+    katexScript.async = true;
+    katexScript.onload = () => {
+      const autoRender = document.createElement('script');
+      autoRender.src = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js';
+      autoRender.async = true;
+      autoRender.onload = done; autoRender.onerror = done;
+      document.head.appendChild(autoRender);
+    };
+    katexScript.onerror = done;
+    document.head.appendChild(katexScript);
+  });
+  _mdMathLibsPromise.then(() => {
+    if (window.marked) marked.setOptions({ breaks: true, gfm: true, pedantic: false });
+  });
+  return _mdMathLibsPromise;
+}
 
 // Full markdown render (chatbot — block elements allowed)
 function renderMdFull(text) {
@@ -2384,6 +2416,7 @@ Balas HANYA JSON tanpa markdown, tanpa komentar apapun:
 }
 
 async function aiAnalyze(emitenId,e){
+  ensureMdMathLibs(); // mulai fetch marked.js+KaTeX di background, paralel sama request AI di bawah
   if(e)e.stopPropagation();const em=state.emitens.find(x=>x.id===emitenId);if(!em)return;
   aiCurrentEmitenId=emitenId;aiViewSource='live';aiCurrentSavedId=null;
   document.getElementById('ai-saved-wrap').style.display='none';
@@ -2421,6 +2454,7 @@ async function aiAnalyze(emitenId,e){
     // Strip think tags (for R1 models), then parse JSON
     const stripped=raw.replace(/<think>[\s\S]*?<\/think>/gi,'').trim();
     try{const clean=stripped.replace(/^```[\w]*\n?/,'').replace(/\n?```$/,'').trim();parsed=JSON.parse(clean);}catch{throw new Error('Format respons tidak valid.');}
+    await ensureMdMathLibs();
     const html=renderAiHtml(parsed,em,{fv1,fv2,fv3,avg,mosPct},persona);aiCache[emitenId]={html,timestamp:Date.now()};renderAiList();showAiContent(html);
   }catch(err){showAiError(err.message);}finally{document.getElementById('ai-refresh-btn').disabled=false;}
 }
@@ -3419,6 +3453,7 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
     const panel = document.getElementById('oracle-panel');
     if (oraclePanelOpen) {
       panel.classList.add('open');
+      ensureMdMathLibs(); // preload di background selagi user ngetik pertanyaan
       updateModelLabel();
       setTimeout(() => {
         if (!getKey()) {
@@ -3607,6 +3642,7 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
 
       // Setelah streaming selesai: render markdown + math
       const cleanText = stripThink(fullText);
+      await ensureMdMathLibs();
       botBubble.innerHTML = renderMdFull(cleanText);
       renderMath(botBubble);
       document.getElementById('oracle-messages').scrollTop = 99999;
@@ -3630,13 +3666,26 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
 (function(){
   'use strict';
 
+  /* ── Deteksi device low-end (RAM ≤4GB atau CPU core dikit) ──
+     navigator.deviceMemory cuma didukung Chrome/Edge, jadi ini best-effort:
+     kalau gak kedeteksi (misal Safari/Firefox) dianggap bukan low-end. */
+  function isLowEndDevice(){
+    try{
+      if(navigator.deviceMemory && navigator.deviceMemory<=4)return true;
+      if(navigator.hardwareConcurrency && navigator.hardwareConcurrency<=4)return true;
+    }catch(e){}
+    return false;
+  }
+  const LOW_END=isLowEndDevice();
+  const FRAME_CAP=LOW_END?45:33; // ~22fps di device low-end, ~30fps normal
+
   /* ── SAKURA CANVAS PETALS ── */
   function initSakura(){
     const canvas=document.getElementById('sakura-canvas');
     if(!canvas)return;
     const ctx=canvas.getContext('2d');
     let W,H,petals=[];
-    const MAX_PETALS=50;
+    const MAX_PETALS=LOW_END?20:50;
     const COLORS=['rgba(255,183,197,',  'rgba(255,161,182,', 'rgba(255,200,210,', 'rgba(250,170,188,'];
 
     function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
@@ -3683,8 +3732,8 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
     function tick(now){
       if(!running)return;
       const dt=Math.min(now-lastT,50);lastT=now;
-      if(dt>29)requestAnimationFrame(tick); // cap at ~30fps
-      else setTimeout(()=>requestAnimationFrame(tick),33-dt);
+      if(dt>FRAME_CAP-4)requestAnimationFrame(tick);
+      else setTimeout(()=>requestAnimationFrame(tick),FRAME_CAP-dt);
 
       // Check reduced motion
       if(window.matchMedia('(prefers-reduced-motion:reduce)').matches){
@@ -3701,6 +3750,17 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
       });
     }
     requestAnimationFrame(t=>{lastT=t;tick(t);});
+
+    // Pause total pas tab gak aktif (hemat CPU/baterai), lanjut lagi pas balik dibuka
+    document.addEventListener('visibilitychange',()=>{
+      if(document.hidden){
+        running=false;
+      }else if(!running){
+        running=true;
+        lastT=performance.now();
+        requestAnimationFrame(tick);
+      }
+    });
   }
 
   /* ── THEME AMBIENT PARTICLES (beda tiap tema, sakura tetap jalan terpisah) ── */
@@ -3747,7 +3807,7 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
         t:Math.random()*1000
       }),
     };
-    const COUNTS={dawn:6,morning:35,dusk:28,night:90};
+    const COUNTS=LOW_END?{dawn:3,morning:16,dusk:12,night:40}:{dawn:6,morning:35,dusk:28,night:90};
 
     function rebuild(theme){
       if(!FACTORIES[theme])theme='night';
@@ -3786,8 +3846,8 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
     function tick(now){
       if(!running)return;
       const dt=Math.min(now-lastT,50);lastT=now;
-      if(dt>29)requestAnimationFrame(tick);
-      else setTimeout(()=>requestAnimationFrame(tick),33-dt);
+      if(dt>FRAME_CAP-4)requestAnimationFrame(tick);
+      else setTimeout(()=>requestAnimationFrame(tick),FRAME_CAP-dt);
 
       if(window.matchMedia('(prefers-reduced-motion:reduce)').matches){
         ctx.clearRect(0,0,W,H);return;
@@ -3814,6 +3874,17 @@ Waktu sekarang: ${timeStr} WIB${portfolioCtx}`;
     }
     requestAnimationFrame(t=>{lastT=t;tick(t);});
     rebuild(document.documentElement.getAttribute('data-theme')||'night');
+
+    // Pause total pas tab gak aktif (hemat CPU/baterai), lanjut lagi pas balik dibuka
+    document.addEventListener('visibilitychange',()=>{
+      if(document.hidden){
+        running=false;
+      }else if(!running){
+        running=true;
+        lastT=performance.now();
+        requestAnimationFrame(tick);
+      }
+    });
   }
 
   /* ── INTRO GATE SEQUENCE ── */
